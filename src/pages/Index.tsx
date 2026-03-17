@@ -15,6 +15,7 @@ const presentations = [
 
 const Index = () => {
   const [lang, setLang] = useState<Lang>("en");
+  const navigate = useNavigate();
   const isRtl = lang === "ar";
 
   return (
