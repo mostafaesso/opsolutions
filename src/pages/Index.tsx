@@ -56,6 +56,7 @@ const Index = () => {
           {presentations.map((p) => (
             <button
               key={p.id}
+              onClick={() => navigate(p.route)}
               className="group relative flex items-center gap-5 rounded-2xl border border-border bg-card p-6 text-left transition-all duration-200 hover:border-accent/40 hover:shadow-[0_0_30px_-8px_hsl(var(--accent)/0.25)]"
               style={{ textAlign: isRtl ? "right" : "left" }}
             >
