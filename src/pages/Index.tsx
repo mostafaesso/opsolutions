@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Globe, ChevronRight, Presentation } from "lucide-react";
 
 type Lang = "en" | "ar";
