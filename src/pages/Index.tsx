@@ -1,17 +1,18 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Globe, ChevronRight, Presentation } from "lucide-react";
 
 type Lang = "en" | "ar";
 
 const presentations = [
-  { id: "our-story", emoji: "📖", title: { en: "Our Story", ar: "قصتنا" }, subtitle: { en: "The Jisr journey", ar: "رحلة جسر" }, slides: 13 },
-  { id: "enterprise", emoji: "🏢", title: { en: "Enterprise", ar: "المؤسسات" }, subtitle: { en: "For large organizations", ar: "للمؤسسات الكبيرة" }, slides: 18 },
-  { id: "smb", emoji: "🏪", title: { en: "SMB", ar: "الشركات المتوسطة" }, subtitle: { en: "Small & medium businesses", ar: "الشركات الصغيرة والمتوسطة" }, slides: 17 },
-  { id: "micro", emoji: "🚀", title: { en: "Micro", ar: "الشركات الناشئة" }, subtitle: { en: "Startups & small teams", ar: "الشركات الناشئة والفرق الصغيرة" }, slides: 12 },
+  { id: "story", emoji: "📖", title: { en: "Our Story", ar: "قصتنا" }, subtitle: { en: "The Jisr journey", ar: "رحلة جسر" }, slides: 13, route: "/present/story" },
+  { id: "enterprise", emoji: "🏢", title: { en: "Enterprise", ar: "المؤسسات" }, subtitle: { en: "For large organizations", ar: "للمؤسسات الكبيرة" }, slides: 18, route: "/present/enterprise" },
+  { id: "smb", emoji: "🏪", title: { en: "SMB", ar: "الشركات المتوسطة" }, subtitle: { en: "Small & medium businesses", ar: "الشركات الصغيرة والمتوسطة" }, slides: 17, route: "/present/smb" },
 ];
 
 const Index = () => {
   const [lang, setLang] = useState<Lang>("en");
+  const navigate = useNavigate();
   const isRtl = lang === "ar";
 
   return (
@@ -55,6 +56,7 @@ const Index = () => {
           {presentations.map((p) => (
             <button
               key={p.id}
+              onClick={() => navigate(p.route)}
               className="group relative flex items-center gap-5 rounded-2xl border border-border bg-card p-6 text-left transition-all duration-200 hover:border-accent/40 hover:shadow-[0_0_30px_-8px_hsl(var(--accent)/0.25)]"
               style={{ textAlign: isRtl ? "right" : "left" }}
             >
