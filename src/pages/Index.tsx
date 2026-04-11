@@ -1,86 +1,109 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Globe, ChevronRight, Presentation } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
-type Lang = "en" | "ar";
-
-const presentations = [
-  { id: "story", emoji: "📖", title: { en: "Our Story", ar: "قصتنا" }, subtitle: { en: "The Jisr journey", ar: "رحلة جسر" }, slides: 13, route: "/present/story" },
-  { id: "enterprise", emoji: "🏢", title: { en: "Enterprise", ar: "المؤسسات" }, subtitle: { en: "For large organizations", ar: "للمؤسسات الكبيرة" }, slides: 18, route: "/present/enterprise" },
-  { id: "smb", emoji: "🏪", title: { en: "SMB", ar: "الشركات المتوسطة" }, subtitle: { en: "Small & medium businesses", ar: "الشركات الصغيرة والمتوسطة" }, slides: 17, route: "/present/smb" },
-  { id: "ops", emoji: "📋", title: { en: "Ops Solutions", ar: "حلول العمليات" }, subtitle: { en: "Internal collateral & training", ar: "المواد الداخلية والتدريب" }, slides: 0, route: "/ops" },
+const trainingCards = [
+  {
+    id: "crm-overview",
+    number: 1,
+    title: "CRM Overview",
+    desc: "Core objects & connections",
+  },
+  {
+    id: "forms-leads",
+    number: 2,
+    title: "Forms → Leads",
+    desc: "Capture & create contacts",
+  },
+  {
+    id: "lead-management",
+    number: 3,
+    title: "Lead Management",
+    desc: "Qualify, status, routing",
+  },
+  {
+    id: "lead-deal",
+    number: 4,
+    title: "Lead → Deal",
+    desc: "Conversion steps",
+  },
+  {
+    id: "pipeline",
+    number: 5,
+    title: "Pipeline",
+    desc: "Stages & forecasting",
+  },
+  {
+    id: "quotes",
+    number: 6,
+    title: "Quotes",
+    desc: "Proposals & docs",
+  },
+  {
+    id: "closing",
+    number: 7,
+    title: "Closing",
+    desc: "Signatures & win",
+  },
+  {
+    id: "reporting",
+    number: 8,
+    title: "Reporting",
+    desc: "Track performance",
+  },
 ];
 
 const Index = () => {
-  const [lang, setLang] = useState<Lang>("en");
   const navigate = useNavigate();
-  const isRtl = lang === "ar";
 
   return (
-    <div
-      className="w-screen h-screen overflow-hidden flex flex-col items-center justify-center bg-background relative"
-      dir={isRtl ? "rtl" : "ltr"}
-    >
-      {/* Dot grid background */}
-      <div
-        className="absolute inset-0 opacity-[0.03]"
-        style={{
-          backgroundImage: "radial-gradient(circle at 1px 1px, rgb(255, 255, 255) 1px, transparent 0px)",
-          backgroundSize: "48px 48px",
-        }}
-      />
-
-      {/* Language toggle */}
-      <div className="absolute top-6 right-6 z-20">
-        <button
-          onClick={() => setLang(lang === "en" ? "ar" : "en")}
-          className="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all border border-border bg-card hover:bg-secondary"
-        >
-          <Globe className="w-4 h-4" />
-          {lang === "en" ? "العربية" : "English"}
-        </button>
-      </div>
-
-      {/* Main content */}
-      <div className="relative z-10 flex flex-col items-center gap-12 max-w-4xl w-full px-8">
-        <div className="flex flex-col items-center gap-4">
-          <img src="/images/jisr-logo.png" alt="Jisr" className="h-12 mb-2" />
-          <h1 className="text-4xl font-bold text-foreground tracking-tight">
-            {lang === "en" ? "Select a Presentation" : "اختر عرضاً تقديمياً"}
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            {lang === "en" ? "Choose a deck tailored to your audience" : "اختر عرضاً مناسباً لجمهورك"}
-          </p>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="flex items-center justify-between px-6 md:px-8 py-4 bg-card/95 backdrop-blur-md sticky top-0 z-50 border-b border-border shadow-sm">
+        <div className="flex items-center gap-2">
+          <img
+            src="https://www.opsolutionss.com/hubfs/Logos/transparent%20black.png"
+            alt="Ops Solutions"
+            className="h-10"
+          />
         </div>
+        <a
+          href="https://www.opsolutionss.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hidden sm:inline-flex items-center gap-2 border border-border text-sm text-foreground px-4 py-2 rounded-full hover:border-primary/50 hover:bg-secondary transition-all"
+        >
+          Visit Ops Solutions
+        </a>
+      </header>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 w-full">
-          {presentations.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => navigate(p.route)}
-              className="group relative flex items-center gap-5 rounded-2xl border border-border bg-card p-6 text-left transition-all duration-200 hover:border-accent/40 hover:shadow-[0_0_30px_-8px_hsl(var(--accent)/0.25)]"
-              style={{ textAlign: isRtl ? "right" : "left" }}
-            >
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-secondary text-3xl">
-                {p.emoji}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-lg font-semibold text-foreground">
-                  {p.title[lang]}
+      {/* Hero */}
+      <div className="px-6 md:px-8 py-12 md:py-16 max-w-5xl mx-auto">
+        <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
+          Training Overview
+        </h1>
+        <p className="text-muted-foreground text-lg mb-10 max-w-2xl">
+          Complete HubSpot CRM training modules. Click any card to explore step-by-step guidance on what to do and what not to do.
+        </p>
+
+        {/* Training Grid */}
+        <div className="rounded-2xl border border-border bg-card p-6 md:p-8 shadow-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {trainingCards.map((card) => (
+              <button
+                key={card.id}
+                onClick={() => navigate(`/training/${card.id}`)}
+                className="group flex items-center justify-between rounded-xl border border-border bg-background p-5 text-left transition-all hover:border-primary/30 hover:shadow-md"
+              >
+                <div>
+                  <h3 className="text-base font-bold text-foreground mb-1">
+                    {card.number}. {card.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">{card.desc}</p>
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  {p.subtitle[lang]}
-                </div>
-                {p.slides > 0 && (
-                  <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                    <Presentation className="w-3.5 h-3.5" />
-                    {p.slides} {lang === "en" ? "slides" : "شريحة"}
-                  </div>
-                )}
-              </div>
-              <ChevronRight className={`w-5 h-5 text-muted-foreground transition-transform group-hover:text-accent ${isRtl ? "rotate-180 group-hover:-translate-x-1" : "group-hover:translate-x-1"}`} />
-            </button>
-          ))}
+                <ChevronRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-3" />
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>
