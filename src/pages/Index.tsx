@@ -71,10 +71,12 @@ const Index = () => {
                 <div className="text-sm text-muted-foreground">
                   {p.subtitle[lang]}
                 </div>
-                <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                  <Presentation className="w-3.5 h-3.5" />
-                  {p.slides} {lang === "en" ? "slides" : "شريحة"}
-                </div>
+                {p.slides > 0 && (
+                  <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                    <Presentation className="w-3.5 h-3.5" />
+                    {p.slides} {lang === "en" ? "slides" : "شريحة"}
+                  </div>
+                )}
               </div>
               <ChevronRight className={`w-5 h-5 text-muted-foreground transition-transform group-hover:text-accent ${isRtl ? "rotate-180 group-hover:-translate-x-1" : "group-hover:translate-x-1"}`} />
             </button>
