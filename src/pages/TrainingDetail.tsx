@@ -6,6 +6,11 @@ interface TrainingStep {
   description: string;
   doList: string[];
   dontList: string[];
+  media?: {
+    type: "image" | "video";
+    url: string;
+    caption?: string;
+  };
 }
 
 interface TrainingTopic {
