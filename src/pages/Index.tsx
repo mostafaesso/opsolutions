@@ -8,6 +8,7 @@ const presentations = [
   { id: "story", emoji: "📖", title: { en: "Our Story", ar: "قصتنا" }, subtitle: { en: "The Jisr journey", ar: "رحلة جسر" }, slides: 13, route: "/present/story" },
   { id: "enterprise", emoji: "🏢", title: { en: "Enterprise", ar: "المؤسسات" }, subtitle: { en: "For large organizations", ar: "للمؤسسات الكبيرة" }, slides: 18, route: "/present/enterprise" },
   { id: "smb", emoji: "🏪", title: { en: "SMB", ar: "الشركات المتوسطة" }, subtitle: { en: "Small & medium businesses", ar: "الشركات الصغيرة والمتوسطة" }, slides: 17, route: "/present/smb" },
+  { id: "ops", emoji: "📋", title: { en: "Ops Solutions", ar: "حلول العمليات" }, subtitle: { en: "Internal collateral & training", ar: "المواد الداخلية والتدريب" }, slides: 0, route: "/ops" },
 ];
 
 const Index = () => {
@@ -70,10 +71,12 @@ const Index = () => {
                 <div className="text-sm text-muted-foreground">
                   {p.subtitle[lang]}
                 </div>
-                <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                  <Presentation className="w-3.5 h-3.5" />
-                  {p.slides} {lang === "en" ? "slides" : "شريحة"}
-                </div>
+                {p.slides > 0 && (
+                  <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                    <Presentation className="w-3.5 h-3.5" />
+                    {p.slides} {lang === "en" ? "slides" : "شريحة"}
+                  </div>
+                )}
               </div>
               <ChevronRight className={`w-5 h-5 text-muted-foreground transition-transform group-hover:text-accent ${isRtl ? "rotate-180 group-hover:-translate-x-1" : "group-hover:translate-x-1"}`} />
             </button>
