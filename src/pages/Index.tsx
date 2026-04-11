@@ -8,6 +8,7 @@ const presentations = [
   { id: "story", emoji: "📖", title: { en: "Our Story", ar: "قصتنا" }, subtitle: { en: "The Jisr journey", ar: "رحلة جسر" }, slides: 13, route: "/present/story" },
   { id: "enterprise", emoji: "🏢", title: { en: "Enterprise", ar: "المؤسسات" }, subtitle: { en: "For large organizations", ar: "للمؤسسات الكبيرة" }, slides: 18, route: "/present/enterprise" },
   { id: "smb", emoji: "🏪", title: { en: "SMB", ar: "الشركات المتوسطة" }, subtitle: { en: "Small & medium businesses", ar: "الشركات الصغيرة والمتوسطة" }, slides: 17, route: "/present/smb" },
+  { id: "ops", emoji: "📋", title: { en: "Ops Solutions", ar: "حلول العمليات" }, subtitle: { en: "Internal collateral & training", ar: "المواد الداخلية والتدريب" }, slides: 0, route: "/ops" },
 ];
 
 const Index = () => {
