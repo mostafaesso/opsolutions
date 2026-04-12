@@ -507,6 +507,115 @@ const trainingTopics: Record<string, TrainingTopic> = {
       },
     ],
   },
+  "activity-log": {
+    id: "activity-log",
+    number: 9,
+    title: "Activity Log",
+    overview:
+      "Learn how to create and manage contacts, companies, deals, and leads in HubSpot CRM — the foundational activities for every sales workflow.",
+    steps: [
+      {
+        title: "How to Create a Contact",
+        description:
+          "Contacts are the foundation of your CRM. Every interaction starts with a properly created contact record.",
+        media: {
+          type: "image",
+          url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/crm/contact-record/en/contact-record.png?width=1190&height=800&name=contact-record.png",
+          caption: "Creating a new contact in HubSpot CRM",
+        },
+        doList: [
+          "Go to Contacts → Create Contact",
+          "Fill in First Name, Last Name, and Email (required fields)",
+          "Add phone number and job title for context",
+          "Associate the contact with an existing Company if applicable",
+          "Add lifecycle stage (Lead, MQL, SQL, etc.) based on their status",
+          "Add any relevant notes about how you met or their interest",
+        ],
+        dontList: [
+          "Don't create duplicate contacts — always search first",
+          "Don't leave the email field empty",
+          "Don't skip the company association",
+          "Don't use personal emails when a business email is available",
+          "Don't forget to set the correct contact owner",
+        ],
+      },
+      {
+        title: "How to Create a Company",
+        description:
+          "Company records group contacts together and give you an organizational view of your accounts.",
+        media: {
+          type: "image",
+          url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/crm/company-record/en/company-record.png?width=1190&height=800&name=company-record.png",
+          caption: "Creating a new company record in HubSpot",
+        },
+        doList: [
+          "Go to Companies → Create Company",
+          "Enter the Company Name and Domain Name",
+          "Fill in Industry, Company Size, and Annual Revenue",
+          "Associate existing contacts to the company",
+          "Set the Company Owner to the responsible sales rep",
+          "Add the company's address and phone number",
+        ],
+        dontList: [
+          "Don't create a company without a domain — it helps HubSpot auto-enrich data",
+          "Don't duplicate companies — search by domain first",
+          "Don't leave Industry or Size blank — these are key for segmentation",
+          "Don't forget to link related contacts to the company",
+          "Don't assign the wrong owner — it affects reporting",
+        ],
+      },
+      {
+        title: "How to Create a Deal",
+        description:
+          "Deals represent revenue opportunities. Creating them correctly ensures your pipeline and forecasts are accurate.",
+        media: {
+          type: "image",
+          url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/crm/deal-pipeline/en/deal-pipeline.png?width=1190&height=800&name=deal-pipeline.png",
+          caption: "Creating a deal and placing it in the pipeline",
+        },
+        doList: [
+          "Go to Deals → Create Deal",
+          "Enter a clear Deal Name (e.g., 'Acme Corp — CRM Setup')",
+          "Set the correct Pipeline and Deal Stage",
+          "Enter the Deal Amount and Close Date",
+          "Associate the deal with a Contact and Company",
+          "Set the Deal Owner to the responsible rep",
+        ],
+        dontList: [
+          "Don't create deals without associating a contact and company",
+          "Don't leave the amount at $0 unless it's truly unknown",
+          "Don't skip the close date — it's critical for forecasting",
+          "Don't put deals in the wrong pipeline stage",
+          "Don't forget to update the deal stage as it progresses",
+        ],
+      },
+      {
+        title: "How to Open a New Lead",
+        description:
+          "Leads in HubSpot represent early-stage prospects. Properly opening a lead ensures it enters the right qualification workflow.",
+        media: {
+          type: "image",
+          url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/crm/lead-management/en/lead-management.png?width=1190&height=800&name=lead-management.png",
+          caption: "Opening and managing a new lead in HubSpot",
+        },
+        doList: [
+          "Go to Contacts → Create Contact and set Lifecycle Stage to 'Lead'",
+          "Fill in all known information (name, email, company, source)",
+          "Set the Lead Status to 'New' or 'Open'",
+          "Assign the lead to the correct owner or queue for routing",
+          "Log the source of the lead (form, referral, event, etc.)",
+          "Add initial notes about the lead's interest or intent",
+        ],
+        dontList: [
+          "Don't create a lead without setting the lifecycle stage",
+          "Don't skip the lead source — it's essential for attribution",
+          "Don't leave lead status as blank or undefined",
+          "Don't assign leads without checking routing rules first",
+          "Don't forget to follow up within 24 hours of lead creation",
+        ],
+      },
+    ],
+  },
 };
 
 const TrainingDetail = () => {
