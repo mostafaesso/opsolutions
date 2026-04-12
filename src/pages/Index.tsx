@@ -50,6 +50,12 @@ const trainingCards = [
     title: "Reporting",
     desc: "Track performance",
   },
+  {
+    id: "activity-log",
+    number: 9,
+    title: "Activity Log",
+    desc: "Contacts, companies, deals & leads",
+  },
 ];
 
 const Index = () => {
