@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, CheckCircle2, XCircle, ChevronRight, Play } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, ChevronRight, Play, Plus, Link, X, ImageIcon } from "lucide-react";
 import { useState } from "react";
 
 interface TrainingMedia {
@@ -491,11 +491,77 @@ const trainingTopics: Record<string, TrainingTopic> = {
   },
 };
 
+const ImageUrlInput = ({ onAdd, onCancel }: { onAdd: (url: string, caption: string) => void; onCancel: () => void }) => {
+  const [url, setUrl] = useState("");
+  const [caption, setCaption] = useState("");
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-3 space-y-2">
+      <div className="flex items-center gap-2 mb-1">
+        <Link className="w-4 h-4 text-muted-foreground" />
+        <span className="text-xs font-medium text-foreground">Add Image URL</span>
+      </div>
+      <input
+        type="url"
+        placeholder="Paste image URL here..."
+        value={url}
+        onChange={(e) => setUrl(e.target.value)}
+        className="w-full text-xs px-2 py-1.5 rounded border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+      />
+      <input
+        type="text"
+        placeholder="Caption (optional)"
+        value={caption}
+        onChange={(e) => setCaption(e.target.value)}
+        className="w-full text-xs px-2 py-1.5 rounded border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+      />
+      <div className="flex gap-2">
+        <button
+          onClick={() => { if (url.trim()) { onAdd(url.trim(), caption.trim()); } }}
+          disabled={!url.trim()}
+          className="flex-1 text-xs px-3 py-1.5 rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+        >
+          Add
+        </button>
+        <button onClick={onCancel} className="text-xs px-3 py-1.5 rounded border border-input text-muted-foreground hover:bg-secondary transition-colors">
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const TrainingDetail = () => {
   const { topicId } = useParams<{ topicId: string }>();
   const navigate = useNavigate();
-
   const topic = topicId ? trainingTopics[topicId] : null;
+
+  // Store extra images added by the user per step: { [topicId-stepIndex]: TrainingMedia[] }
+  const [extraMedia, setExtraMedia] = useState<Record<string, TrainingMedia[]>>(() => {
+    try {
+      const saved = localStorage.getItem("training-extra-media");
+      return saved ? JSON.parse(saved) : {};
+    } catch { return {}; }
+  });
+  const [showInputFor, setShowInputFor] = useState<string | null>(null);
+
+  const saveExtraMedia = (updated: Record<string, TrainingMedia[]>) => {
+    setExtraMedia(updated);
+    localStorage.setItem("training-extra-media", JSON.stringify(updated));
+  };
+
+  const addImage = (stepKey: string, url: string, caption: string) => {
+    const current = extraMedia[stepKey] || [];
+    const updated = { ...extraMedia, [stepKey]: [...current, { type: "image" as const, url, caption: caption || undefined }] };
+    saveExtraMedia(updated);
+    setShowInputFor(null);
+  };
+
+  const removeImage = (stepKey: string, index: number) => {
+    const current = extraMedia[stepKey] || [];
+    const updated = { ...extraMedia, [stepKey]: current.filter((_, i) => i !== index) };
+    saveExtraMedia(updated);
+  };
 
   if (!topic) {
     return (
@@ -541,60 +607,101 @@ const TrainingDetail = () => {
 
         {/* Steps */}
         <div className="space-y-8">
-          {topic.steps.map((step, i) => (
-            <div key={i} className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
-              <div className="p-6 border-b border-border">
-                <h3 className="text-xl font-bold text-foreground mb-2">
-                  Step {i + 1}: {step.title}
-                </h3>
-                <p className="text-muted-foreground mb-4">{step.description}</p>
-              </div>
+          {topic.steps.map((step, i) => {
+            const stepKey = `${topic.id}-${i}`;
+            const stepExtraMedia = extraMedia[stepKey] || [];
+            const allMedia = [...(step.media || []), ...stepExtraMedia];
 
-              {/* Content + Images side by side */}
-              <div className="flex flex-col lg:flex-row">
-                {/* Left: Do / Don't lists */}
-                <div className="flex-1 grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border">
-                  <div className="p-6">
-                    <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider mb-4" style={{ color: "hsl(160, 84%, 39%)" }}>
-                      <CheckCircle2 className="w-5 h-5" />
-                      What to do
-                    </h4>
-                    <ul className="space-y-3">
-                      {step.doList.map((item, j) => (
-                        <li key={j} className="flex items-start gap-3 text-sm text-foreground">
-                          <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "hsl(160, 84%, 39%)" }} />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="p-6">
-                    <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider mb-4" style={{ color: "hsl(4, 72%, 56%)" }}>
-                      <XCircle className="w-5 h-5" />
-                      What NOT to do
-                    </h4>
-                    <ul className="space-y-3">
-                      {step.dontList.map((item, j) => (
-                        <li key={j} className="flex items-start gap-3 text-sm text-foreground">
-                          <XCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "hsl(4, 72%, 56%)" }} />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+            return (
+              <div key={i} className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
+                <div className="p-6 border-b border-border">
+                  <h3 className="text-xl font-bold text-foreground mb-2">
+                    Step {i + 1}: {step.title}
+                  </h3>
+                  <p className="text-muted-foreground mb-4">{step.description}</p>
                 </div>
 
-                {/* Right: Screenshots */}
-                {step.media && step.media.length > 0 && (
-                  <div className="lg:w-[380px] shrink-0 p-4 border-t lg:border-t-0 lg:border-l border-border bg-muted/30 space-y-3">
-                    {step.media.map((m, k) => (
-                      <MediaEmbed key={k} media={m} />
-                    ))}
+                {/* Content + Images side by side */}
+                <div className="flex flex-col lg:flex-row">
+                  {/* Left: Do / Don't lists */}
+                  <div className="flex-1 grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border">
+                    <div className="p-6">
+                      <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider mb-4" style={{ color: "hsl(160, 84%, 39%)" }}>
+                        <CheckCircle2 className="w-5 h-5" />
+                        What to do
+                      </h4>
+                      <ul className="space-y-3">
+                        {step.doList.map((item, j) => (
+                          <li key={j} className="flex items-start gap-3 text-sm text-foreground">
+                            <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "hsl(160, 84%, 39%)" }} />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="p-6">
+                      <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider mb-4" style={{ color: "hsl(4, 72%, 56%)" }}>
+                        <XCircle className="w-5 h-5" />
+                        What NOT to do
+                      </h4>
+                      <ul className="space-y-3">
+                        {step.dontList.map((item, j) => (
+                          <li key={j} className="flex items-start gap-3 text-sm text-foreground">
+                            <XCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "hsl(4, 72%, 56%)" }} />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
-                )}
+
+                  {/* Right: Screenshots + Add Image */}
+                  <div className="lg:w-[380px] shrink-0 p-4 border-t lg:border-t-0 lg:border-l border-border bg-muted/30 space-y-3">
+                    {allMedia.map((m, k) => {
+                      const isExtra = k >= (step.media?.length || 0);
+                      const extraIndex = k - (step.media?.length || 0);
+                      return (
+                        <div key={k} className="relative group">
+                          <MediaEmbed media={m} />
+                          {isExtra && (
+                            <button
+                              onClick={() => removeImage(stepKey, extraIndex)}
+                              className="absolute top-2 right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                              title="Remove image"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+
+                    {allMedia.length === 0 && showInputFor !== stepKey && (
+                      <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+                        <ImageIcon className="w-10 h-10 mb-2 opacity-40" />
+                        <p className="text-xs">No images yet</p>
+                      </div>
+                    )}
+
+                    {showInputFor === stepKey ? (
+                      <ImageUrlInput
+                        onAdd={(url, caption) => addImage(stepKey, url, caption)}
+                        onCancel={() => setShowInputFor(null)}
+                      />
+                    ) : (
+                      <button
+                        onClick={() => setShowInputFor(stepKey)}
+                        className="w-full flex items-center justify-center gap-2 text-xs px-3 py-2.5 rounded-lg border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-secondary/50 transition-all"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        Add Image URL
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Navigation */}
