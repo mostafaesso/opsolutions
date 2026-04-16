@@ -73,13 +73,7 @@ const trainingTopics: Record<string, TrainingTopic> = {
       {
         title: "Understanding Core Objects",
         description: "HubSpot CRM is built around four core objects: Contacts, Companies, Deals, and Tickets. Each object stores specific data and connects to the others through associations.",
-        media: [
-          {
-            type: "image",
-            url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/crm/en/CRM_Contacts.png?width=1190&height=800&name=CRM_Contacts.png",
-            caption: "HubSpot CRM — Contacts view showing core object relationships",
-          },
-        ],
+        media: [],
         doList: [
           "Learn the difference between each object type",
           "Understand how associations link objects together",
