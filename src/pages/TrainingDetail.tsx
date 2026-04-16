@@ -487,9 +487,7 @@ const TrainingDetail = () => {
         {/* Steps */}
         <div className="space-y-8">
           {topic.steps.map((step, i) => {
-            const stepKey = `${topic.id}-${i}`;
-            const stepExtraMedia = extraMedia[stepKey] || [];
-            const allMedia = [...(step.media || []), ...stepExtraMedia];
+            const allMedia = step.media || [];
 
             return (
               <div key={i} className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
@@ -534,49 +532,14 @@ const TrainingDetail = () => {
                     </div>
                   </div>
 
-                  {/* Right: Screenshots + Add Image */}
-                  <div className="lg:w-[380px] shrink-0 p-4 border-t lg:border-t-0 lg:border-l border-border bg-muted/30 space-y-3">
-                    {allMedia.map((m, k) => {
-                      const isExtra = k >= (step.media?.length || 0);
-                      const extraIndex = k - (step.media?.length || 0);
-                      return (
-                        <div key={k} className="relative group">
-                          <MediaEmbed media={m} />
-                          {isExtra && (
-                            <button
-                              onClick={() => removeImage(stepKey, extraIndex)}
-                              className="absolute top-2 right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
-                              title="Remove image"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
-
-                    {allMedia.length === 0 && showInputFor !== stepKey && (
-                      <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-                        <ImageIcon className="w-10 h-10 mb-2 opacity-40" />
-                        <p className="text-xs">No images yet</p>
-                      </div>
-                    )}
-
-                    {showInputFor === stepKey ? (
-                      <ImageUrlInput
-                        onAdd={(url, caption) => addImage(stepKey, url, caption)}
-                        onCancel={() => setShowInputFor(null)}
-                      />
-                    ) : (
-                      <button
-                        onClick={() => setShowInputFor(stepKey)}
-                        className="w-full flex items-center justify-center gap-2 text-xs px-3 py-2.5 rounded-lg border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-secondary/50 transition-all"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                        Add Image URL
-                      </button>
-                    )}
-                  </div>
+                  {/* Right: Screenshots */}
+                  {allMedia.length > 0 && (
+                    <div className="lg:w-[380px] shrink-0 p-4 border-t lg:border-t-0 lg:border-l border-border bg-muted/30 space-y-3">
+                      {allMedia.map((m, k) => (
+                        <MediaEmbed key={k} media={m} />
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             );
