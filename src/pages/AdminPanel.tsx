@@ -168,6 +168,16 @@ const AdminPanel = () => {
                   </div>
                 </div>
 
+                {/* Manager Emails Section */}
+                <ManagerEmailsEditor
+                  company={company}
+                  onUpdate={(updated: Company) => {
+                    const all = getCompanies().map(c => c.slug === updated.slug ? updated : c);
+                    saveCompanies(all);
+                    setCompanies([...all]);
+                  }}
+                />
+
                 {/* Admin Guide */}
                 <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
                   <div className="flex items-center gap-2">
