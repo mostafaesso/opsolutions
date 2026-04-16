@@ -1,29 +1,8 @@
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeft, CheckCircle2, XCircle, ChevronRight, Play, Plus, Link, X, ImageIcon } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, CheckCircle2, XCircle, ChevronRight, Play } from "lucide-react";
 import { useState } from "react";
 import { getCompanyBySlug, getMediaKey } from "@/lib/companies";
-
-interface TrainingMedia {
-  type: "image" | "video";
-  url: string;
-  caption?: string;
-}
-
-interface TrainingStep {
-  title: string;
-  description: string;
-  doList: string[];
-  dontList: string[];
-  media?: TrainingMedia[];
-}
-
-interface TrainingTopic {
-  id: string;
-  number: number;
-  title: string;
-  overview: string;
-  steps: TrainingStep[];
-}
+import { trainingTopics, TrainingMedia } from "@/lib/trainingData";
 
 const MediaEmbed = ({ media }: { media: TrainingMedia }) => {
   const [playing, setPlaying] = useState(false);
