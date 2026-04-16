@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, CheckCircle2, XCircle, ChevronRight, Play, Check } from "lucide-react";
+import { ArrowLeft, ChevronRight, Play, Check } from "lucide-react";
 import { useState, useEffect } from "react";
 import { fetchCompanyBySlug, fetchCompanyMedia, Company } from "@/lib/companies";
 import { trainingTopics, TrainingMedia } from "@/lib/trainingData";
