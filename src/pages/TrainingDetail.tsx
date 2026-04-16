@@ -488,14 +488,16 @@ const ImageUrlInput = ({ onAdd }: { onAdd: (url: string, caption: string) => voi
 };
 
 const TrainingDetail = () => {
-  const { topicId } = useParams<{ topicId: string }>();
+  const { topicId, companySlug } = useParams<{ topicId: string; companySlug?: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const isAdmin = searchParams.get("admin") === "true";
   const topic = topicId ? trainingTopics[topicId] : null;
+  const company = companySlug ? getCompanyBySlug(companySlug) : null;
+  const mediaStorageKey = getMediaKey(companySlug);
 
   const [extraMedia, setExtraMedia] = useState<Record<string, TrainingMedia[]>>(() => {
-    const saved = localStorage.getItem("training-extra-media");
+    const saved = localStorage.getItem(mediaStorageKey);
     return saved ? JSON.parse(saved) : {};
   });
 
