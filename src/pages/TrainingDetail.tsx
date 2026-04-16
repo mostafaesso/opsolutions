@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, CheckCircle2, XCircle, ChevronRight, Play, Plus, Link, X, ImageIcon } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, ChevronRight, Play } from "lucide-react";
 import { useState } from "react";
 
 interface TrainingMedia {
@@ -73,13 +73,7 @@ const trainingTopics: Record<string, TrainingTopic> = {
       {
         title: "Understanding Core Objects",
         description: "HubSpot CRM is built around four core objects: Contacts, Companies, Deals, and Tickets. Each object stores specific data and connects to the others through associations.",
-        media: [
-          {
-            type: "image",
-            url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/crm/en/CRM_Contacts.png?width=1190&height=800&name=CRM_Contacts.png",
-            caption: "HubSpot CRM — Contacts view showing core object relationships",
-          },
-        ],
+        media: [],
         doList: [
           "Learn the difference between each object type",
           "Understand how associations link objects together",
@@ -96,13 +90,7 @@ const trainingTopics: Record<string, TrainingTopic> = {
       {
         title: "Navigating the CRM Dashboard",
         description: "The CRM dashboard gives you a bird's-eye view of your pipeline, recent activities, and key metrics.",
-        media: [
-          {
-            type: "image",
-            url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/crm/en/crm-deals-702702702702.png?width=1190&height=800&name=crm-deals-702702702702.png",
-            caption: "CRM Dashboard — Pipeline overview with key metrics",
-          },
-        ],
+        media: [],
         doList: [
           "Customize your dashboard with relevant reports",
           "Use filters to segment your view",
@@ -127,13 +115,7 @@ const trainingTopics: Record<string, TrainingTopic> = {
       {
         title: "Log a Call",
         description: "Recording calls on contact or deal records ensures your team has full context on every conversation.",
-        media: [
-          {
-            type: "image",
-            url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/sales/calling/en/calling-702702.png?width=1190&height=800&name=calling-702702.png",
-            caption: "Logging a call activity on a contact record",
-          },
-        ],
+        media: [],
         doList: [
           "Open the contact/deal record and click 'Log Activity' → 'Call'",
           "Select the call outcome (Connected, Left Voicemail, No Answer)",
@@ -151,13 +133,7 @@ const trainingTopics: Record<string, TrainingTopic> = {
       {
         title: "Log a WhatsApp Message",
         description: "Track WhatsApp conversations by logging them as activities so nothing falls through the cracks.",
-        media: [
-          {
-            type: "image",
-            url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/crm/en/CRM_Contacts.png?width=1190&height=800&name=CRM_Contacts.png",
-            caption: "Logging a WhatsApp conversation on a contact record",
-          },
-        ],
+        media: [],
         doList: [
           "Use the 'Log Activity' → 'Note' or WhatsApp integration to record messages",
           "Copy key parts of the conversation into the notes",
@@ -175,13 +151,7 @@ const trainingTopics: Record<string, TrainingTopic> = {
       {
         title: "Log an Email",
         description: "Logging emails ensures every communication is visible to your team and tied to the right records.",
-        media: [
-          {
-            type: "image",
-            url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/sales/email-tracking/en/email-tracking-702702.png?width=1190&height=800&name=email-tracking-702702.png",
-            caption: "Email tracking and logging in HubSpot",
-          },
-        ],
+        media: [],
         doList: [
           "Use the HubSpot email integration (Gmail/Outlook) for automatic logging",
           "Manually log important emails via 'Log Activity' → 'Email' if needed",
@@ -199,13 +169,7 @@ const trainingTopics: Record<string, TrainingTopic> = {
       {
         title: "Log a Note or Task",
         description: "Notes capture important context while tasks ensure follow-ups don't get missed.",
-        media: [
-          {
-            type: "image",
-            url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/crm/en/CRM_Contacts.png?width=1190&height=800&name=CRM_Contacts.png",
-            caption: "Adding notes and creating tasks on a record",
-          },
-        ],
+        media: [],
         doList: [
           "Use 'Log Activity' → 'Note' for meeting summaries and key observations",
           "Create tasks with clear due dates and descriptions",
@@ -232,13 +196,7 @@ const trainingTopics: Record<string, TrainingTopic> = {
       {
         title: "How to Create a Contact",
         description: "Contacts are the foundation of your CRM. Every interaction starts with a properly created contact record.",
-        media: [
-          {
-            type: "image",
-            url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/crm/contact-record/en/contact-record.png?width=1190&height=800&name=contact-record.png",
-            caption: "Creating a new contact in HubSpot CRM",
-          },
-        ],
+        media: [],
         doList: [
           "Go to Contacts → Create Contact",
           "Fill in First Name, Last Name, and Email (required fields)",
@@ -258,13 +216,7 @@ const trainingTopics: Record<string, TrainingTopic> = {
       {
         title: "How to Create a Company",
         description: "Company records group contacts together and give you an organizational view of your accounts.",
-        media: [
-          {
-            type: "image",
-            url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/crm/company-record/en/company-record.png?width=1190&height=800&name=company-record.png",
-            caption: "Creating a new company record in HubSpot",
-          },
-        ],
+        media: [],
         doList: [
           "Go to Companies → Create Company",
           "Enter the Company Name and Domain Name",
@@ -284,13 +236,7 @@ const trainingTopics: Record<string, TrainingTopic> = {
       {
         title: "How to Create a Deal",
         description: "Deals represent revenue opportunities. Creating them correctly ensures your pipeline and forecasts are accurate.",
-        media: [
-          {
-            type: "image",
-            url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/crm/deal-pipeline/en/deal-pipeline.png?width=1190&height=800&name=deal-pipeline.png",
-            caption: "Creating a deal and placing it in the pipeline",
-          },
-        ],
+        media: [],
         doList: [
           "Go to Deals → Create Deal",
           "Enter a clear Deal Name (e.g., 'Acme Corp — CRM Setup')",
@@ -310,13 +256,7 @@ const trainingTopics: Record<string, TrainingTopic> = {
       {
         title: "How to Open a New Lead",
         description: "Leads in HubSpot represent early-stage prospects. Properly opening a lead ensures it enters the right qualification workflow.",
-        media: [
-          {
-            type: "image",
-            url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/crm/lead-management/en/lead-management.png?width=1190&height=800&name=lead-management.png",
-            caption: "Opening and managing a new lead in HubSpot",
-          },
-        ],
+        media: [],
         doList: [
           "Go to Contacts → Create Contact and set Lifecycle Stage to 'Lead'",
           "Fill in all known information (name, email, company, source)",
@@ -344,14 +284,14 @@ const trainingTopics: Record<string, TrainingTopic> = {
       {
         title: "Creating Effective Forms",
         description: "HubSpot forms are the primary way to capture lead information from your website, landing pages, and campaigns.",
-        media: [{ type: "image", url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/marketing/form-builder/en/form-builder-702702.png?width=1190&height=800&name=form-builder-702702.png", caption: "HubSpot Form Builder — Drag-and-drop form creation interface" }],
+        media: [],
         doList: ["Keep forms short — ask only essential fields", "Use progressive profiling to gather more data over time", "Include a clear call-to-action on the submit button", "Set up form notifications for sales team"],
         dontList: ["Don't ask for too many fields upfront — it reduces conversion", "Don't forget to test your form before publishing", "Don't skip setting up a thank-you page or redirect", "Don't use generic field labels — be specific"],
       },
       {
         title: "Form-to-Contact Mapping",
         description: "When a form is submitted, HubSpot creates or updates a contact record. Understanding how fields map ensures clean data.",
-        media: [{ type: "image", url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/crm/en/CRM_Contacts.png?width=1190&height=800&name=CRM_Contacts.png", caption: "Contact record created from form submission with mapped properties" }],
+        media: [],
         doList: ["Map form fields to the correct CRM properties", "Use hidden fields for tracking source/campaign", "Enable GDPR consent fields when required", "Review submissions regularly for data quality"],
         dontList: ["Don't create custom properties without a naming convention", "Don't ignore unmapped fields — they create data gaps", "Don't forget to set up lifecycle stage on form submission", "Don't leave default field mappings without reviewing them"],
       },
@@ -366,14 +306,14 @@ const trainingTopics: Record<string, TrainingTopic> = {
       {
         title: "Lead Qualification Process",
         description: "Not every lead is sales-ready. Learn to qualify leads using criteria like budget, authority, need, and timeline (BANT).",
-        media: [{ type: "image", url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/sales/lead-management/en/Lead%20Management.png?width=1190&height=800&name=Lead%20Management.png", caption: "Lead scoring and qualification dashboard in HubSpot" }],
+        media: [],
         doList: ["Define clear MQL and SQL criteria with marketing", "Use lead scoring to prioritize outreach", "Update lead status promptly after each interaction", "Document qualification notes on the contact record"],
         dontList: ["Don't treat all leads equally — prioritize by score", "Don't skip the qualification step before creating a deal", "Don't let leads sit uncontacted for more than 24 hours", "Don't change lead status without logging an activity"],
       },
       {
         title: "Lead Routing & Assignment",
         description: "Ensure leads reach the right salesperson quickly using assignment rules, round-robin, or territory-based routing.",
-        media: [{ type: "image", url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/sales/lead-management/en/lead-management-workflows-702702.png?width=1190&height=800&name=lead-management-workflows-702702.png", caption: "Automated lead routing workflow with assignment rules" }],
+        media: [],
         doList: ["Set up automated lead assignment workflows", "Use round-robin for fair distribution", "Consider territory or product-based routing", "Notify assigned reps immediately via email/Slack"],
         dontList: ["Don't manually assign leads if you have more than 5 reps", "Don't let leads go unassigned — set a fallback owner", "Don't reassign leads without notifying the original owner", "Don't ignore lead response time metrics"],
       },
@@ -388,14 +328,14 @@ const trainingTopics: Record<string, TrainingTopic> = {
       {
         title: "When to Create a Deal",
         description: "A deal should be created when a lead has been qualified and there's a genuine sales opportunity to pursue.",
-        media: [{ type: "image", url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/crm/en/crm-deals-702702702702.png?width=1190&height=800&name=crm-deals-702702702702.png", caption: "Creating a new deal from a qualified lead in HubSpot CRM" }],
+        media: [],
         doList: ["Create a deal only after qualification is complete", "Associate the deal with the correct contact and company", "Set the deal stage to match the current sales stage", "Add an estimated close date and deal amount"],
         dontList: ["Don't create deals for unqualified leads", "Don't forget to associate contacts and companies", "Don't leave deal amount as $0 unless it's truly unknown", "Don't create multiple deals for the same opportunity"],
       },
       {
         title: "Deal Properties Setup",
         description: "Properly filling out deal properties ensures accurate pipeline reporting and forecasting.",
-        media: [{ type: "image", url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/crm/en/CRM_Contacts.png?width=1190&height=800&name=CRM_Contacts.png", caption: "Deal properties panel — filling in required fields for accurate reporting" }],
+        media: [],
         doList: ["Fill in all required deal properties at creation", "Use deal type to categorize (new business vs. renewal)", "Set pipeline correctly if you have multiple pipelines", "Update close date as conversations progress"],
         dontList: ["Don't leave properties blank — it breaks reporting", "Don't use the wrong pipeline for the deal type", "Don't set unrealistic close dates just to hit targets", "Don't forget to log the source of the deal"],
       },
@@ -410,14 +350,14 @@ const trainingTopics: Record<string, TrainingTopic> = {
       {
         title: "Pipeline Stages",
         description: "Each pipeline stage represents a milestone in your sales process. Deals should move forward as progress is made.",
-        media: [{ type: "image", url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/crm/en/crm-deals-702702702702.png?width=1190&height=800&name=crm-deals-702702702702.png", caption: "Sales pipeline board view — deals organized by stage" }],
+        media: [],
         doList: ["Define clear entry/exit criteria for each stage", "Move deals to the correct stage after each milestone", "Review pipeline weekly for stale deals", "Use pipeline views to focus on high-priority deals"],
         dontList: ["Don't skip stages — follow the process sequentially", "Don't leave deals in the same stage for weeks without action", "Don't move deals backward without documenting why", "Don't create too many stages — keep it manageable (5-7)"],
       },
       {
         title: "Pipeline Forecasting",
         description: "Use pipeline data to forecast revenue and plan your quarter.",
-        media: [{ type: "image", url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/sales/forecasting/en/forecast-single-702702.png?width=1190&height=800&name=forecast-single-702702.png", caption: "Revenue forecasting dashboard with weighted pipeline analysis" }],
+        media: [],
         doList: ["Update deal amounts and close dates regularly", "Use weighted pipeline for realistic forecasts", "Run weekly forecast reviews with your manager", "Mark deals as Closed Won/Lost promptly"],
         dontList: ["Don't inflate deal amounts for optimistic forecasting", "Don't keep dead deals open — close them as Lost", "Don't forget to add a close reason for lost deals", "Don't ignore forecast accuracy metrics"],
       },
@@ -432,14 +372,14 @@ const trainingTopics: Record<string, TrainingTopic> = {
       {
         title: "Creating Quotes",
         description: "HubSpot quotes let you create professional proposals directly from a deal record, complete with line items and pricing.",
-        media: [{ type: "image", url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/sales/quotes/en/quotes-702702.png?width=1190&height=800&name=quotes-702702.png", caption: "HubSpot quote builder — creating a professional proposal with line items" }],
+        media: [],
         doList: ["Create quotes from the deal record for proper association", "Use pre-built quote templates for consistency", "Include all relevant line items with correct pricing", "Add terms and conditions to every quote"],
         dontList: ["Don't send quotes without manager approval for large deals", "Don't forget to set an expiration date on quotes", "Don't create quotes outside HubSpot — use the built-in tool", "Don't skip reviewing the quote preview before sending"],
       },
       {
         title: "Quote Follow-up",
         description: "After sending a quote, follow up promptly and track engagement to close the deal faster.",
-        media: [{ type: "image", url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/sales/quotes/en/quotes-702702.png?width=1190&height=800&name=quotes-702702.png", caption: "Quote tracking — monitoring when prospects view and interact with quotes" }],
+        media: [],
         doList: ["Follow up within 24-48 hours of sending", "Check if the prospect viewed the quote (tracking)", "Address objections and update quotes if needed", "Use e-signature for faster close"],
         dontList: ["Don't send and forget — always schedule a follow-up", "Don't create multiple quote versions without archiving old ones", "Don't discount without checking with your manager", "Don't ignore quote expiration — re-send if expired"],
       },
@@ -454,14 +394,14 @@ const trainingTopics: Record<string, TrainingTopic> = {
       {
         title: "Getting to Closed Won",
         description: "The final stage involves contract review, signature collection, and internal processing before marking a deal as won.",
-        media: [{ type: "image", url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/crm/en/crm-deals-702702702702.png?width=1190&height=800&name=crm-deals-702702702702.png", caption: "Deal closing workflow — moving a deal to Closed Won status" }],
+        media: [],
         doList: ["Confirm all terms are agreed upon before sending contract", "Use HubSpot e-signature or DocuSign integration", "Log the signed contract as a document on the deal", "Mark the deal as Closed Won immediately after signature"],
         dontList: ["Don't mark deals as Closed Won before the contract is signed", "Don't forget to update the deal amount to the final number", "Don't skip notifying the onboarding/CS team about the win", "Don't lose the signed contract — attach it to the deal"],
       },
       {
         title: "Post-Close Handoff",
         description: "After closing, ensure a smooth handoff to the customer success or onboarding team.",
-        media: [{ type: "image", url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/service/help-desk/en/help-desk-702702.png?width=1190&height=800&name=help-desk-702702.png", caption: "Post-close handoff — creating a ticket for the customer success team" }],
+        media: [],
         doList: ["Create a handoff task or ticket for the CS team", "Include all relevant context and notes from the deal", "Introduce the customer to their account manager", "Celebrate the win and share learnings with the team"],
         dontList: ["Don't ghost the customer after the deal is closed", "Don't skip the handoff meeting with CS", "Don't forget to log the win in your team's channel", "Don't move on without documenting what worked"],
       },
@@ -476,14 +416,14 @@ const trainingTopics: Record<string, TrainingTopic> = {
       {
         title: "Key Sales Reports",
         description: "HubSpot provides built-in reports for pipeline, activity, and revenue metrics.",
-        media: [{ type: "image", url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/sales/reporting/en/reporting-702702.png?width=1190&height=800&name=reporting-702702.png", caption: "Sales reporting dashboard — pipeline value, activity metrics, and revenue" }],
+        media: [],
         doList: ["Track pipeline value by stage weekly", "Monitor deal velocity and average sales cycle", "Review activity metrics (calls, emails, meetings)", "Create custom reports for your specific KPIs"],
         dontList: ["Don't rely on a single report for all insights", "Don't forget to filter reports by date range and rep", "Don't ignore trends — compare month-over-month", "Don't create reports without a clear business question"],
       },
       {
         title: "Dashboard Best Practices",
         description: "Build dashboards that give leadership and reps the right information at the right time.",
-        media: [{ type: "image", url: "https://www.hubspot.com/hs-fs/hubfs/assets/hubspot.com/web-team/WBZ/Feature%20Pages/sales/reporting/en/reporting-702702.png?width=1190&height=800&name=reporting-702702.png", caption: "Custom dashboard — combining reports for a complete performance view" }],
+        media: [],
         doList: ["Create separate dashboards for reps vs. managers", "Include a mix of leading and lagging indicators", "Schedule dashboard email reports for stakeholders", "Review and update dashboards quarterly"],
         dontList: ["Don't add more than 10 reports to a single dashboard", "Don't ignore dashboard permissions — not everyone needs access", "Don't forget to share dashboards with relevant teams", "Don't create duplicate dashboards — consolidate"],
       },
@@ -491,77 +431,11 @@ const trainingTopics: Record<string, TrainingTopic> = {
   },
 };
 
-const ImageUrlInput = ({ onAdd, onCancel }: { onAdd: (url: string, caption: string) => void; onCancel: () => void }) => {
-  const [url, setUrl] = useState("");
-  const [caption, setCaption] = useState("");
-
-  return (
-    <div className="rounded-lg border border-border bg-card p-3 space-y-2">
-      <div className="flex items-center gap-2 mb-1">
-        <Link className="w-4 h-4 text-muted-foreground" />
-        <span className="text-xs font-medium text-foreground">Add Image URL</span>
-      </div>
-      <input
-        type="url"
-        placeholder="Paste image URL here..."
-        value={url}
-        onChange={(e) => setUrl(e.target.value)}
-        className="w-full text-xs px-2 py-1.5 rounded border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-      />
-      <input
-        type="text"
-        placeholder="Caption (optional)"
-        value={caption}
-        onChange={(e) => setCaption(e.target.value)}
-        className="w-full text-xs px-2 py-1.5 rounded border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-      />
-      <div className="flex gap-2">
-        <button
-          onClick={() => { if (url.trim()) { onAdd(url.trim(), caption.trim()); } }}
-          disabled={!url.trim()}
-          className="flex-1 text-xs px-3 py-1.5 rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
-        >
-          Add
-        </button>
-        <button onClick={onCancel} className="text-xs px-3 py-1.5 rounded border border-input text-muted-foreground hover:bg-secondary transition-colors">
-          Cancel
-        </button>
-      </div>
-    </div>
-  );
-};
 
 const TrainingDetail = () => {
   const { topicId } = useParams<{ topicId: string }>();
   const navigate = useNavigate();
   const topic = topicId ? trainingTopics[topicId] : null;
-
-  // Store extra images added by the user per step: { [topicId-stepIndex]: TrainingMedia[] }
-  const [extraMedia, setExtraMedia] = useState<Record<string, TrainingMedia[]>>(() => {
-    try {
-      const saved = localStorage.getItem("training-extra-media");
-      return saved ? JSON.parse(saved) : {};
-    } catch { return {}; }
-  });
-  const [showInputFor, setShowInputFor] = useState<string | null>(null);
-
-  const saveExtraMedia = (updated: Record<string, TrainingMedia[]>) => {
-    setExtraMedia(updated);
-    localStorage.setItem("training-extra-media", JSON.stringify(updated));
-  };
-
-  const addImage = (stepKey: string, url: string, caption: string) => {
-    const current = extraMedia[stepKey] || [];
-    const updated = { ...extraMedia, [stepKey]: [...current, { type: "image" as const, url, caption: caption || undefined }] };
-    saveExtraMedia(updated);
-    setShowInputFor(null);
-  };
-
-  const removeImage = (stepKey: string, index: number) => {
-    const current = extraMedia[stepKey] || [];
-    const updated = { ...extraMedia, [stepKey]: current.filter((_, i) => i !== index) };
-    saveExtraMedia(updated);
-  };
 
   if (!topic) {
     return (
@@ -608,9 +482,7 @@ const TrainingDetail = () => {
         {/* Steps */}
         <div className="space-y-8">
           {topic.steps.map((step, i) => {
-            const stepKey = `${topic.id}-${i}`;
-            const stepExtraMedia = extraMedia[stepKey] || [];
-            const allMedia = [...(step.media || []), ...stepExtraMedia];
+            const allMedia = step.media || [];
 
             return (
               <div key={i} className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
@@ -655,49 +527,14 @@ const TrainingDetail = () => {
                     </div>
                   </div>
 
-                  {/* Right: Screenshots + Add Image */}
-                  <div className="lg:w-[380px] shrink-0 p-4 border-t lg:border-t-0 lg:border-l border-border bg-muted/30 space-y-3">
-                    {allMedia.map((m, k) => {
-                      const isExtra = k >= (step.media?.length || 0);
-                      const extraIndex = k - (step.media?.length || 0);
-                      return (
-                        <div key={k} className="relative group">
-                          <MediaEmbed media={m} />
-                          {isExtra && (
-                            <button
-                              onClick={() => removeImage(stepKey, extraIndex)}
-                              className="absolute top-2 right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
-                              title="Remove image"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
-
-                    {allMedia.length === 0 && showInputFor !== stepKey && (
-                      <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-                        <ImageIcon className="w-10 h-10 mb-2 opacity-40" />
-                        <p className="text-xs">No images yet</p>
-                      </div>
-                    )}
-
-                    {showInputFor === stepKey ? (
-                      <ImageUrlInput
-                        onAdd={(url, caption) => addImage(stepKey, url, caption)}
-                        onCancel={() => setShowInputFor(null)}
-                      />
-                    ) : (
-                      <button
-                        onClick={() => setShowInputFor(stepKey)}
-                        className="w-full flex items-center justify-center gap-2 text-xs px-3 py-2.5 rounded-lg border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-secondary/50 transition-all"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                        Add Image URL
-                      </button>
-                    )}
-                  </div>
+                  {/* Right: Screenshots */}
+                  {allMedia.length > 0 && (
+                    <div className="lg:w-[380px] shrink-0 p-4 border-t lg:border-t-0 lg:border-l border-border bg-muted/30 space-y-3">
+                      {allMedia.map((m, k) => (
+                        <MediaEmbed key={k} media={m} />
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             );
