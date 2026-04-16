@@ -184,7 +184,33 @@ const TrainingDetail = () => {
           })}
         </div>
 
-        {/* Navigation */}
+        {/* Mark as Completed */}
+        {savedUser && topicId && (
+          <div className="pt-8">
+            <button
+              onClick={() => toggleCompletion(topicId)}
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all ${
+                completions.has(topicId)
+                  ? "bg-green-50 border-2 border-green-300 text-green-700 hover:bg-green-100"
+                  : "bg-primary text-primary-foreground hover:bg-primary/90"
+              }`}
+            >
+              {completions.has(topicId) ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  Completed — Click to Undo
+                </>
+              ) : (
+                <>
+                  <Check className="w-4 h-4" />
+                  Mark as Completed
+                </>
+              )}
+            </button>
+          </div>
+        )}
+
+
         <div className="flex items-center justify-between pt-10 pb-16">
           {prevTopic ? (
             <button onClick={() => navigate(`${companySlug ? `/${companySlug}` : ""}/training/${prevTopic.id}`)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
