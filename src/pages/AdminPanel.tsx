@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Building2, Plus, X, Copy, Link as LinkIcon, ImageIcon, ChevronRight, ChevronDown, ExternalLink, Trash2, CheckCircle2, BookOpen, Share2, Info } from "lucide-react";
-import { getCompanies, addCompany, removeCompany, getMediaKey, Company } from "@/lib/companies";
+import { Building2, Plus, X, Copy, Link as LinkIcon, ImageIcon, ChevronRight, ChevronDown, ExternalLink, Trash2, CheckCircle2, BookOpen, Share2, Info, UserCheck, Mail } from "lucide-react";
+import { getCompanies, addCompany, removeCompany, getMediaKey, saveCompanies, Company } from "@/lib/companies";
 import { trainingTopics, trainingCards, TrainingMedia } from "@/lib/trainingData";
 import { toast } from "@/hooks/use-toast";
 
