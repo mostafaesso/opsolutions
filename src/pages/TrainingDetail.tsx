@@ -561,7 +561,9 @@ const TrainingDetail = () => {
         {/* Steps */}
         <div className="space-y-8">
           {topic.steps.map((step, i) => {
-            const allMedia = step.media || [];
+            const stepKey = `${topicId}-${i}`;
+            const savedMedia = extraMedia[stepKey] || [];
+            const allMedia = [...(step.media || []), ...savedMedia];
 
             return (
               <div key={i} className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
@@ -607,11 +609,25 @@ const TrainingDetail = () => {
                   </div>
 
                   {/* Right: Screenshots */}
-                  {allMedia.length > 0 && (
+                  {(allMedia.length > 0 || isAdmin) && (
                     <div className="lg:w-[380px] shrink-0 p-4 border-t lg:border-t-0 lg:border-l border-border bg-muted/30 space-y-3">
                       {allMedia.map((m, k) => (
-                        <MediaEmbed key={k} media={m} />
+                        <div key={k} className="relative group">
+                          <MediaEmbed media={m} />
+                          {isAdmin && k >= (step.media?.length || 0) && (
+                            <button
+                              onClick={() => removeMedia(stepKey, k - (step.media?.length || 0))}
+                              className="absolute top-2 right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
                       ))}
+                      {isAdmin && (
+                        <ImageUrlInput onAdd={(url, caption) => addMedia(stepKey, url, caption)} />
+                      )}
+                      {allMedia.length === 0 && !isAdmin && null}
                     </div>
                   )}
                 </div>
