@@ -1,19 +1,38 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { ChevronRight, CheckCircle2 } from "lucide-react";
-import { getCompanyBySlug } from "@/lib/companies";
+import { fetchCompanyBySlug, Company } from "@/lib/companies";
 import { trainingCards } from "@/lib/trainingData";
 import { useTrainingUser, useCompletions } from "@/hooks/useTrainingUser";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import RegistrationGate from "@/components/RegistrationGate";
 import TeamProgress from "@/components/TeamProgress";
+import { useEffect, useState } from "react";
 
 const CompanyIndex = () => {
   const { companySlug } = useParams<{ companySlug: string }>();
   const navigate = useNavigate();
-  const company = companySlug ? getCompanyBySlug(companySlug) : null;
+  const [company, setCompany] = useState<Company | null>(null);
+  const [companyLoading, setCompanyLoading] = useState(true);
+
+  useEffect(() => {
+    if (!companySlug) { setCompanyLoading(false); return; }
+    fetchCompanyBySlug(companySlug).then((c) => {
+      setCompany(c);
+      setCompanyLoading(false);
+    });
+  }, [companySlug]);
+
   const { user, loading: regLoading, register } = useTrainingUser(companySlug || "");
   const { completions } = useCompletions(user?.id);
+
+  if (companyLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground text-sm">Loading...</p>
+      </div>
+    );
+  }
 
   if (!company) {
     return (
@@ -43,7 +62,6 @@ const CompanyIndex = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="flex items-center justify-between px-6 md:px-8 py-4 bg-card/95 backdrop-blur-md sticky top-0 z-50 border-b border-border shadow-sm">
         <div className="flex items-center gap-3">
           <img src={company.logoUrl} alt={company.name} className="h-10 object-contain" />
@@ -51,23 +69,14 @@ const CompanyIndex = () => {
           <img src="https://www.opsolutionss.com/hubfs/Logos/transparent%20black.png" alt="Ops Solutions" className="hidden sm:block h-8 opacity-60" />
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-muted-foreground hidden sm:block">
-            👋 {user.full_name}
-          </span>
-          <span className="text-sm text-muted-foreground">
-            Powered by Ops Solutions
-          </span>
+          <span className="text-xs text-muted-foreground hidden sm:block">👋 {user.full_name}</span>
+          <span className="text-sm text-muted-foreground">Powered by Ops Solutions</span>
         </div>
       </header>
 
-      {/* Content */}
       <div className="px-6 md:px-8 py-12 md:py-16 max-w-5xl mx-auto">
-        <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
-          Training for {company.name}
-        </h1>
-        <p className="text-muted-foreground text-lg mb-6 max-w-2xl">
-          Complete HubSpot CRM training modules. Click any card to explore step-by-step guidance.
-        </p>
+        <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-3">Training for {company.name}</h1>
+        <p className="text-muted-foreground text-lg mb-6 max-w-2xl">Complete HubSpot CRM training modules. Click any card to explore step-by-step guidance.</p>
 
         <Tabs defaultValue="training" className="space-y-6">
           <TabsList>
@@ -78,7 +87,6 @@ const CompanyIndex = () => {
           </TabsList>
 
           <TabsContent value="training">
-            {/* Progress Bar */}
             <div className="rounded-xl border border-border bg-card p-4 mb-6 flex items-center gap-4">
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-1.5">
@@ -90,7 +98,6 @@ const CompanyIndex = () => {
               <span className="text-lg font-bold text-primary">{progressPercent}%</span>
             </div>
 
-            {/* Training Grid */}
             <div className="rounded-2xl border border-border bg-card p-6 md:p-8 shadow-sm">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {trainingCards.map((card) => {
@@ -100,15 +107,11 @@ const CompanyIndex = () => {
                       key={card.id}
                       onClick={() => navigate(`/${companySlug}/training/${card.id}`)}
                       className={`group flex items-center justify-between rounded-xl border p-5 text-left transition-all hover:shadow-md ${
-                        isCompleted
-                          ? "border-green-200 bg-green-50/50"
-                          : "border-border bg-background hover:border-primary/30"
+                        isCompleted ? "border-green-200 bg-green-50/50" : "border-border bg-background hover:border-primary/30"
                       }`}
                     >
                       <div className="flex-1">
-                        <h3 className="text-base font-bold text-foreground mb-1">
-                          {card.number}. {card.title}
-                        </h3>
+                        <h3 className="text-base font-bold text-foreground mb-1">{card.number}. {card.title}</h3>
                         <p className="text-sm text-muted-foreground">{card.desc}</p>
                       </div>
                       {isCompleted ? (
