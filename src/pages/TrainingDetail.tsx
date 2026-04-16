@@ -654,7 +654,7 @@ const TrainingDetail = () => {
         {/* Navigation */}
         <div className="flex items-center justify-between pt-10 pb-16">
           {prevTopic ? (
-            <button onClick={() => navigate(`/training/${prevTopic.id}`)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <button onClick={() => navigate(`${companySlug ? `/${companySlug}` : ""}/training/${prevTopic.id}${isAdmin ? "?admin=true" : ""}`)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
               <ArrowLeft className="w-4 h-4" />
               {prevTopic.number}. {prevTopic.title}
             </button>
@@ -662,12 +662,12 @@ const TrainingDetail = () => {
             <div />
           )}
           {nextTopic ? (
-            <button onClick={() => navigate(`/training/${nextTopic.id}`)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <button onClick={() => navigate(`${companySlug ? `/${companySlug}` : ""}/training/${nextTopic.id}${isAdmin ? "?admin=true" : ""}`)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
               {nextTopic.number}. {nextTopic.title}
               <ChevronRight className="w-4 h-4" />
             </button>
           ) : (
-            <button onClick={() => navigate("/")} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <button onClick={() => navigate(companySlug ? `/${companySlug}` : "/")} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
               Back to Overview
               <ChevronRight className="w-4 h-4" />
             </button>
