@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Building2, Plus, X, Copy, Link as LinkIcon, ImageIcon, ChevronRight, ChevronDown, ExternalLink, Trash2, CheckCircle2, BookOpen, Share2, Info, UserCheck, Mail } from "lucide-react";
+import { Building2, Plus, X, Copy, Link as LinkIcon, ImageIcon, ChevronRight, ChevronDown, ExternalLink, Trash2, CheckCircle2, BookOpen, Share2, Info, Mail } from "lucide-react";
 import { getCompanies, addCompany, removeCompany, getMediaKey, saveCompanies, Company } from "@/lib/companies";
 import { trainingTopics, trainingCards, TrainingMedia } from "@/lib/trainingData";
 import { toast } from "@/hooks/use-toast";
@@ -364,6 +364,67 @@ const StepImageEditor = ({
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+const ManagerEmailsEditor = ({
+  company,
+  onUpdate,
+}: {
+  company: Company;
+  onUpdate: (updated: Company) => void;
+}) => {
+  const [newEmail, setNewEmail] = useState("");
+  const emails = company.managerEmails || [];
+
+  const addEmail = () => {
+    const email = newEmail.trim().toLowerCase();
+    if (!email || emails.includes(email)) return;
+    onUpdate({ ...company, managerEmails: [...emails, email] });
+    setNewEmail("");
+  };
+
+  const removeEmail = (email: string) => {
+    onUpdate({ ...company, managerEmails: emails.filter(e => e !== email) });
+  };
+
+  return (
+    <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
+      <div className="flex items-center gap-2">
+        <Mail className="w-4 h-4 text-muted-foreground" />
+        <h3 className="text-sm font-semibold text-foreground">Manager / CEO Access</h3>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Add email addresses of managers or CEOs who should see the <strong>Team Progress</strong> tab. Regular members won't see it.
+      </p>
+
+      {emails.length > 0 && (
+        <div className="space-y-1.5">
+          {emails.map((email) => (
+            <div key={email} className="flex items-center gap-2 bg-background border border-border rounded-lg px-3 py-2">
+              <span className="text-sm text-foreground flex-1">{email}</span>
+              <button onClick={() => removeEmail(email)} className="text-muted-foreground hover:text-destructive transition-colors">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="flex gap-2">
+        <input
+          type="email"
+          value={newEmail}
+          onChange={(e) => setNewEmail(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && addEmail()}
+          placeholder="manager@company.com"
+          className="flex-1 text-sm border border-border rounded-lg px-3 py-2 bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+        />
+        <button onClick={addEmail} className="text-sm bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors shrink-0">
+          Add
+        </button>
+      </div>
     </div>
   );
 };
