@@ -1,6 +1,7 @@
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft, CheckCircle2, XCircle, ChevronRight, Play, Plus, Link, X, ImageIcon } from "lucide-react";
 import { useState } from "react";
+import { getCompanyBySlug, getMediaKey } from "@/lib/companies";
 
 interface TrainingMedia {
   type: "image" | "video";
