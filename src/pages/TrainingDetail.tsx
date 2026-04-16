@@ -432,10 +432,89 @@ const trainingTopics: Record<string, TrainingTopic> = {
 };
 
 
+const ImageUrlInput = ({ onAdd }: { onAdd: (url: string, caption: string) => void }) => {
+  const [open, setOpen] = useState(false);
+  const [url, setUrl] = useState("");
+  const [caption, setCaption] = useState("");
+
+  const handleAdd = () => {
+    if (!url.trim()) return;
+    onAdd(url.trim(), caption.trim());
+    setUrl("");
+    setCaption("");
+    setOpen(false);
+  };
+
+  if (!open) {
+    return (
+      <button onClick={() => setOpen(true)} className="flex items-center gap-2 text-xs text-primary hover:text-primary/80 border border-dashed border-primary/40 rounded-lg px-3 py-2 w-full justify-center transition-colors">
+        <Plus className="w-3.5 h-3.5" />
+        Add Image URL
+      </button>
+    );
+  }
+
+  return (
+    <div className="border border-border rounded-lg p-3 space-y-2 bg-background">
+      <div className="flex items-center gap-2 text-xs font-medium text-foreground">
+        <Link className="w-3.5 h-3.5" />
+        Paste image URL
+      </div>
+      <input
+        type="url"
+        value={url}
+        onChange={(e) => setUrl(e.target.value)}
+        placeholder="https://example.com/image.png"
+        className="w-full text-xs border border-border rounded px-2 py-1.5 bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+      />
+      <input
+        type="text"
+        value={caption}
+        onChange={(e) => setCaption(e.target.value)}
+        placeholder="Caption (optional)"
+        className="w-full text-xs border border-border rounded px-2 py-1.5 bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+      />
+      <div className="flex gap-2">
+        <button onClick={handleAdd} className="text-xs bg-primary text-primary-foreground px-3 py-1 rounded hover:bg-primary/90 transition-colors">
+          Add
+        </button>
+        <button onClick={() => { setOpen(false); setUrl(""); setCaption(""); }} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const TrainingDetail = () => {
   const { topicId } = useParams<{ topicId: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const isAdmin = searchParams.get("admin") === "true";
   const topic = topicId ? trainingTopics[topicId] : null;
+
+  const [extraMedia, setExtraMedia] = useState<Record<string, TrainingMedia[]>>(() => {
+    const saved = localStorage.getItem("training-extra-media");
+    return saved ? JSON.parse(saved) : {};
+  });
+
+  const addMedia = (stepKey: string, url: string, caption: string) => {
+    const updated = { ...extraMedia };
+    if (!updated[stepKey]) updated[stepKey] = [];
+    updated[stepKey] = [...updated[stepKey], { type: "image" as const, url, caption: caption || undefined }];
+    setExtraMedia(updated);
+    localStorage.setItem("training-extra-media", JSON.stringify(updated));
+  };
+
+  const removeMedia = (stepKey: string, index: number) => {
+    const updated = { ...extraMedia };
+    if (updated[stepKey]) {
+      updated[stepKey] = updated[stepKey].filter((_, i) => i !== index);
+      if (updated[stepKey].length === 0) delete updated[stepKey];
+    }
+    setExtraMedia(updated);
+    localStorage.setItem("training-extra-media", JSON.stringify(updated));
+  };
 
   if (!topic) {
     return (
