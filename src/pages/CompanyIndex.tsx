@@ -72,7 +72,9 @@ const CompanyIndex = () => {
         <Tabs defaultValue="training" className="space-y-6">
           <TabsList>
             <TabsTrigger value="training">My Training</TabsTrigger>
-            <TabsTrigger value="team">Team Progress</TabsTrigger>
+            {company.managerEmails?.some(e => e.toLowerCase() === user.email.toLowerCase()) && (
+              <TabsTrigger value="team">Team Progress</TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="training">
