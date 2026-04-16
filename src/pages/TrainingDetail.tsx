@@ -1,9 +1,10 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ChevronRight, Play, Check } from "lucide-react";
+import { ArrowLeft, ChevronRight, Play, Check, CheckCircle2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { fetchCompanyBySlug, fetchCompanyMedia, Company } from "@/lib/companies";
 import { trainingTopics, TrainingMedia } from "@/lib/trainingData";
-import { useCompletions } from "@/hooks/useTrainingUser";
+import { useCompletions, useQuizScores, saveQuizScore } from "@/hooks/useTrainingUser";
+import Quiz from "@/components/Quiz";
 
 const MediaEmbed = ({ media }: { media: TrainingMedia }) => {
   const [playing, setPlaying] = useState(false);
@@ -51,12 +52,13 @@ const TrainingDetail = () => {
 
   const [company, setCompany] = useState<Company | null>(null);
   const [extraMedia, setExtraMedia] = useState<Record<string, TrainingMedia[]>>({});
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [latestScore, setLatestScore] = useState<number | null>(null);
 
   useEffect(() => {
     if (!companySlug) return;
     fetchCompanyBySlug(companySlug).then(setCompany);
     fetchCompanyMedia(companySlug).then((media) => {
-      // Convert CompanyMedia[] to TrainingMedia[]
       const mapped: Record<string, TrainingMedia[]> = {};
       Object.entries(media).forEach(([key, items]) => {
         mapped[key] = items.map((m) => ({ type: "image" as const, url: m.url, caption: m.caption }));
@@ -68,7 +70,9 @@ const TrainingDetail = () => {
   const savedUser = companySlug
     ? (() => { const s = localStorage.getItem(`training-user-${companySlug}`); return s ? JSON.parse(s) : null; })()
     : null;
+
   const { completions, toggleCompletion } = useCompletions(savedUser?.id);
+  const { scores: quizScores } = useQuizScores(savedUser?.id);
 
   if (!topic) {
     return (
@@ -82,6 +86,21 @@ const TrainingDetail = () => {
   const currentIdx = topicIds.indexOf(topic.id);
   const prevTopic = currentIdx > 0 ? trainingTopics[topicIds[currentIdx - 1]] : null;
   const nextTopic = currentIdx < topicIds.length - 1 ? trainingTopics[topicIds[currentIdx + 1]] : null;
+  const nextTopicPath = nextTopic
+    ? `${companySlug ? `/${companySlug}` : ""}/training/${nextTopic.id}`
+    : null;
+
+  const isCompleted = topicId ? completions.has(topicId) : false;
+  const displayScore = latestScore ?? (topicId ? quizScores[topicId]?.percent ?? null : null);
+
+  const handleQuizFinish = async (score: number, total: number, passed: boolean) => {
+    if (!savedUser || !topicId) return;
+    await saveQuizScore(savedUser.id, topicId, score, total, passed);
+    if (passed && !completions.has(topicId)) {
+      await toggleCompletion(topicId);
+    }
+    setLatestScore(Math.round((score / total) * 100));
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -137,7 +156,6 @@ const TrainingDetail = () => {
 
                 <div className="flex flex-col lg:flex-row">
                   <div className="flex-1 p-6 space-y-6">
-                    {/* Numbered Instructions */}
                     <div>
                       <h4 className="text-sm font-semibold uppercase tracking-wider text-primary mb-4">
                         📋 How to do it
@@ -154,7 +172,6 @@ const TrainingDetail = () => {
                       </ol>
                     </div>
 
-                    {/* Common Mistakes */}
                     {step.mistakes.length > 0 && (
                       <div className="rounded-xl bg-destructive/5 border border-destructive/15 p-4">
                         <h4 className="text-sm font-semibold text-destructive mb-3">
@@ -186,21 +203,29 @@ const TrainingDetail = () => {
         </div>
 
         {savedUser && topicId && (
-          <div className="pt-8">
-            <button
-              onClick={() => toggleCompletion(topicId)}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all ${
-                completions.has(topicId)
-                  ? "bg-green-50 border-2 border-green-300 text-green-700 hover:bg-green-100"
-                  : "bg-primary text-primary-foreground hover:bg-primary/90"
-              }`}
-            >
-              {completions.has(topicId) ? (
-                <><Check className="w-4 h-4" /> Completed — Click to Undo</>
-              ) : (
-                <><Check className="w-4 h-4" /> Mark as Completed</>
-              )}
-            </button>
+          <div className="pt-8 space-y-4">
+            {showQuiz ? (
+              <Quiz
+                topicId={topicId}
+                nextTopicPath={nextTopicPath}
+                onFinish={handleQuizFinish}
+              />
+            ) : isCompleted ? (
+              <div className="flex items-center gap-3 px-6 py-4 rounded-xl bg-green-50 border-2 border-green-200">
+                <CheckCircle2 className="w-5 h-5 shrink-0 text-green-600" />
+                <span className="text-sm font-semibold text-green-700">Module Completed</span>
+                {displayScore !== null && (
+                  <span className="ml-auto text-sm font-bold text-green-700">{displayScore}%</span>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowQuiz(true)}
+                className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
+              >
+                <Check className="w-4 h-4" /> Take Quiz to Complete Module
+              </button>
+            )}
           </div>
         )}
 

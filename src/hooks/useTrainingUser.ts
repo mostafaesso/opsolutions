@@ -8,6 +8,13 @@ export interface TrainingUser {
   company_slug: string;
 }
 
+export interface QuizScore {
+  score: number;
+  total: number;
+  passed: boolean;
+  percent: number;
+}
+
 const STORAGE_KEY = "training-user";
 
 export const useTrainingUser = (companySlug: string) => {
@@ -20,7 +27,6 @@ export const useTrainingUser = (companySlug: string) => {
   const register = async (email: string, fullName: string) => {
     setLoading(true);
     try {
-      // Try to find existing user
       const { data: existing } = await supabase
         .from("training_users")
         .select("*")
@@ -40,7 +46,6 @@ export const useTrainingUser = (companySlug: string) => {
         return u;
       }
 
-      // Create new user
       const { data, error } = await supabase
         .from("training_users")
         .insert({ email: email.toLowerCase(), full_name: fullName, company_slug: companySlug })
@@ -72,7 +77,7 @@ export const useCompletions = (userId: string | undefined) => {
 
   useEffect(() => {
     if (!userId) { setLoading(false); return; }
-    
+
     supabase
       .from("training_completions")
       .select("card_id")
@@ -85,7 +90,7 @@ export const useCompletions = (userId: string | undefined) => {
 
   const toggleCompletion = async (cardId: string) => {
     if (!userId) return;
-    
+
     if (completions.has(cardId)) {
       await supabase
         .from("training_completions")
@@ -108,9 +113,63 @@ export const useCompletions = (userId: string | undefined) => {
   return { completions, loading, toggleCompletion };
 };
 
+export const saveQuizScore = async (
+  userId: string,
+  cardId: string,
+  score: number,
+  total: number,
+  passed: boolean
+) => {
+  await supabase
+    .from("quiz_scores")
+    .upsert(
+      { user_id: userId, card_id: cardId, score, total, passed, attempted_at: new Date().toISOString() },
+      { onConflict: "user_id,card_id" }
+    );
+};
+
+export const useQuizScores = (userId: string | undefined) => {
+  const [scores, setScores] = useState<Record<string, QuizScore>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!userId) { setLoading(false); return; }
+
+    supabase
+      .from("quiz_scores")
+      .select("card_id, score, total, passed")
+      .eq("user_id", userId)
+      .then(({ data }) => {
+        if (data) {
+          const map: Record<string, QuizScore> = {};
+          data.forEach((d) => {
+            map[d.card_id] = {
+              score: d.score,
+              total: d.total,
+              passed: d.passed,
+              percent: Math.round((d.score / d.total) * 100),
+            };
+          });
+          setScores(map);
+        }
+        setLoading(false);
+      });
+  }, [userId]);
+
+  return { scores, loading };
+};
+
 export const useTeamProgress = (companySlug: string) => {
   const [members, setMembers] = useState<
-    { id: string; email: string; full_name: string; created_at: string; completedCards: string[] }[]
+    {
+      id: string;
+      email: string;
+      full_name: string;
+      created_at: string;
+      completedCards: string[];
+      avgScore: number | null;
+      scoreMap: Record<string, number>;
+    }[]
   >([]);
   const [loading, setLoading] = useState(true);
 
@@ -128,10 +187,18 @@ export const useTeamProgress = (companySlug: string) => {
         return;
       }
 
-      const { data: completions } = await supabase
-        .from("training_completions")
-        .select("user_id, card_id")
-        .in("user_id", users.map((u) => u.id));
+      const userIds = users.map((u) => u.id);
+
+      const [{ data: completions }, { data: quizScores }] = await Promise.all([
+        supabase
+          .from("training_completions")
+          .select("user_id, card_id")
+          .in("user_id", userIds),
+        supabase
+          .from("quiz_scores")
+          .select("user_id, card_id, score, total")
+          .in("user_id", userIds),
+      ]);
 
       const completionMap: Record<string, string[]> = {};
       (completions || []).forEach((c) => {
@@ -139,14 +206,29 @@ export const useTeamProgress = (companySlug: string) => {
         completionMap[c.user_id].push(c.card_id);
       });
 
+      const scoreMap: Record<string, Record<string, number>> = {};
+      (quizScores || []).forEach((s) => {
+        if (!scoreMap[s.user_id]) scoreMap[s.user_id] = {};
+        scoreMap[s.user_id][s.card_id] = Math.round((s.score / s.total) * 100);
+      });
+
       setMembers(
-        users.map((u) => ({
-          id: u.id,
-          email: u.email,
-          full_name: u.full_name,
-          created_at: u.created_at,
-          completedCards: completionMap[u.id] || [],
-        }))
+        users.map((u) => {
+          const userScoreValues = Object.values(scoreMap[u.id] || {});
+          const avgScore =
+            userScoreValues.length > 0
+              ? Math.round(userScoreValues.reduce((a, b) => a + b, 0) / userScoreValues.length)
+              : null;
+          return {
+            id: u.id,
+            email: u.email,
+            full_name: u.full_name,
+            created_at: u.created_at,
+            completedCards: completionMap[u.id] || [],
+            avgScore,
+            scoreMap: scoreMap[u.id] || {},
+          };
+        })
       );
       setLoading(false);
     };

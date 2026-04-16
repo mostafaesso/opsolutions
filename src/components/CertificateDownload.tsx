@@ -4,11 +4,50 @@ import { Award, Download, Loader2 } from "lucide-react";
 interface CertificateDownloadProps {
   userName: string;
   companyName: string;
+  companyLogoUrl: string;
   completedCount: number;
   totalCount: number;
+  averageScore: number;
 }
 
-const CertificateDownload = ({ userName, companyName, completedCount, totalCount }: CertificateDownloadProps) => {
+const loadImage = (url: string): Promise<HTMLImageElement | null> =>
+  new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
+
+const roundRect = (
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number
+) => {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+};
+
+const CertificateDownload = ({
+  userName,
+  companyName,
+  companyLogoUrl,
+  completedCount,
+  totalCount,
+  averageScore,
+}: CertificateDownloadProps) => {
   const [generating, setGenerating] = useState(false);
   const isComplete = completedCount >= totalCount;
 
@@ -17,116 +56,182 @@ const CertificateDownload = ({ userName, companyName, completedCount, totalCount
     setGenerating(true);
 
     try {
+      const W = 2000, H = 1414;
       const canvas = document.createElement("canvas");
-      canvas.width = 1600;
-      canvas.height = 1130;
+      canvas.width = W;
+      canvas.height = H;
       const ctx = canvas.getContext("2d")!;
 
-      // Background
+      const [companyImg, opsImg] = await Promise.all([
+        loadImage(companyLogoUrl),
+        loadImage("https://www.opsolutionss.com/hubfs/Logos/transparent%20black.png"),
+      ]);
+
+      // White background
       ctx.fillStyle = "#FFFFFF";
-      ctx.fillRect(0, 0, 1600, 1130);
+      ctx.fillRect(0, 0, W, H);
 
-      // Border
-      ctx.strokeStyle = "#1E3A5F";
-      ctx.lineWidth = 8;
-      ctx.strokeRect(40, 40, 1520, 1050);
+      // Orange top bar
+      ctx.fillStyle = "#FF6B35";
+      ctx.fillRect(0, 0, W, 10);
 
-      // Inner border
-      ctx.strokeStyle = "#D4A853";
-      ctx.lineWidth = 2;
-      ctx.strokeRect(55, 55, 1490, 1020);
+      // Orange bottom bar
+      ctx.fillStyle = "#FF6B35";
+      ctx.fillRect(0, H - 10, W, 10);
 
-      // Top decorative line
-      ctx.fillStyle = "#1E3A5F";
-      ctx.fillRect(100, 130, 1400, 4);
+      // Company logo — top left
+      if (companyImg) {
+        const maxW = 280, maxH = 80;
+        const ratio = Math.min(maxW / companyImg.width, maxH / companyImg.height);
+        const w = companyImg.width * ratio, h = companyImg.height * ratio;
+        ctx.drawImage(companyImg, 70, 20, w, h);
+      }
 
-      // "CERTIFICATE OF COMPLETION" header
-      ctx.fillStyle = "#D4A853";
-      ctx.font = "600 16px Inter, sans-serif";
+      // Ops Solutions logo — top right
+      if (opsImg) {
+        const maxW = 220, maxH = 70;
+        const ratio = Math.min(maxW / opsImg.width, maxH / opsImg.height);
+        const w = opsImg.width * ratio, h = opsImg.height * ratio;
+        ctx.drawImage(opsImg, W - 70 - w, 22, w, h);
+      }
+
+      // Divider under logos
+      ctx.fillStyle = "#E5E7EB";
+      ctx.fillRect(70, 115, W - 140, 1);
+
+      // "CERTIFICATE OF COMPLETION"
+      ctx.fillStyle = "#FF6B35";
+      ctx.font = "700 22px Arial, sans-serif";
       ctx.textAlign = "center";
-      ctx.letterSpacing = "8px";
-      ctx.fillText("CERTIFICATE OF COMPLETION", 800, 110);
+      (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = "6px";
+      ctx.fillText("CERTIFICATE OF COMPLETION", W / 2, 175);
+      (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = "0px";
 
-      // Award icon placeholder
-      ctx.fillStyle = "#D4A853";
-      ctx.beginPath();
-      ctx.arc(800, 220, 40, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = "#FFFFFF";
-      ctx.font = "bold 36px serif";
-      ctx.fillText("★", 800, 234);
+      // "This is to certify that"
+      ctx.fillStyle = "#9CA3AF";
+      ctx.font = "400 20px Arial, sans-serif";
+      ctx.fillText("This is to certify that", W / 2, 240);
 
-      // "This certifies that"
+      // Learner name
+      ctx.fillStyle = "#2C3E50";
+      ctx.font = "700 72px Arial, sans-serif";
+      ctx.fillText(userName, W / 2, 345);
+
+      // Orange line under name
+      const nameMetrics = ctx.measureText(userName);
+      const lineHalf = Math.min(nameMetrics.width / 2 + 40, 700);
+      ctx.fillStyle = "#FF6B35";
+      ctx.fillRect(W / 2 - lineHalf, 368, lineHalf * 2, 3);
+
+      // "from [Company]"
       ctx.fillStyle = "#6B7280";
-      ctx.font = "400 18px Inter, sans-serif";
-      ctx.fillText("This is to certify that", 800, 310);
-
-      // User name
-      ctx.fillStyle = "#1E3A5F";
-      ctx.font = "bold 48px Inter, sans-serif";
-      ctx.fillText(userName, 800, 380);
-
-      // Decorative line under name
-      ctx.fillStyle = "#D4A853";
-      ctx.fillRect(500, 400, 600, 2);
-
-      // Company
-      ctx.fillStyle = "#6B7280";
-      ctx.font = "400 18px Inter, sans-serif";
-      ctx.fillText(`from ${companyName}`, 800, 450);
+      ctx.font = "400 24px Arial, sans-serif";
+      ctx.fillText(`from ${companyName}`, W / 2, 428);
 
       // "has successfully completed"
-      ctx.fillStyle = "#374151";
-      ctx.font = "400 20px Inter, sans-serif";
-      ctx.fillText("has successfully completed all modules of the", 800, 510);
+      ctx.fillStyle = "#4B5563";
+      ctx.font = "400 22px Arial, sans-serif";
+      ctx.fillText("has successfully completed", W / 2, 488);
 
-      // Course name
-      ctx.fillStyle = "#1E3A5F";
-      ctx.font = "bold 32px Inter, sans-serif";
-      ctx.fillText("HubSpot CRM Sales Training Program", 800, 560);
+      // Course title
+      ctx.fillStyle = "#2C3E50";
+      ctx.font = "700 36px Arial, sans-serif";
+      ctx.fillText("HubSpot CRM Sales Training Program", W / 2, 554);
 
-      // Modules count
+      // Score badge
+      const grade =
+        averageScore >= 85 ? "Distinction" : averageScore >= 70 ? "Merit" : "Pass";
+      const badgeText = `Score: ${averageScore}% — ${grade}`;
+      ctx.font = "600 20px Arial, sans-serif";
+      const badgeW = ctx.measureText(badgeText).width + 64;
+      const badgeH = 46;
+      const badgeX = W / 2 - badgeW / 2;
+      const badgeY = 592;
+      ctx.fillStyle = "#FF6B35";
+      roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 23);
+      ctx.fill();
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillText(badgeText, W / 2, badgeY + 31);
+
+      // Completion date
+      const date = new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
       ctx.fillStyle = "#6B7280";
-      ctx.font = "400 16px Inter, sans-serif";
-      ctx.fillText(`${totalCount} training modules completed`, 800, 600);
+      ctx.font = "400 20px Arial, sans-serif";
+      ctx.fillText(`Completed: ${date}`, W / 2, 675);
 
-      // Date
-      const date = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-      ctx.fillStyle = "#374151";
-      ctx.font = "400 18px Inter, sans-serif";
-      ctx.fillText(date, 800, 660);
+      // Navy divider line
+      ctx.fillStyle = "#2C3E50";
+      ctx.fillRect(70, 726, W - 140, 3);
 
-      // Bottom decorative line
-      ctx.fillStyle = "#1E3A5F";
-      ctx.fillRect(100, 720, 1400, 4);
+      // ── Signature area ──
+      const sigLineY = 870;
 
-      // Signatures area
-      // Left: Ops Solutions
-      ctx.fillStyle = "#D4A853";
-      ctx.fillRect(250, 820, 300, 2);
-      ctx.fillStyle = "#374151";
-      ctx.font = "bold 16px Inter, sans-serif";
-      ctx.fillText("Ops Solutions", 400, 855);
-      ctx.font = "400 14px Inter, sans-serif";
+      // Left: Mostafa Ali
+      ctx.fillStyle = "#FF6B35";
+      ctx.fillRect(180, sigLineY, 420, 2);
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#1F2937";
+      ctx.font = "700 20px Arial, sans-serif";
+      ctx.fillText("Mostafa Ali", 180, sigLineY + 38);
       ctx.fillStyle = "#6B7280";
-      ctx.fillText("Training Provider", 400, 878);
+      ctx.font = "400 16px Arial, sans-serif";
+      ctx.fillText("Revenue Architect", 180, sigLineY + 62);
+      ctx.fillText("Ops Solutions Group LLC", 180, sigLineY + 84);
 
-      // Right: Program
-      ctx.fillStyle = "#D4A853";
-      ctx.fillRect(1050, 820, 300, 2);
-      ctx.fillStyle = "#374151";
-      ctx.font = "bold 16px Inter, sans-serif";
-      ctx.fillText("HubSpot CRM Academy", 1200, 855);
-      ctx.font = "400 14px Inter, sans-serif";
+      // Right: Completion Date
+      ctx.fillStyle = "#FF6B35";
+      ctx.fillRect(1400, sigLineY, 420, 2);
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#1F2937";
+      ctx.font = "700 20px Arial, sans-serif";
+      ctx.fillText(date, 1820, sigLineY + 38);
       ctx.fillStyle = "#6B7280";
-      ctx.fillText("Sales Training Program", 1200, 878);
+      ctx.font = "400 16px Arial, sans-serif";
+      ctx.fillText("Completion Date", 1820, sigLineY + 62);
+
+      // Center stamp
+      const stampX = W / 2;
+      const stampY = sigLineY + 20;
+      const outerR = 88, innerR = 70;
+
+      ctx.strokeStyle = "#FF6B35";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(stampX, stampY, outerR, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(stampX, stampY, innerR, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = "#FF6B35";
+      ctx.font = "700 13px Arial, sans-serif";
+      ctx.textAlign = "center";
+      (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = "2px";
+      ctx.fillText("OPS SOLUTIONS", stampX, stampY - 10);
+      ctx.fillText("CERTIFIED", stampX, stampY + 10);
+      (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = "0px";
+
+      ctx.font = "bold 32px Arial, sans-serif";
+      ctx.fillText("✓", stampX, stampY + 42);
 
       // Footer
+      ctx.fillStyle = "#E5E7EB";
+      ctx.fillRect(70, H - 58, W - 140, 1);
       ctx.fillStyle = "#9CA3AF";
-      ctx.font = "400 12px Inter, sans-serif";
-      ctx.fillText("Powered by Ops Solutions • www.opsolutionss.com", 800, 1040);
+      ctx.font = "400 16px Arial, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(
+        "Ops Solutions Group LLC  ·  Registered: Texas, United States  ·  opsolutionss.com",
+        W / 2,
+        H - 28
+      );
 
-      // Download
       canvas.toBlob((blob) => {
         if (!blob) return;
         const url = URL.createObjectURL(blob);
@@ -145,11 +250,15 @@ const CertificateDownload = ({ userName, companyName, completedCount, totalCount
   if (!isComplete) return null;
 
   return (
-    <div className="rounded-xl border-2 border-green-200 bg-green-50/50 p-6 text-center space-y-4">
+    <div className="rounded-xl border-2 border-green-200 bg-green-50/50 p-6 text-center space-y-4 mb-6">
       <Award className="w-12 h-12 mx-auto" style={{ color: "hsl(160, 84%, 39%)" }} />
       <div>
         <h3 className="text-lg font-bold text-foreground">🎉 Congratulations!</h3>
-        <p className="text-sm text-muted-foreground mt-1">You've completed all {totalCount} training modules. Download your certificate below.</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          You've completed all {totalCount} modules with an average score of{" "}
+          <span className="font-semibold text-foreground">{averageScore}%</span>. Download your
+          certificate below.
+        </p>
       </div>
       <button
         onClick={generateCertificate}

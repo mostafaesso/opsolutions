@@ -1,14 +1,15 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronRight, CheckCircle2 } from "lucide-react";
+import { ChevronRight, CheckCircle2, Lock } from "lucide-react";
 import { fetchCompanyBySlug, Company } from "@/lib/companies";
 import { trainingCards } from "@/lib/trainingData";
-import { useTrainingUser, useCompletions } from "@/hooks/useTrainingUser";
+import { useTrainingUser, useCompletions, useQuizScores } from "@/hooks/useTrainingUser";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import RegistrationGate from "@/components/RegistrationGate";
 import TeamProgress from "@/components/TeamProgress";
 import CertificateDownload from "@/components/CertificateDownload";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 const CompanyIndex = () => {
   const { companySlug } = useParams<{ companySlug: string }>();
@@ -26,6 +27,7 @@ const CompanyIndex = () => {
 
   const { user, loading: regLoading, register } = useTrainingUser(companySlug || "");
   const { completions } = useCompletions(user?.id);
+  const { scores: quizScores } = useQuizScores(user?.id);
 
   if (companyLoading) {
     return (
@@ -61,6 +63,27 @@ const CompanyIndex = () => {
   const totalCards = trainingCards.length;
   const progressPercent = Math.round((completedCount / totalCards) * 100);
 
+  const completedQuizPercents = trainingCards
+    .filter((c) => completions.has(c.id) && quizScores[c.id])
+    .map((c) => quizScores[c.id].percent);
+  const averageScore =
+    completedQuizPercents.length > 0
+      ? Math.round(completedQuizPercents.reduce((a, b) => a + b, 0) / completedQuizPercents.length)
+      : 0;
+
+  const isLocked = (index: number) => {
+    if (index === 0) return false;
+    return !completions.has(trainingCards[index - 1].id);
+  };
+
+  const handleCardClick = (card: typeof trainingCards[0], index: number) => {
+    if (isLocked(index)) {
+      toast(`Complete "${trainingCards[index - 1].title}" first to unlock this module.`);
+      return;
+    }
+    navigate(`/${companySlug}/training/${card.id}`);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="flex items-center justify-between px-6 md:px-8 py-4 bg-card/95 backdrop-blur-md sticky top-0 z-50 border-b border-border shadow-sm">
@@ -77,7 +100,7 @@ const CompanyIndex = () => {
 
       <div className="px-6 md:px-8 py-12 md:py-16 max-w-5xl mx-auto">
         <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-3">Training for {company.name}</h1>
-        <p className="text-muted-foreground text-lg mb-6 max-w-2xl">Complete HubSpot CRM training modules. Click any card to explore step-by-step guidance.</p>
+        <p className="text-muted-foreground text-lg mb-6 max-w-2xl">Complete HubSpot CRM training modules. Pass each quiz to unlock the next module.</p>
 
         <Tabs defaultValue="training" className="space-y-6">
           <TabsList>
@@ -102,31 +125,51 @@ const CompanyIndex = () => {
             <CertificateDownload
               userName={user.full_name}
               companyName={company.name}
+              companyLogoUrl={company.logoUrl}
               completedCount={completedCount}
               totalCount={totalCards}
+              averageScore={averageScore}
             />
 
             <div className="rounded-2xl border border-border bg-card p-6 md:p-8 shadow-sm">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {trainingCards.map((card) => {
+                {trainingCards.map((card, index) => {
                   const isCompleted = completions.has(card.id);
+                  const locked = isLocked(index);
+                  const score = quizScores[card.id];
+
                   return (
                     <button
                       key={card.id}
-                      onClick={() => navigate(`/${companySlug}/training/${card.id}`)}
-                      className={`group flex items-center justify-between rounded-xl border p-5 text-left transition-all hover:shadow-md ${
-                        isCompleted ? "border-green-200 bg-green-50/50" : "border-border bg-background hover:border-primary/30"
+                      onClick={() => handleCardClick(card, index)}
+                      className={`group flex items-center justify-between rounded-xl border p-5 text-left transition-all ${
+                        locked
+                          ? "border-border bg-muted/40 opacity-60 cursor-not-allowed"
+                          : isCompleted
+                          ? "border-green-200 bg-green-50/50 hover:shadow-md"
+                          : "border-border bg-background hover:border-primary/30 hover:shadow-md"
                       }`}
                     >
-                      <div className="flex-1">
-                        <h3 className="text-base font-bold text-foreground mb-1">{card.number}. {card.title}</h3>
-                        <p className="text-sm text-muted-foreground">{card.desc}</p>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-base font-bold text-foreground mb-1">
+                          {card.number}. {card.title}
+                        </h3>
+                        <p className="text-sm text-muted-foreground truncate">{card.desc}</p>
+                        {isCompleted && score && (
+                          <span className="mt-2 inline-block text-xs font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+                            {score.percent}%
+                          </span>
+                        )}
                       </div>
-                      {isCompleted ? (
-                        <CheckCircle2 className="w-5 h-5 shrink-0 ml-3" style={{ color: "hsl(160, 84%, 39%)" }} />
-                      ) : (
-                        <ChevronRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-3" />
-                      )}
+                      <div className="shrink-0 ml-3">
+                        {locked ? (
+                          <Lock className="w-4 h-4 text-muted-foreground" />
+                        ) : isCompleted ? (
+                          <CheckCircle2 className="w-5 h-5" style={{ color: "hsl(160, 84%, 39%)" }} />
+                        ) : (
+                          <ChevronRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                        )}
+                      </div>
                     </button>
                   );
                 })}

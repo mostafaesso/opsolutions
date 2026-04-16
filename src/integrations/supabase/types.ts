@@ -76,6 +76,44 @@ export type Database = {
           },
         ]
       }
+      quiz_scores: {
+        Row: {
+          attempted_at: string
+          card_id: string
+          id: string
+          passed: boolean
+          score: number
+          total: number
+          user_id: string
+        }
+        Insert: {
+          attempted_at?: string
+          card_id: string
+          id?: string
+          passed: boolean
+          score: number
+          total: number
+          user_id: string
+        }
+        Update: {
+          attempted_at?: string
+          card_id?: string
+          id?: string
+          passed?: boolean
+          score?: number
+          total?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_scores_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "training_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_completions: {
         Row: {
           card_id: string
