@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import RegistrationGate from "@/components/RegistrationGate";
 import TeamProgress from "@/components/TeamProgress";
+import CertificateDownload from "@/components/CertificateDownload";
 import { useEffect, useState } from "react";
 
 const CompanyIndex = () => {
@@ -97,6 +98,13 @@ const CompanyIndex = () => {
               </div>
               <span className="text-lg font-bold text-primary">{progressPercent}%</span>
             </div>
+
+            <CertificateDownload
+              userName={user.full_name}
+              companyName={company.name}
+              completedCount={completedCount}
+              totalCount={totalCards}
+            />
 
             <div className="rounded-2xl border border-border bg-card p-6 md:p-8 shadow-sm">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
