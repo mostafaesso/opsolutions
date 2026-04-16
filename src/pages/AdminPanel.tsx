@@ -3,8 +3,9 @@ import { Building2, Plus, X, Copy, Link as LinkIcon, ImageIcon, ChevronRight, Ch
 import { fetchCompanies, addCompanyToDb, removeCompanyFromDb, updateCompanyInDb, fetchCompanyMedia, addCompanyMedia, removeCompanyMedia, Company } from "@/lib/companies";
 import { trainingTopics, trainingCards } from "@/lib/trainingData";
 import { toast } from "@/hooks/use-toast";
+import AdminPasswordGate from "@/components/AdminPasswordGate";
 
-const AdminPanel = () => {
+const AdminPanelContent = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
   const [expandedTopic, setExpandedTopic] = useState<string | null>(null);
@@ -445,5 +446,11 @@ const ManagerEmailsEditor = ({
     </div>
   );
 };
+
+const AdminPanel = () => (
+  <AdminPasswordGate>
+    <AdminPanelContent />
+  </AdminPasswordGate>
+);
 
 export default AdminPanel;
