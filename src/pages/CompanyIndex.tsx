@@ -123,9 +123,11 @@ const CompanyIndex = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="team">
-            <TeamProgress companySlug={companySlug!} companyName={company.name} />
-          </TabsContent>
+          {company.managerEmails?.some(e => e.toLowerCase() === user.email.toLowerCase()) && (
+            <TabsContent value="team">
+              <TeamProgress companySlug={companySlug!} companyName={company.name} />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>
