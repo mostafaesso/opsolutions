@@ -1,6 +1,7 @@
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft, CheckCircle2, XCircle, ChevronRight, Play, Plus, Link, X, ImageIcon } from "lucide-react";
 import { useState } from "react";
+import { getCompanyBySlug, getMediaKey } from "@/lib/companies";
 
 interface TrainingMedia {
   type: "image" | "video";
@@ -487,14 +488,16 @@ const ImageUrlInput = ({ onAdd }: { onAdd: (url: string, caption: string) => voi
 };
 
 const TrainingDetail = () => {
-  const { topicId } = useParams<{ topicId: string }>();
+  const { topicId, companySlug } = useParams<{ topicId: string; companySlug?: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const isAdmin = searchParams.get("admin") === "true";
   const topic = topicId ? trainingTopics[topicId] : null;
+  const company = companySlug ? getCompanyBySlug(companySlug) : null;
+  const mediaStorageKey = getMediaKey(companySlug);
 
   const [extraMedia, setExtraMedia] = useState<Record<string, TrainingMedia[]>>(() => {
-    const saved = localStorage.getItem("training-extra-media");
+    const saved = localStorage.getItem(mediaStorageKey);
     return saved ? JSON.parse(saved) : {};
   });
 
@@ -503,7 +506,7 @@ const TrainingDetail = () => {
     if (!updated[stepKey]) updated[stepKey] = [];
     updated[stepKey] = [...updated[stepKey], { type: "image" as const, url, caption: caption || undefined }];
     setExtraMedia(updated);
-    localStorage.setItem("training-extra-media", JSON.stringify(updated));
+    localStorage.setItem(mediaStorageKey, JSON.stringify(updated));
   };
 
   const removeMedia = (stepKey: string, index: number) => {
@@ -513,7 +516,7 @@ const TrainingDetail = () => {
       if (updated[stepKey].length === 0) delete updated[stepKey];
     }
     setExtraMedia(updated);
-    localStorage.setItem("training-extra-media", JSON.stringify(updated));
+    localStorage.setItem(mediaStorageKey, JSON.stringify(updated));
   };
 
   if (!topic) {
@@ -533,19 +536,31 @@ const TrainingDetail = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="flex items-center justify-between px-6 md:px-8 py-4 bg-card/95 backdrop-blur-md sticky top-0 z-50 border-b border-border shadow-sm">
-        <div className="flex items-center gap-2">
-          <button onClick={() => navigate("/")} className="flex items-center gap-2">
-            <img src="https://www.opsolutionss.com/hubfs/Logos/transparent%20black.png" alt="Ops Solutions" className="h-10" />
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate(companySlug ? `/${companySlug}` : "/")} className="flex items-center gap-3">
+            {company ? (
+              <>
+                <img src={company.logoUrl} alt={company.name} className="h-10 object-contain" />
+                <div className="hidden sm:block h-6 w-px bg-border" />
+                <img src="https://www.opsolutionss.com/hubfs/Logos/transparent%20black.png" alt="Ops Solutions" className="hidden sm:block h-8 opacity-60" />
+              </>
+            ) : (
+              <img src="https://www.opsolutionss.com/hubfs/Logos/transparent%20black.png" alt="Ops Solutions" className="h-10" />
+            )}
           </button>
         </div>
-        <a href="https://www.opsolutionss.com" target="_blank" rel="noopener noreferrer" className="hidden sm:inline-flex items-center gap-2 border border-border text-sm text-foreground px-4 py-2 rounded-full hover:border-primary/50 hover:bg-secondary transition-all">
-          Visit Ops Solutions
-        </a>
+        {company ? (
+          <span className="text-sm text-muted-foreground">Powered by Ops Solutions</span>
+        ) : (
+          <a href="https://www.opsolutionss.com" target="_blank" rel="noopener noreferrer" className="hidden sm:inline-flex items-center gap-2 border border-border text-sm text-foreground px-4 py-2 rounded-full hover:border-primary/50 hover:bg-secondary transition-all">
+            Visit Ops Solutions
+          </a>
+        )}
       </header>
 
       {/* Content */}
       <div className="px-6 md:px-8 py-10 max-w-6xl mx-auto">
-        <button onClick={() => navigate("/")} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors">
+        <button onClick={() => navigate(companySlug ? `/${companySlug}` : "/")} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors">
           <ArrowLeft className="w-4 h-4" />
           Back to Training Overview
         </button>
@@ -639,7 +654,7 @@ const TrainingDetail = () => {
         {/* Navigation */}
         <div className="flex items-center justify-between pt-10 pb-16">
           {prevTopic ? (
-            <button onClick={() => navigate(`/training/${prevTopic.id}`)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <button onClick={() => navigate(`${companySlug ? `/${companySlug}` : ""}/training/${prevTopic.id}${isAdmin ? "?admin=true" : ""}`)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
               <ArrowLeft className="w-4 h-4" />
               {prevTopic.number}. {prevTopic.title}
             </button>
@@ -647,12 +662,12 @@ const TrainingDetail = () => {
             <div />
           )}
           {nextTopic ? (
-            <button onClick={() => navigate(`/training/${nextTopic.id}`)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <button onClick={() => navigate(`${companySlug ? `/${companySlug}` : ""}/training/${nextTopic.id}${isAdmin ? "?admin=true" : ""}`)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
               {nextTopic.number}. {nextTopic.title}
               <ChevronRight className="w-4 h-4" />
             </button>
           ) : (
-            <button onClick={() => navigate("/")} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <button onClick={() => navigate(companySlug ? `/${companySlug}` : "/")} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
               Back to Overview
               <ChevronRight className="w-4 h-4" />
             </button>
