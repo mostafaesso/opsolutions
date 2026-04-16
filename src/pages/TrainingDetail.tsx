@@ -506,7 +506,7 @@ const TrainingDetail = () => {
     if (!updated[stepKey]) updated[stepKey] = [];
     updated[stepKey] = [...updated[stepKey], { type: "image" as const, url, caption: caption || undefined }];
     setExtraMedia(updated);
-    localStorage.setItem("training-extra-media", JSON.stringify(updated));
+    localStorage.setItem(mediaStorageKey, JSON.stringify(updated));
   };
 
   const removeMedia = (stepKey: string, index: number) => {
@@ -516,7 +516,7 @@ const TrainingDetail = () => {
       if (updated[stepKey].length === 0) delete updated[stepKey];
     }
     setExtraMedia(updated);
-    localStorage.setItem("training-extra-media", JSON.stringify(updated));
+    localStorage.setItem(mediaStorageKey, JSON.stringify(updated));
   };
 
   if (!topic) {
