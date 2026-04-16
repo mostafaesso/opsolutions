@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Building2, Plus, X, Copy, Link as LinkIcon, ImageIcon, ChevronRight, ChevronDown, ExternalLink, Trash2 } from "lucide-react";
+import { Building2, Plus, X, Copy, Link as LinkIcon, ImageIcon, ChevronRight, ChevronDown, ExternalLink, Trash2, CheckCircle2, BookOpen, Share2, Info } from "lucide-react";
 import { getCompanies, addCompany, removeCompany, getMediaKey, Company } from "@/lib/companies";
 import { trainingTopics, trainingCards, TrainingMedia } from "@/lib/trainingData";
+import { toast } from "@/hooks/use-toast";
 
 const AdminPanel = () => {
   const [companies, setCompanies] = useState<Company[]>(getCompanies);
@@ -35,7 +36,10 @@ const AdminPanel = () => {
   const copyLink = (s: string) => {
     const url = `${window.location.origin}/${s}`;
     navigator.clipboard.writeText(url);
+    toast({ title: "Link copied!", description: url });
   };
+
+  const getFullUrl = (s: string) => `${window.location.origin}/${s}`;
 
   const company = selectedCompany ? companies.find(c => c.slug === selectedCompany) : null;
 
@@ -116,8 +120,12 @@ const AdminPanel = () => {
           {/* Right: Company Detail / Media Manager */}
           <div className="rounded-2xl border border-border bg-card p-6 min-h-[400px]">
             {!company ? (
-              <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-                <p>Select a company to manage its training images</p>
+              <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-4 py-16">
+                <BookOpen className="w-10 h-10 text-muted-foreground/40" />
+                <div className="text-center space-y-1">
+                  <p className="text-sm font-medium">Select a company to manage</p>
+                  <p className="text-xs">Choose a company from the left to view its guideline and manage training images</p>
+                </div>
               </div>
             ) : (
               <div className="space-y-6">
@@ -130,19 +138,59 @@ const AdminPanel = () => {
                       <p className="text-xs text-muted-foreground">/{company.slug}</p>
                     </div>
                   </div>
+                  <button onClick={() => handleRemoveCompany(company.slug)} className="flex items-center gap-1.5 text-xs text-destructive hover:text-destructive/80 transition-colors">
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Remove
+                  </button>
+                </div>
+
+                {/* Shareable Link Section */}
+                <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
                   <div className="flex items-center gap-2">
-                    <button onClick={() => copyLink(company.slug)} className="flex items-center gap-1.5 text-xs bg-secondary text-secondary-foreground px-3 py-1.5 rounded-lg hover:bg-secondary/80 transition-colors">
+                    <Share2 className="w-4 h-4 text-primary" />
+                    <h3 className="text-sm font-semibold text-primary">Shareable Training Link</h3>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Share this link with <strong>{company.name}</strong> employees. They will see a branded training portal with your company's logo and custom images.
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground font-mono truncate select-all">
+                      {getFullUrl(company.slug)}
+                    </div>
+                    <button onClick={() => copyLink(company.slug)} className="flex items-center gap-1.5 text-xs bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors shrink-0">
                       <Copy className="w-3.5 h-3.5" />
-                      Copy Link
+                      Copy
                     </button>
-                    <a href={`/${company.slug}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors">
+                    <a href={`/${company.slug}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs border border-border text-foreground px-4 py-2 rounded-lg hover:bg-secondary transition-colors shrink-0">
                       <ExternalLink className="w-3.5 h-3.5" />
                       Preview
                     </a>
-                    <button onClick={() => handleRemoveCompany(company.slug)} className="flex items-center gap-1.5 text-xs text-destructive hover:text-destructive/80 transition-colors">
-                      <Trash2 className="w-3.5 h-3.5" />
-                      Remove
-                    </button>
+                  </div>
+                </div>
+
+                {/* Admin Guide */}
+                <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Info className="w-4 h-4 text-muted-foreground" />
+                    <h3 className="text-sm font-semibold text-foreground">Admin Guide</h3>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-start gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-green-600 mt-0.5 shrink-0" />
+                      <p className="text-xs text-muted-foreground"><strong>Step 1:</strong> Add company-specific screenshots to each training module below.</p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-green-600 mt-0.5 shrink-0" />
+                      <p className="text-xs text-muted-foreground"><strong>Step 2:</strong> Copy the shareable link above and send it to the company's team.</p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-green-600 mt-0.5 shrink-0" />
+                      <p className="text-xs text-muted-foreground"><strong>Step 3:</strong> Employees open the link and see branded training with their own images.</p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-green-600 mt-0.5 shrink-0" />
+                      <p className="text-xs text-muted-foreground"><strong>Note:</strong> Each company sees only their own images. The training content is shared across all companies.</p>
+                    </div>
                   </div>
                 </div>
 
@@ -152,8 +200,9 @@ const AdminPanel = () => {
                 <div>
                   <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2">
                     <ImageIcon className="w-4 h-4" />
-                    Training Images
+                    Training Images for {company.name}
                   </h3>
+                  <p className="text-xs text-muted-foreground mb-3">Add screenshots specific to {company.name}'s HubSpot setup. These will appear in the media sidebar when their employees view training.</p>
                   <div className="space-y-2">
                     {trainingCards.map((card) => (
                       <TopicImageManager
