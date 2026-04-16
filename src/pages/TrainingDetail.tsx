@@ -47,35 +47,15 @@ const MediaEmbed = ({ media }: { media: TrainingMedia }) => {
 
 const TrainingDetail = () => {
   const { topicId, companySlug } = useParams<{ topicId: string; companySlug?: string }>();
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const isAdmin = searchParams.get("admin") === "true";
   const topic = topicId ? trainingTopics[topicId] : null;
   const company = companySlug ? getCompanyBySlug(companySlug) : null;
   const mediaStorageKey = getMediaKey(companySlug);
 
-  const [extraMedia, setExtraMedia] = useState<Record<string, TrainingMedia[]>>(() => {
+  const [extraMedia] = useState<Record<string, TrainingMedia[]>>(() => {
     const saved = localStorage.getItem(mediaStorageKey);
     return saved ? JSON.parse(saved) : {};
   });
-
-  const addMedia = (stepKey: string, url: string, caption: string) => {
-    const updated = { ...extraMedia };
-    if (!updated[stepKey]) updated[stepKey] = [];
-    updated[stepKey] = [...updated[stepKey], { type: "image" as const, url, caption: caption || undefined }];
-    setExtraMedia(updated);
-    localStorage.setItem(mediaStorageKey, JSON.stringify(updated));
-  };
-
-  const removeMedia = (stepKey: string, index: number) => {
-    const updated = { ...extraMedia };
-    if (updated[stepKey]) {
-      updated[stepKey] = updated[stepKey].filter((_, i) => i !== index);
-      if (updated[stepKey].length === 0) delete updated[stepKey];
-    }
-    setExtraMedia(updated);
-    localStorage.setItem(mediaStorageKey, JSON.stringify(updated));
-  };
 
   if (!topic) {
     return (
@@ -182,25 +162,13 @@ const TrainingDetail = () => {
                   </div>
 
                   {/* Right: Screenshots */}
-                  {(allMedia.length > 0 || isAdmin) && (
+                  {allMedia.length > 0 && (
                     <div className="lg:w-[380px] shrink-0 p-4 border-t lg:border-t-0 lg:border-l border-border bg-muted/30 space-y-3">
                       {allMedia.map((m, k) => (
-                        <div key={k} className="relative group">
+                        <div key={k}>
                           <MediaEmbed media={m} />
-                          {isAdmin && k >= (step.media?.length || 0) && (
-                            <button
-                              onClick={() => removeMedia(stepKey, k - (step.media?.length || 0))}
-                              className="absolute top-2 right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
-                            >
-                              <X className="w-3.5 h-3.5" />
-                            </button>
-                          )}
                         </div>
                       ))}
-                      {isAdmin && (
-                        <ImageUrlInput onAdd={(url, caption) => addMedia(stepKey, url, caption)} />
-                      )}
-                      {allMedia.length === 0 && !isAdmin && null}
                     </div>
                   )}
                 </div>
@@ -212,7 +180,7 @@ const TrainingDetail = () => {
         {/* Navigation */}
         <div className="flex items-center justify-between pt-10 pb-16">
           {prevTopic ? (
-            <button onClick={() => navigate(`${companySlug ? `/${companySlug}` : ""}/training/${prevTopic.id}${isAdmin ? "?admin=true" : ""}`)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <button onClick={() => navigate(`${companySlug ? `/${companySlug}` : ""}/training/${prevTopic.id}`)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
               <ArrowLeft className="w-4 h-4" />
               {prevTopic.number}. {prevTopic.title}
             </button>
@@ -220,7 +188,7 @@ const TrainingDetail = () => {
             <div />
           )}
           {nextTopic ? (
-            <button onClick={() => navigate(`${companySlug ? `/${companySlug}` : ""}/training/${nextTopic.id}${isAdmin ? "?admin=true" : ""}`)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <button onClick={() => navigate(`${companySlug ? `/${companySlug}` : ""}/training/${nextTopic.id}`)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
               {nextTopic.number}. {nextTopic.title}
               <ChevronRight className="w-4 h-4" />
             </button>
