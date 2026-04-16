@@ -1,8 +1,9 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, CheckCircle2, XCircle, ChevronRight, Play } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, ChevronRight, Play, Check } from "lucide-react";
 import { useState } from "react";
 import { getCompanyBySlug, getMediaKey } from "@/lib/companies";
 import { trainingTopics, TrainingMedia } from "@/lib/trainingData";
+import { useCompletions } from "@/hooks/useTrainingUser";
 
 const MediaEmbed = ({ media }: { media: TrainingMedia }) => {
   const [playing, setPlaying] = useState(false);
