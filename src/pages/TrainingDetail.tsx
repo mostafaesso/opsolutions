@@ -53,6 +53,12 @@ const TrainingDetail = () => {
   const company = companySlug ? getCompanyBySlug(companySlug) : null;
   const mediaStorageKey = getMediaKey(companySlug);
 
+  // Get user from localStorage for completions
+  const savedUser = companySlug
+    ? (() => { const s = localStorage.getItem(`training-user-${companySlug}`); return s ? JSON.parse(s) : null; })()
+    : null;
+  const { completions, toggleCompletion } = useCompletions(savedUser?.id);
+
   const [extraMedia] = useState<Record<string, TrainingMedia[]>>(() => {
     const saved = localStorage.getItem(mediaStorageKey);
     return saved ? JSON.parse(saved) : {};
