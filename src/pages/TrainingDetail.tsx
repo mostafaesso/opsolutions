@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, CheckCircle2, XCircle, ChevronRight, Play, Check } from "lucide-react";
-import { useState } from "react";
-import { getCompanyBySlug, getMediaKey } from "@/lib/companies";
+import { useState, useEffect } from "react";
+import { fetchCompanyBySlug, fetchCompanyMedia, Company } from "@/lib/companies";
 import { trainingTopics, TrainingMedia } from "@/lib/trainingData";
 import { useCompletions } from "@/hooks/useTrainingUser";
 
@@ -44,25 +44,31 @@ const MediaEmbed = ({ media }: { media: TrainingMedia }) => {
   );
 };
 
-
-
 const TrainingDetail = () => {
   const { topicId, companySlug } = useParams<{ topicId: string; companySlug?: string }>();
   const navigate = useNavigate();
   const topic = topicId ? trainingTopics[topicId] : null;
-  const company = companySlug ? getCompanyBySlug(companySlug) : null;
-  const mediaStorageKey = getMediaKey(companySlug);
 
-  // Get user from localStorage for completions
+  const [company, setCompany] = useState<Company | null>(null);
+  const [extraMedia, setExtraMedia] = useState<Record<string, TrainingMedia[]>>({});
+
+  useEffect(() => {
+    if (!companySlug) return;
+    fetchCompanyBySlug(companySlug).then(setCompany);
+    fetchCompanyMedia(companySlug).then((media) => {
+      // Convert CompanyMedia[] to TrainingMedia[]
+      const mapped: Record<string, TrainingMedia[]> = {};
+      Object.entries(media).forEach(([key, items]) => {
+        mapped[key] = items.map((m) => ({ type: "image" as const, url: m.url, caption: m.caption }));
+      });
+      setExtraMedia(mapped);
+    });
+  }, [companySlug]);
+
   const savedUser = companySlug
     ? (() => { const s = localStorage.getItem(`training-user-${companySlug}`); return s ? JSON.parse(s) : null; })()
     : null;
   const { completions, toggleCompletion } = useCompletions(savedUser?.id);
-
-  const [extraMedia] = useState<Record<string, TrainingMedia[]>>(() => {
-    const saved = localStorage.getItem(mediaStorageKey);
-    return saved ? JSON.parse(saved) : {};
-  });
 
   if (!topic) {
     return (
@@ -79,7 +85,6 @@ const TrainingDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="flex items-center justify-between px-6 md:px-8 py-4 bg-card/95 backdrop-blur-md sticky top-0 z-50 border-b border-border shadow-sm">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(companySlug ? `/${companySlug}` : "/")} className="flex items-center gap-3">
@@ -103,7 +108,6 @@ const TrainingDetail = () => {
         )}
       </header>
 
-      {/* Content */}
       <div className="px-6 md:px-8 py-10 max-w-6xl mx-auto">
         <button onClick={() => navigate(companySlug ? `/${companySlug}` : "/")} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors">
           <ArrowLeft className="w-4 h-4" />
@@ -118,7 +122,6 @@ const TrainingDetail = () => {
         </div>
         <p className="text-muted-foreground text-lg max-w-2xl mb-10">{topic.overview}</p>
 
-        {/* Steps */}
         <div className="space-y-8">
           {topic.steps.map((step, i) => {
             const stepKey = `${topicId}-${i}`;
@@ -128,20 +131,15 @@ const TrainingDetail = () => {
             return (
               <div key={i} className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
                 <div className="p-6 border-b border-border">
-                  <h3 className="text-xl font-bold text-foreground mb-2">
-                    Step {i + 1}: {step.title}
-                  </h3>
+                  <h3 className="text-xl font-bold text-foreground mb-2">Step {i + 1}: {step.title}</h3>
                   <p className="text-muted-foreground mb-4">{step.description}</p>
                 </div>
 
-                {/* Content + Images side by side */}
                 <div className="flex flex-col lg:flex-row">
-                  {/* Left: Do / Don't lists */}
                   <div className="flex-1 grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border">
                     <div className="p-6">
                       <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider mb-4" style={{ color: "hsl(160, 84%, 39%)" }}>
-                        <CheckCircle2 className="w-5 h-5" />
-                        What to do
+                        <CheckCircle2 className="w-5 h-5" /> What to do
                       </h4>
                       <ul className="space-y-3">
                         {step.doList.map((item, j) => (
@@ -154,8 +152,7 @@ const TrainingDetail = () => {
                     </div>
                     <div className="p-6">
                       <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider mb-4" style={{ color: "hsl(4, 72%, 56%)" }}>
-                        <XCircle className="w-5 h-5" />
-                        What NOT to do
+                        <XCircle className="w-5 h-5" /> What NOT to do
                       </h4>
                       <ul className="space-y-3">
                         {step.dontList.map((item, j) => (
@@ -168,13 +165,10 @@ const TrainingDetail = () => {
                     </div>
                   </div>
 
-                  {/* Right: Screenshots */}
                   {allMedia.length > 0 && (
                     <div className="lg:w-[380px] shrink-0 p-4 border-t lg:border-t-0 lg:border-l border-border bg-muted/30 space-y-3">
                       {allMedia.map((m, k) => (
-                        <div key={k}>
-                          <MediaEmbed media={m} />
-                        </div>
+                        <div key={k}><MediaEmbed media={m} /></div>
                       ))}
                     </div>
                   )}
@@ -184,7 +178,6 @@ const TrainingDetail = () => {
           })}
         </div>
 
-        {/* Mark as Completed */}
         {savedUser && topicId && (
           <div className="pt-8">
             <button
@@ -196,39 +189,27 @@ const TrainingDetail = () => {
               }`}
             >
               {completions.has(topicId) ? (
-                <>
-                  <Check className="w-4 h-4" />
-                  Completed — Click to Undo
-                </>
+                <><Check className="w-4 h-4" /> Completed — Click to Undo</>
               ) : (
-                <>
-                  <Check className="w-4 h-4" />
-                  Mark as Completed
-                </>
+                <><Check className="w-4 h-4" /> Mark as Completed</>
               )}
             </button>
           </div>
         )}
 
-
         <div className="flex items-center justify-between pt-10 pb-16">
           {prevTopic ? (
             <button onClick={() => navigate(`${companySlug ? `/${companySlug}` : ""}/training/${prevTopic.id}`)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-              <ArrowLeft className="w-4 h-4" />
-              {prevTopic.number}. {prevTopic.title}
+              <ArrowLeft className="w-4 h-4" /> {prevTopic.number}. {prevTopic.title}
             </button>
-          ) : (
-            <div />
-          )}
+          ) : <div />}
           {nextTopic ? (
             <button onClick={() => navigate(`${companySlug ? `/${companySlug}` : ""}/training/${nextTopic.id}`)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-              {nextTopic.number}. {nextTopic.title}
-              <ChevronRight className="w-4 h-4" />
+              {nextTopic.number}. {nextTopic.title} <ChevronRight className="w-4 h-4" />
             </button>
           ) : (
             <button onClick={() => navigate(companySlug ? `/${companySlug}` : "/")} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Back to Overview
-              <ChevronRight className="w-4 h-4" />
+              Back to Overview <ChevronRight className="w-4 h-4" />
             </button>
           )}
         </div>

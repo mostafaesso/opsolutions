@@ -14,6 +14,68 @@ export type Database = {
   }
   public: {
     Tables: {
+      companies: {
+        Row: {
+          created_at: string
+          id: string
+          logo_url: string
+          manager_emails: string[] | null
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          logo_url: string
+          manager_emails?: string[] | null
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          logo_url?: string
+          manager_emails?: string[] | null
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      company_media: {
+        Row: {
+          caption: string | null
+          company_slug: string
+          created_at: string
+          id: string
+          step_key: string
+          url: string
+        }
+        Insert: {
+          caption?: string | null
+          company_slug: string
+          created_at?: string
+          id?: string
+          step_key: string
+          url: string
+        }
+        Update: {
+          caption?: string | null
+          company_slug?: string
+          created_at?: string
+          id?: string
+          step_key?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_media_company_slug_fkey"
+            columns: ["company_slug"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["slug"]
+          },
+        ]
+      }
       training_completions: {
         Row: {
           card_id: string
