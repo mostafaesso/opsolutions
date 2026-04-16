@@ -2,6 +2,7 @@ export interface Company {
   slug: string;
   name: string;
   logoUrl: string;
+  managerEmails?: string[];
 }
 
 const STORAGE_KEY = "training-companies";
