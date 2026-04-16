@@ -35,7 +35,7 @@ const RegistrationGate = ({ companyName, companyLogo, loading, onRegister }: Pro
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="John Doe"
+                placeholder="Mostafa Ali"
                 required
                 className="w-full pl-10 pr-3 py-2.5 text-sm border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
               />
