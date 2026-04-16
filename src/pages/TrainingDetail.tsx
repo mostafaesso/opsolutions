@@ -436,11 +436,6 @@ const TrainingDetail = () => {
   const { topicId } = useParams<{ topicId: string }>();
   const navigate = useNavigate();
   const topic = topicId ? trainingTopics[topicId] : null;
-    saveExtraMedia(updated);
-    setShowInputFor(null);
-  };
-    saveExtraMedia(updated);
-  };
 
   if (!topic) {
     return (
