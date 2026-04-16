@@ -1,8 +1,9 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, CheckCircle2, XCircle, ChevronRight, Play } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, ChevronRight, Play, Check } from "lucide-react";
 import { useState } from "react";
 import { getCompanyBySlug, getMediaKey } from "@/lib/companies";
 import { trainingTopics, TrainingMedia } from "@/lib/trainingData";
+import { useCompletions } from "@/hooks/useTrainingUser";
 
 const MediaEmbed = ({ media }: { media: TrainingMedia }) => {
   const [playing, setPlaying] = useState(false);
@@ -51,6 +52,12 @@ const TrainingDetail = () => {
   const topic = topicId ? trainingTopics[topicId] : null;
   const company = companySlug ? getCompanyBySlug(companySlug) : null;
   const mediaStorageKey = getMediaKey(companySlug);
+
+  // Get user from localStorage for completions
+  const savedUser = companySlug
+    ? (() => { const s = localStorage.getItem(`training-user-${companySlug}`); return s ? JSON.parse(s) : null; })()
+    : null;
+  const { completions, toggleCompletion } = useCompletions(savedUser?.id);
 
   const [extraMedia] = useState<Record<string, TrainingMedia[]>>(() => {
     const saved = localStorage.getItem(mediaStorageKey);
@@ -177,7 +184,33 @@ const TrainingDetail = () => {
           })}
         </div>
 
-        {/* Navigation */}
+        {/* Mark as Completed */}
+        {savedUser && topicId && (
+          <div className="pt-8">
+            <button
+              onClick={() => toggleCompletion(topicId)}
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all ${
+                completions.has(topicId)
+                  ? "bg-green-50 border-2 border-green-300 text-green-700 hover:bg-green-100"
+                  : "bg-primary text-primary-foreground hover:bg-primary/90"
+              }`}
+            >
+              {completions.has(topicId) ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  Completed — Click to Undo
+                </>
+              ) : (
+                <>
+                  <Check className="w-4 h-4" />
+                  Mark as Completed
+                </>
+              )}
+            </button>
+          </div>
+        )}
+
+
         <div className="flex items-center justify-between pt-10 pb-16">
           {prevTopic ? (
             <button onClick={() => navigate(`${companySlug ? `/${companySlug}` : ""}/training/${prevTopic.id}`)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
