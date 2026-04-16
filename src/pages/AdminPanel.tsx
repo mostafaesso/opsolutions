@@ -36,7 +36,10 @@ const AdminPanel = () => {
   const copyLink = (s: string) => {
     const url = `${window.location.origin}/${s}`;
     navigator.clipboard.writeText(url);
+    toast({ title: "Link copied!", description: url });
   };
+
+  const getFullUrl = (s: string) => `${window.location.origin}/${s}`;
 
   const company = selectedCompany ? companies.find(c => c.slug === selectedCompany) : null;
 
