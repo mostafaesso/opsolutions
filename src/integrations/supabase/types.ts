@@ -14,7 +14,59 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      training_completions: {
+        Row: {
+          card_id: string
+          completed_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          card_id: string
+          completed_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          card_id?: string
+          completed_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_completions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "training_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_users: {
+        Row: {
+          company_slug: string
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+        }
+        Insert: {
+          company_slug: string
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+        }
+        Update: {
+          company_slug?: string
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
