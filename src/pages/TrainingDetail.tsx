@@ -136,33 +136,40 @@ const TrainingDetail = () => {
                 </div>
 
                 <div className="flex flex-col lg:flex-row">
-                  <div className="flex-1 grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border">
-                    <div className="p-6">
-                      <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider mb-4" style={{ color: "hsl(160, 84%, 39%)" }}>
-                        <CheckCircle2 className="w-5 h-5" /> What to do
+                  <div className="flex-1 p-6 space-y-6">
+                    {/* Numbered Instructions */}
+                    <div>
+                      <h4 className="text-sm font-semibold uppercase tracking-wider text-primary mb-4">
+                        📋 How to do it
                       </h4>
-                      <ul className="space-y-3">
-                        {step.doList.map((item, j) => (
+                      <ol className="space-y-3">
+                        {step.instructions.map((item, j) => (
                           <li key={j} className="flex items-start gap-3 text-sm text-foreground">
-                            <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "hsl(160, 84%, 39%)" }} />
+                            <span className="shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary font-semibold text-xs flex items-center justify-center mt-0.5">
+                              {j + 1}
+                            </span>
                             {item}
                           </li>
                         ))}
-                      </ul>
+                      </ol>
                     </div>
-                    <div className="p-6">
-                      <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider mb-4" style={{ color: "hsl(4, 72%, 56%)" }}>
-                        <XCircle className="w-5 h-5" /> What NOT to do
-                      </h4>
-                      <ul className="space-y-3">
-                        {step.dontList.map((item, j) => (
-                          <li key={j} className="flex items-start gap-3 text-sm text-foreground">
-                            <XCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "hsl(4, 72%, 56%)" }} />
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+
+                    {/* Common Mistakes */}
+                    {step.mistakes.length > 0 && (
+                      <div className="rounded-xl bg-destructive/5 border border-destructive/15 p-4">
+                        <h4 className="text-sm font-semibold text-destructive mb-3">
+                          ⚠️ Common Mistakes
+                        </h4>
+                        <ul className="space-y-2">
+                          {step.mistakes.map((item, j) => (
+                            <li key={j} className="flex items-start gap-2 text-sm text-foreground">
+                              <span className="text-destructive shrink-0 mt-0.5">•</span>
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
 
                   {allMedia.length > 0 && (
