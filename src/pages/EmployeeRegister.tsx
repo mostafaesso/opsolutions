@@ -17,7 +17,6 @@ const EmployeeRegister = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [detectedCompany, setDetectedCompany] = useState<string | null>(null);
 
   useEffect(() => {
     if (!companySlug) return;
@@ -26,31 +25,6 @@ const EmployeeRegister = () => {
       else setCompanyName(c.name);
     });
   }, [companySlug, navigate]);
-
-  // Auto-detect company from email domain
-  useEffect(() => {
-    const detectCompanyFromEmail = async () => {
-      if (!email || !email.includes("@")) {
-        setDetectedCompany(null);
-        return;
-      }
-
-      const domain = email.split("@")[1].toLowerCase();
-      const { data } = await supabase
-        .from("companies" as any)
-        .select("slug, name")
-        .eq("domain", domain)
-        .maybeSingle();
-
-      if (data) {
-        setDetectedCompany(data.slug);
-      } else {
-        setDetectedCompany(null);
-      }
-    };
-
-    detectCompanyFromEmail();
-  }, [email]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
