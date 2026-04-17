@@ -81,11 +81,6 @@ const EmployeeRegister = () => {
                 Joining <strong>{companyName}</strong> training portal
               </p>
             )}
-            {detectedCompany && detectedCompany !== companySlug && (
-              <p className="text-xs text-blue-600 text-center mt-2">
-                ✓ Your email domain matched a company — you'll be auto-assigned to your team.
-              </p>
-            )}
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
