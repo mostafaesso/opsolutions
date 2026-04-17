@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { InviteEmployeeModal } from "@/components/InviteEmployeeModal";
 import { fetchCompanyBySlug, Company } from "@/lib/companies";
 import { trainingCards } from "@/lib/trainingData";
 import { Button } from "@/components/ui/button";
@@ -51,72 +52,68 @@ const CompanyAdminDashboard = () => {
     check();
   }, [navigate, companySlug]);
 
-  useEffect(() => {
+  const loadData = async () => {
     if (!authChecked || !companySlug) return;
 
-    const load = async () => {
-      const [comp, usersRes] = await Promise.all([
-        fetchCompanyBySlug(companySlug),
-        supabase.from("training_users").select("*").eq("company_slug", companySlug),
-      ]);
-      setCompany(comp);
+    const [comp, usersRes] = await Promise.all([
+      fetchCompanyBySlug(companySlug),
+      supabase.from("training_users").select("*").eq("company_slug", companySlug),
+    ]);
+    setCompany(comp);
 
-      const users = usersRes.data || [];
-      if (users.length === 0) {
-        setLearners([]);
-        setLoading(false);
-        return;
-      }
-
-      const { data: completionsData } = await supabase
-        .from("training_completions")
-        .select("user_id, card_id, quiz_score" as any)
-        .in(
-          "user_id",
-          users.map((u: any) => u.id),
-        );
-
-      const byUser: Record<string, { cards: Set<string>; scores: number[] }> = {};
-      (completionsData || []).forEach((c: any) => {
-        if (!byUser[c.user_id]) byUser[c.user_id] = { cards: new Set(), scores: [] };
-        byUser[c.user_id].cards.add(c.card_id);
-        if (typeof c.quiz_score === "number") byUser[c.user_id].scores.push(c.quiz_score);
-      });
-
-      setLearners(
-        users.map((u: any) => {
-          const agg = byUser[u.id] || { cards: new Set(), scores: [] };
-          const avg =
-            agg.scores.length > 0
-              ? agg.scores.reduce((a: number, b: number) => a + b, 0) / agg.scores.length
-              : null;
-          return {
-            id: u.id,
-            full_name: u.full_name,
-            email: u.email,
-            last_active_at: u.last_active_at,
-            completed: agg.cards.size,
-            avgScore: avg,
-          };
-        }),
-      );
+    const users = usersRes.data || [];
+    if (users.length === 0) {
+      setLearners([]);
       setLoading(false);
-    };
+      return;
+    }
 
-    load();
+    const { data: completionsData } = await supabase
+      .from("training_completions")
+      .select("user_id, card_id, quiz_score" as any)
+      .in(
+        "user_id",
+        users.map((u: any) => u.id),
+      );
+
+    const byUser: Record<string, { cards: Set<string>; scores: number[] }> = {};
+    (completionsData || []).forEach((c: any) => {
+      if (!byUser[c.user_id]) byUser[c.user_id] = { cards: new Set(), scores: [] };
+      byUser[c.user_id].cards.add(c.card_id);
+      if (typeof c.quiz_score === "number") byUser[c.user_id].scores.push(c.quiz_score);
+    });
+
+    setLearners(
+      users.map((u: any) => {
+        const agg = byUser[u.id] || { cards: new Set(), scores: [] };
+        const avg =
+          agg.scores.length > 0
+            ? agg.scores.reduce((a: number, b: number) => a + b, 0) / agg.scores.length
+            : null;
+        return {
+          id: u.id,
+          full_name: u.full_name,
+          email: u.email,
+          last_active_at: u.last_active_at,
+          completed: agg.cards.size,
+          avgScore: avg,
+        };
+      }),
+    );
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadData();
   }, [authChecked, companySlug]);
 
   const stats = useMemo(() => {
     const total = learners.length;
     const avgCompletion =
-      total > 0
-        ? (learners.reduce((s, l) => s + l.completed / TOTAL, 0) / total) * 100
-        : 0;
+      total > 0 ? (learners.reduce((s, l) => s + l.completed / TOTAL, 0) / total) * 100 : 0;
     const scored = learners.filter((l) => l.avgScore !== null);
     const avgScore =
-      scored.length > 0
-        ? scored.reduce((s, l) => s + (l.avgScore || 0), 0) / scored.length
-        : 0;
+      scored.length > 0 ? scored.reduce((s, l) => s + (l.avgScore || 0), 0) / scored.length : 0;
     const certs = learners.filter((l) => l.completed >= TOTAL).length;
     return { total, avgCompletion, avgScore, certs };
   }, [learners]);
@@ -157,22 +154,23 @@ const CompanyAdminDashboard = () => {
       <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Total Learners" value={stats.total.toString()} />
+          <StatCard label="Total Employees" value={stats.total.toString()} />
           <StatCard label="Avg Completion" value={`${stats.avgCompletion.toFixed(0)}%`} />
           <StatCard label="Avg Quiz Score" value={`${stats.avgScore.toFixed(0)}%`} />
           <StatCard label="Certificates Earned" value={stats.certs.toString()} />
         </div>
 
-        {/* Learners table */}
+        {/* Employees */}
         <Card>
-          <CardHeader>
-            <CardTitle>Learners</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Team Members</CardTitle>
+            {companySlug && <InviteEmployeeModal companySlug={companySlug} onEmployeeAdded={loadData} />}
           </CardHeader>
           <CardContent>
             {loading ? (
               <p className="text-sm text-muted-foreground">Loading...</p>
             ) : learners.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No learners yet.</p>
+              <p className="text-sm text-muted-foreground">No employees yet. Invite your first team member.</p>
             ) : (
               <Table>
                 <TableHeader>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { LogOut, Trash2, Save, X, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSuperAdmin } from "@/hooks/useSuperAdmin";
+import { AddCompanyModal } from "@/components/AddCompanyModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -57,9 +58,10 @@ const SuperAdminDashboard = () => {
   const [learners, setLearners] = useState<LearnerRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
-  const [editDraft, setEditDraft] = useState<{ slug: string; customDomain: string }>({
+  const [editDraft, setEditDraft] = useState<{ slug: string; customDomain: string; domain: string }>({
     slug: "",
     customDomain: "",
+    domain: "",
   });
   const [filterCompany, setFilterCompany] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"progress" | "score">("progress");
@@ -150,7 +152,7 @@ const SuperAdminDashboard = () => {
 
   const startEdit = (c: Company) => {
     setEditingSlug(c.slug);
-    setEditDraft({ slug: c.slug, customDomain: c.customDomain || "" });
+    setEditDraft({ slug: c.slug, customDomain: c.customDomain || "", domain: (c as any).domain || "" });
   };
 
   const saveEdit = async (original: Company) => {
@@ -160,6 +162,7 @@ const SuperAdminDashboard = () => {
           ...original,
           slug: editDraft.slug.trim(),
           customDomain: editDraft.customDomain.trim() || null,
+          domain: editDraft.domain.trim() || null,
         },
         original.slug,
       );
@@ -222,8 +225,9 @@ const SuperAdminDashboard = () => {
 
         {/* Companies */}
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Companies</CardTitle>
+            <AddCompanyModal onCompanyAdded={loadData} />
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -236,6 +240,7 @@ const SuperAdminDashboard = () => {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Slug</TableHead>
+                    <TableHead>Domain</TableHead>
                     <TableHead>Custom Domain</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Learners</TableHead>
@@ -270,12 +275,28 @@ const SuperAdminDashboard = () => {
                         <TableCell>
                           {editing ? (
                             <Input
+                              value={editDraft.domain}
+                              onChange={(e) =>
+                                setEditDraft((d) => ({ ...d, domain: e.target.value }))
+                              }
+                              placeholder="company.com"
+                              className="h-8 w-32"
+                            />
+                          ) : (
+                            <span className="text-xs text-muted-foreground">
+                              {(c as any).domain || "—"}
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {editing ? (
+                            <Input
                               value={editDraft.customDomain}
                               onChange={(e) =>
                                 setEditDraft((d) => ({ ...d, customDomain: e.target.value }))
                               }
                               placeholder="academy.acme.com"
-                              className="h-8 w-48"
+                              className="h-8 w-40"
                             />
                           ) : (
                             <span className="text-xs text-muted-foreground">
