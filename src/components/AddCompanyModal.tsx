@@ -23,7 +23,7 @@ export function AddCompanyModal({ onCompanyAdded }: AddCompanyModalProps) {
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
-  const [domain, setDomain] = useState("");
+  const [customDomain, setCustomDomain] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
 
