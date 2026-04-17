@@ -151,7 +151,7 @@ const SuperAdminDashboard = () => {
 
   const startEdit = (c: Company) => {
     setEditingSlug(c.slug);
-    setEditDraft({ slug: c.slug, customDomain: c.customDomain || "", domain: (c as any).domain || "" });
+    setEditDraft({ slug: c.slug, customDomain: c.customDomain || "" });
   };
 
   const saveEdit = async (original: Company) => {
@@ -161,7 +161,6 @@ const SuperAdminDashboard = () => {
           ...original,
           slug: editDraft.slug.trim(),
           customDomain: editDraft.customDomain.trim() || null,
-          domain: editDraft.domain.trim() || null,
         },
         original.slug,
       );
@@ -274,16 +273,16 @@ const SuperAdminDashboard = () => {
                         <TableCell>
                           {editing ? (
                             <Input
-                              value={editDraft.domain}
+                              value={editDraft.customDomain}
                               onChange={(e) =>
-                                setEditDraft((d) => ({ ...d, domain: e.target.value }))
+                                setEditDraft((d) => ({ ...d, customDomain: e.target.value }))
                               }
-                              placeholder="company.com"
-                              className="h-8 w-32"
+                              placeholder="academy.acme.com"
+                              className="h-8 w-40"
                             />
                           ) : (
                             <span className="text-xs text-muted-foreground">
-                              {(c as any).domain || "—"}
+                              {c.customDomain || "—"}
                             </span>
                           )}
                         </TableCell>
