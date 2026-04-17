@@ -1,9 +1,10 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ChevronRight, Play, Check } from "lucide-react";
+import { ArrowLeft, ChevronRight, Play } from "lucide-react";
 import { useState, useEffect } from "react";
 import { fetchCompanyBySlug, fetchCompanyMedia, Company } from "@/lib/companies";
 import { trainingTopics, TrainingMedia } from "@/lib/trainingData";
 import { useCompletions } from "@/hooks/useTrainingUser";
+import Quiz from "@/components/Quiz";
 
 const MediaEmbed = ({ media }: { media: TrainingMedia }) => {
   const [playing, setPlaying] = useState(false);
@@ -68,7 +69,7 @@ const TrainingDetail = () => {
   const savedUser = companySlug
     ? (() => { const s = localStorage.getItem(`training-user-${companySlug}`); return s ? JSON.parse(s) : null; })()
     : null;
-  const { completions, toggleCompletion } = useCompletions(savedUser?.id);
+  const { completions, markComplete } = useCompletions(savedUser?.id);
 
   if (!topic) {
     return (
@@ -187,20 +188,25 @@ const TrainingDetail = () => {
 
         {savedUser && topicId && (
           <div className="pt-8">
-            <button
-              onClick={() => toggleCompletion(topicId)}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all ${
-                completions.has(topicId)
-                  ? "bg-green-50 border-2 border-green-300 text-green-700 hover:bg-green-100"
-                  : "bg-primary text-primary-foreground hover:bg-primary/90"
-              }`}
-            >
-              {completions.has(topicId) ? (
-                <><Check className="w-4 h-4" /> Completed — Click to Undo</>
-              ) : (
-                <><Check className="w-4 h-4" /> Mark as Completed</>
-              )}
-            </button>
+            {completions.has(topicId) ? (
+              <div className="rounded-2xl border border-green-200 bg-green-50/60 p-6 text-center space-y-2">
+                <p className="text-green-700 font-semibold text-sm">Module already completed</p>
+                <p className="text-green-600 text-xs">You can retake the quiz to improve your score.</p>
+                <div className="pt-1">
+                  <Quiz
+                    topicId={topicId}
+                    onPass={(score) => markComplete(topicId, score)}
+                    onNext={nextTopic ? () => navigate(`${companySlug ? `/${companySlug}` : ""}/training/${nextTopic.id}`) : undefined}
+                  />
+                </div>
+              </div>
+            ) : (
+              <Quiz
+                topicId={topicId}
+                onPass={(score) => markComplete(topicId, score)}
+                onNext={nextTopic ? () => navigate(`${companySlug ? `/${companySlug}` : ""}/training/${nextTopic.id}`) : undefined}
+              />
+            )}
           </div>
         )}
 

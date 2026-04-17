@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronRight, CheckCircle2 } from "lucide-react";
+import { ChevronRight, CheckCircle2, Lock } from "lucide-react";
 import { fetchCompanyBySlug, Company } from "@/lib/companies";
 import { trainingCards } from "@/lib/trainingData";
 import { useTrainingUser, useCompletions } from "@/hooks/useTrainingUser";
@@ -9,6 +9,7 @@ import RegistrationGate from "@/components/RegistrationGate";
 import TeamProgress from "@/components/TeamProgress";
 import CertificateDownload from "@/components/CertificateDownload";
 import { useEffect, useState } from "react";
+import { toast } from "@/hooks/use-toast";
 
 const CompanyIndex = () => {
   const { companySlug } = useParams<{ companySlug: string }>();
@@ -25,7 +26,7 @@ const CompanyIndex = () => {
   }, [companySlug]);
 
   const { user, loading: regLoading, register } = useTrainingUser(companySlug || "");
-  const { completions } = useCompletions(user?.id);
+  const { completions, scores } = useCompletions(user?.id);
 
   if (companyLoading) {
     return (
@@ -121,25 +122,62 @@ const CompanyIndex = () => {
 
             <div className="rounded-2xl border border-border bg-card p-6 md:p-8 shadow-sm">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {trainingCards.map((card) => {
+                {trainingCards.map((card, idx) => {
                   const isCompleted = completions.has(card.id);
+                  const isLocked = idx > 0 && !completions.has(trainingCards[idx - 1].id);
+                  const score = scores[card.id];
+
+                  if (isLocked) {
+                    return (
+                      <button
+                        key={card.id}
+                        onClick={() =>
+                          toast({
+                            title: `Complete module ${trainingCards[idx - 1].number} first`,
+                            description: `Finish "${trainingCards[idx - 1].title}" to unlock this module.`,
+                          })
+                        }
+                        className="group flex items-center justify-between rounded-xl border border-border bg-muted/40 p-5 text-left opacity-60 cursor-not-allowed"
+                      >
+                        <div className="flex-1">
+                          <h3 className="text-base font-bold text-muted-foreground mb-1">
+                            {card.number}. {card.title}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">{card.desc}</p>
+                        </div>
+                        <Lock className="w-4 h-4 text-muted-foreground shrink-0 ml-3" />
+                      </button>
+                    );
+                  }
+
                   return (
                     <button
                       key={card.id}
                       onClick={() => navigate(`/${companySlug}/training/${card.id}`)}
                       className={`group flex items-center justify-between rounded-xl border p-5 text-left transition-all hover:shadow-md ${
-                        isCompleted ? "border-green-200 bg-green-50/50" : "border-border bg-background hover:border-primary/30"
+                        isCompleted
+                          ? "border-green-200 bg-green-50/50"
+                          : "border-border bg-background hover:border-primary/30"
                       }`}
                     >
                       <div className="flex-1">
-                        <h3 className="text-base font-bold text-foreground mb-1">{card.number}. {card.title}</h3>
+                        <h3 className="text-base font-bold text-foreground mb-1">
+                          {card.number}. {card.title}
+                        </h3>
                         <p className="text-sm text-muted-foreground">{card.desc}</p>
                       </div>
-                      {isCompleted ? (
-                        <CheckCircle2 className="w-5 h-5 shrink-0 ml-3" style={{ color: "hsl(160, 84%, 39%)" }} />
-                      ) : (
-                        <ChevronRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-3" />
-                      )}
+                      <div className="flex flex-col items-end gap-1 shrink-0 ml-3">
+                        {isCompleted ? (
+                          <>
+                            <CheckCircle2 className="w-5 h-5" style={{ color: "hsl(160, 84%, 39%)" }} />
+                            {score !== undefined && (
+                              <span className="text-xs font-semibold text-green-600">{score}%</span>
+                            )}
+                          </>
+                        ) : (
+                          <ChevronRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                        )}
+                      </div>
                     </button>
                   );
                 })}

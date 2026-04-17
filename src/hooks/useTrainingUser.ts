@@ -68,44 +68,48 @@ export const useTrainingUser = (companySlug: string) => {
 
 export const useCompletions = (userId: string | undefined) => {
   const [completions, setCompletions] = useState<Set<string>>(new Set());
+  const [scores, setScores] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!userId) { setLoading(false); return; }
-    
+
     supabase
       .from("training_completions")
-      .select("card_id")
+      .select("card_id, quiz_score")
       .eq("user_id", userId)
       .then(({ data }) => {
-        if (data) setCompletions(new Set(data.map((d) => d.card_id)));
+        if (data) {
+          setCompletions(new Set(data.map((d) => d.card_id)));
+          const scoreMap: Record<string, number> = {};
+          data.forEach((d) => {
+            if (d.quiz_score !== null) scoreMap[d.card_id] = d.quiz_score;
+          });
+          setScores(scoreMap);
+        }
         setLoading(false);
       });
   }, [userId]);
 
-  const toggleCompletion = async (cardId: string) => {
+  const markComplete = async (cardId: string, score: number) => {
     if (!userId) return;
-    
+
     if (completions.has(cardId)) {
       await supabase
         .from("training_completions")
-        .delete()
+        .update({ quiz_score: score })
         .eq("user_id", userId)
         .eq("card_id", cardId);
-      setCompletions((prev) => {
-        const next = new Set(prev);
-        next.delete(cardId);
-        return next;
-      });
     } else {
       await supabase
         .from("training_completions")
-        .insert({ user_id: userId, card_id: cardId });
+        .insert({ user_id: userId, card_id: cardId, quiz_score: score });
       setCompletions((prev) => new Set(prev).add(cardId));
     }
+    setScores((prev) => ({ ...prev, [cardId]: score }));
   };
 
-  return { completions, loading, toggleCompletion };
+  return { completions, scores, loading, markComplete };
 };
 
 export const useTeamProgress = (companySlug: string) => {

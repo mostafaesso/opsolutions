@@ -10,6 +10,8 @@ import AdminPanel from "./pages/AdminPanel.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import SuperAdminLogin from "./pages/SuperAdminLogin.tsx";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard.tsx";
+import CompanyAdminLogin from "./pages/CompanyAdminLogin.tsx";
+import CompanyAdminDashboard from "./pages/CompanyAdminDashboard.tsx";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +24,8 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/admin/login" element={<CompanyAdminLogin />} />
+          <Route path="/admin/:companySlug/dashboard" element={<CompanyAdminDashboard />} />
           <Route path="/super-admin/login" element={<SuperAdminLogin />} />
           <Route path="/super-admin" element={<SuperAdminDashboard />} />
           <Route path="/:companySlug" element={<CompanyIndex />} />
