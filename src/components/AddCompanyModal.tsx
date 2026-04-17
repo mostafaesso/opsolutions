@@ -109,15 +109,17 @@ export function AddCompanyModal({ onCompanyAdded }: AddCompanyModalProps) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="domain">Email Domain (auto-assign employees)</Label>
+            <Label htmlFor="domain">Custom Domain (optional)</Label>
             <Input
               id="domain"
-              placeholder="acme.com"
-              value={domain}
-              onChange={(e) => setDomain(e.target.value)}
+              placeholder="academy.acme.com"
+              value={customDomain}
+              onChange={(e) => setCustomDomain(e.target.value)}
               type="text"
-              hint="Employees with @acme.com emails will auto-join this company"
             />
+            <p className="text-xs text-muted-foreground">
+              Optional vanity domain that maps to this company portal.
+            </p>
           </div>
           <div className="flex justify-end gap-2 pt-4">
             <Button variant="outline" onClick={() => setOpen(false)} disabled={submitting}>
