@@ -32,11 +32,11 @@ export function AddCompanyModal({ onCompanyAdded }: AddCompanyModalProps) {
     setSubmitting(true);
 
     try {
-      const { error } = await supabase.from("companies" as any).insert({
+      const { error } = await supabase.from("companies").insert({
         name: name.trim(),
         slug: slug.trim().toLowerCase(),
-        logo_url: logoUrl.trim() || null,
-        domain: domain.trim().toLowerCase() || null,
+        logo_url: logoUrl.trim() || "",
+        custom_domain: customDomain.trim().toLowerCase() || null,
         is_active: true,
       });
 
@@ -47,7 +47,7 @@ export function AddCompanyModal({ onCompanyAdded }: AddCompanyModalProps) {
       setName("");
       setSlug("");
       setLogoUrl("");
-      setDomain("");
+      setCustomDomain("");
       onCompanyAdded();
     } catch (e: any) {
       toast({
