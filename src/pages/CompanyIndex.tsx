@@ -46,6 +46,19 @@ const CompanyIndex = () => {
     );
   }
 
+  if (company.isActive === false) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-6">
+        <div className="text-center max-w-md">
+          <h1 className="text-2xl font-bold text-foreground mb-2">This portal is currently unavailable</h1>
+          <p className="text-muted-foreground">
+            Access to this training portal has been temporarily disabled. Please contact your administrator.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (!user) {
     return (
       <RegistrationGate

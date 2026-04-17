@@ -17,7 +17,9 @@ export type Database = {
       companies: {
         Row: {
           created_at: string
+          custom_domain: string | null
           id: string
+          is_active: boolean
           logo_url: string
           manager_emails: string[] | null
           name: string
@@ -25,7 +27,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          custom_domain?: string | null
           id?: string
+          is_active?: boolean
           logo_url: string
           manager_emails?: string[] | null
           name: string
@@ -33,7 +37,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          custom_domain?: string | null
           id?: string
+          is_active?: boolean
           logo_url?: string
           manager_emails?: string[] | null
           name?: string
@@ -81,18 +87,21 @@ export type Database = {
           card_id: string
           completed_at: string
           id: string
+          quiz_score: number | null
           user_id: string
         }
         Insert: {
           card_id: string
           completed_at?: string
           id?: string
+          quiz_score?: number | null
           user_id: string
         }
         Update: {
           card_id?: string
           completed_at?: string
           id?: string
+          quiz_score?: number | null
           user_id?: string
         }
         Relationships: [
@@ -112,6 +121,7 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          last_active_at: string | null
         }
         Insert: {
           company_slug: string
@@ -119,6 +129,7 @@ export type Database = {
           email: string
           full_name: string
           id?: string
+          last_active_at?: string | null
         }
         Update: {
           company_slug?: string
@@ -126,6 +137,7 @@ export type Database = {
           email?: string
           full_name?: string
           id?: string
+          last_active_at?: string | null
         }
         Relationships: []
       }
