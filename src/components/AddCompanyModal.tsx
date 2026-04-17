@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { {
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -23,7 +23,7 @@ export function AddCompanyModal({ onCompanyAdded }: AddCompanyModalProps) {
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
-  const [domain, setDomain] = useState("");
+  const [customDomain, setCustomDomain] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -32,11 +32,11 @@ export function AddCompanyModal({ onCompanyAdded }: AddCompanyModalProps) {
     setSubmitting(true);
 
     try {
-      const { error } = await supabase.from("companies" as any).insert({
+      const { error } = await supabase.from("companies").insert({
         name: name.trim(),
         slug: slug.trim().toLowerCase(),
-        logo_url: logoUrl.trim() || null,
-        domain: domain.trim().toLowerCase() || null,
+        logo_url: logoUrl.trim() || "",
+        custom_domain: customDomain.trim().toLowerCase() || null,
         is_active: true,
       });
 
@@ -47,7 +47,7 @@ export function AddCompanyModal({ onCompanyAdded }: AddCompanyModalProps) {
       setName("");
       setSlug("");
       setLogoUrl("");
-      setDomain("");
+      setCustomDomain("");
       onCompanyAdded();
     } catch (e: any) {
       toast({
@@ -109,15 +109,17 @@ export function AddCompanyModal({ onCompanyAdded }: AddCompanyModalProps) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="domain">Email Domain (auto-assign employees)</Label>
+            <Label htmlFor="domain">Custom Domain (optional)</Label>
             <Input
               id="domain"
-              placeholder="acme.com"
-              value={domain}
-              onChange={(e) => setDomain(e.target.value)}
+              placeholder="academy.acme.com"
+              value={customDomain}
+              onChange={(e) => setCustomDomain(e.target.value)}
               type="text"
-              hint="Employees with @acme.com emails will auto-join this company"
             />
+            <p className="text-xs text-muted-foreground">
+              Optional vanity domain that maps to this company portal.
+            </p>
           </div>
           <div className="flex justify-end gap-2 pt-4">
             <Button variant="outline" onClick={() => setOpen(false)} disabled={submitting}>

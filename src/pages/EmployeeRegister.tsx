@@ -17,7 +17,6 @@ const EmployeeRegister = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [detectedCompany, setDetectedCompany] = useState<string | null>(null);
 
   useEffect(() => {
     if (!companySlug) return;
@@ -27,38 +26,12 @@ const EmployeeRegister = () => {
     });
   }, [companySlug, navigate]);
 
-  // Auto-detect company from email domain
-  useEffect(() => {
-    const detectCompanyFromEmail = async () => {
-      if (!email || !email.includes("@")) {
-        setDetectedCompany(null);
-        return;
-      }
-
-      const domain = email.split("@")[1].toLowerCase();
-      const { data } = await supabase
-        .from("companies" as any)
-        .select("slug, name")
-        .eq("domain", domain)
-        .maybeSingle();
-
-      if (data) {
-        setDetectedCompany(data.slug);
-      } else {
-        setDetectedCompany(null);
-      }
-    };
-
-    detectCompanyFromEmail();
-  }, [email]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!companySlug) return;
     setSubmitting(true);
 
-    // Use detected company if available, otherwise use URL slug
-    const assignedCompanySlug = detectedCompany || companySlug;
+    const assignedCompanySlug = companySlug;
 
     const { error: signUpError } = await supabase.auth.signUp({
       email: email.trim().toLowerCase(),
@@ -106,11 +79,6 @@ const EmployeeRegister = () => {
             {companyName && (
               <p className="text-sm text-muted-foreground text-center">
                 Joining <strong>{companyName}</strong> training portal
-              </p>
-            )}
-            {detectedCompany && detectedCompany !== companySlug && (
-              <p className="text-xs text-blue-600 text-center mt-2">
-                ✓ Your email domain matched a company — you'll be auto-assigned to your team.
               </p>
             )}
           </CardHeader>

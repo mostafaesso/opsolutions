@@ -58,10 +58,9 @@ const SuperAdminDashboard = () => {
   const [learners, setLearners] = useState<LearnerRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
-  const [editDraft, setEditDraft] = useState<{ slug: string; customDomain: string; domain: string }>({
+  const [editDraft, setEditDraft] = useState<{ slug: string; customDomain: string }>({
     slug: "",
     customDomain: "",
-    domain: "",
   });
   const [filterCompany, setFilterCompany] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"progress" | "score">("progress");
@@ -152,7 +151,7 @@ const SuperAdminDashboard = () => {
 
   const startEdit = (c: Company) => {
     setEditingSlug(c.slug);
-    setEditDraft({ slug: c.slug, customDomain: c.customDomain || "", domain: (c as any).domain || "" });
+    setEditDraft({ slug: c.slug, customDomain: c.customDomain || "" });
   };
 
   const saveEdit = async (original: Company) => {
@@ -162,7 +161,6 @@ const SuperAdminDashboard = () => {
           ...original,
           slug: editDraft.slug.trim(),
           customDomain: editDraft.customDomain.trim() || null,
-          domain: editDraft.domain.trim() || null,
         },
         original.slug,
       );
@@ -240,7 +238,6 @@ const SuperAdminDashboard = () => {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Slug</TableHead>
-                    <TableHead>Domain</TableHead>
                     <TableHead>Custom Domain</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Learners</TableHead>
@@ -270,22 +267,6 @@ const SuperAdminDashboard = () => {
                             />
                           ) : (
                             <code className="text-xs">/{c.slug}</code>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {editing ? (
-                            <Input
-                              value={editDraft.domain}
-                              onChange={(e) =>
-                                setEditDraft((d) => ({ ...d, domain: e.target.value }))
-                              }
-                              placeholder="company.com"
-                              className="h-8 w-32"
-                            />
-                          ) : (
-                            <span className="text-xs text-muted-foreground">
-                              {(c as any).domain || "—"}
-                            </span>
                           )}
                         </TableCell>
                         <TableCell>

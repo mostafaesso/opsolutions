@@ -37,7 +37,6 @@ export function InviteEmployeeModal({ companySlug, onEmployeeAdded }: InviteEmpl
           email: email.trim().toLowerCase(),
           full_name: fullName.trim(),
           company_slug: companySlug,
-          invited_by: "admin",
         },
         { onConflict: "email,company_slug" }
       );
