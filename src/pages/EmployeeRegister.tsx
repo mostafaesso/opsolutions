@@ -31,8 +31,7 @@ const EmployeeRegister = () => {
     if (!companySlug) return;
     setSubmitting(true);
 
-    // Use detected company if available, otherwise use URL slug
-    const assignedCompanySlug = detectedCompany || companySlug;
+    const assignedCompanySlug = companySlug;
 
     const { error: signUpError } = await supabase.auth.signUp({
       email: email.trim().toLowerCase(),
