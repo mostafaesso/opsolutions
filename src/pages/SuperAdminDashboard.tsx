@@ -58,10 +58,9 @@ const SuperAdminDashboard = () => {
   const [learners, setLearners] = useState<LearnerRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
-  const [editDraft, setEditDraft] = useState<{ slug: string; customDomain: string; domain: string }>({
+  const [editDraft, setEditDraft] = useState<{ slug: string; customDomain: string }>({
     slug: "",
     customDomain: "",
-    domain: "",
   });
   const [filterCompany, setFilterCompany] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"progress" | "score">("progress");
