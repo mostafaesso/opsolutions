@@ -238,7 +238,6 @@ const SuperAdminDashboard = () => {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Slug</TableHead>
-                    <TableHead>Domain</TableHead>
                     <TableHead>Custom Domain</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Learners</TableHead>
@@ -268,22 +267,6 @@ const SuperAdminDashboard = () => {
                             />
                           ) : (
                             <code className="text-xs">/{c.slug}</code>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {editing ? (
-                            <Input
-                              value={editDraft.customDomain}
-                              onChange={(e) =>
-                                setEditDraft((d) => ({ ...d, customDomain: e.target.value }))
-                              }
-                              placeholder="academy.acme.com"
-                              className="h-8 w-40"
-                            />
-                          ) : (
-                            <span className="text-xs text-muted-foreground">
-                              {c.customDomain || "—"}
-                            </span>
                           )}
                         </TableCell>
                         <TableCell>
