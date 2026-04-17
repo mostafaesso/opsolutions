@@ -5,6 +5,8 @@ export interface Company {
   name: string;
   logoUrl: string;
   managerEmails?: string[];
+  isActive?: boolean;
+  customDomain?: string | null;
 }
 
 export interface CompanyMedia {
@@ -21,11 +23,13 @@ export const fetchCompanies = async (): Promise<Company[]> => {
     .order("created_at", { ascending: true });
 
   if (error) throw error;
-  return (data || []).map((c) => ({
+  return (data || []).map((c: any) => ({
     slug: c.slug,
     name: c.name,
     logoUrl: c.logo_url,
     managerEmails: c.manager_emails || [],
+    isActive: c.is_active ?? true,
+    customDomain: c.custom_domain ?? null,
   }));
 };
 
@@ -38,11 +42,14 @@ export const fetchCompanyBySlug = async (slug: string): Promise<Company | null> 
 
   if (error) throw error;
   if (!data) return null;
+  const d: any = data;
   return {
-    slug: data.slug,
-    name: data.name,
-    logoUrl: data.logo_url,
-    managerEmails: data.manager_emails || [],
+    slug: d.slug,
+    name: d.name,
+    logoUrl: d.logo_url,
+    managerEmails: d.manager_emails || [],
+    isActive: d.is_active ?? true,
+    customDomain: d.custom_domain ?? null,
   };
 };
 
@@ -61,15 +68,27 @@ export const removeCompanyFromDb = async (slug: string) => {
   if (error) throw error;
 };
 
-export const updateCompanyInDb = async (company: Company) => {
+export const updateCompanyInDb = async (company: Company, originalSlug?: string) => {
+  const payload: any = {
+    name: company.name,
+    logo_url: company.logoUrl,
+    manager_emails: company.managerEmails || [],
+    is_active: company.isActive ?? true,
+    custom_domain: company.customDomain ?? null,
+    slug: company.slug,
+  };
   const { error } = await supabase
     .from("companies")
-    .update({
-      name: company.name,
-      logo_url: company.logoUrl,
-      manager_emails: company.managerEmails || [],
-    })
-    .eq("slug", company.slug);
+    .update(payload)
+    .eq("slug", originalSlug ?? company.slug);
+  if (error) throw error;
+};
+
+export const setCompanyActive = async (slug: string, isActive: boolean) => {
+  const { error } = await supabase
+    .from("companies")
+    .update({ is_active: isActive } as any)
+    .eq("slug", slug);
   if (error) throw error;
 };
 
