@@ -65,7 +65,7 @@ const SuperAdminDashboard = () => {
   const [sortBy, setSortBy] = useState<"progress" | "score">("progress");
 
   useEffect(() => {
-    if (!authLoading && !isSuperAdmin) navigate("/super-admin/login", { replace: true });
+    if (!authLoading && !isSuperAdmin) navigate("/login", { replace: true });
   }, [authLoading, isSuperAdmin, navigate]);
 
   const loadData = async () => {
@@ -183,7 +183,7 @@ const SuperAdminDashboard = () => {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    navigate("/super-admin/login", { replace: true });
+    navigate("/login", { replace: true });
   };
 
   if (authLoading || !isSuperAdmin) {
