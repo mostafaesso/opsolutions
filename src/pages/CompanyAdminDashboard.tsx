@@ -32,7 +32,7 @@ const CompanyAdminDashboard = () => {
     const check = async () => {
       const { data } = await supabase.auth.getSession();
       if (!data.session) {
-        navigate("/admin/login", { replace: true });
+        navigate("/login", { replace: true });
         return;
       }
       const userEmail = data.session.user.email?.toLowerCase();
@@ -43,7 +43,7 @@ const CompanyAdminDashboard = () => {
         .maybeSingle();
 
       if (!admin || (admin as any).company_slug !== companySlug) {
-        navigate("/admin/login", { replace: true });
+        navigate("/login", { replace: true });
         return;
       }
       setAuthChecked(true);
@@ -123,7 +123,7 @@ const CompanyAdminDashboard = () => {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    navigate("/admin/login", { replace: true });
+    navigate("/login", { replace: true });
   };
 
   if (!authChecked) {
