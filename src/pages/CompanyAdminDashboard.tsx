@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { LogOut } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchCompanyBySlug, Company } from "@/lib/companies";
 import { trainingCards } from "@/lib/trainingData";
@@ -8,6 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UpdatesFeed } from "@/components/UpdatesFeed";
+import { EnhancementsModule } from "@/components/EnhancementsModule";
+import { TeamManagement } from "@/components/TeamManagement";
+import { HubSpotTokenManager } from "@/components/HubSpotTokenManager";
 
 const TOTAL = trainingCards.length;
 
@@ -144,7 +149,7 @@ const CompanyAdminDashboard = () => {
             )}
             <div>
               <h1 className="text-lg font-bold">{company?.name ?? companySlug}</h1>
-              <p className="text-xs text-muted-foreground">Training Dashboard</p>
+              <p className="text-xs text-muted-foreground">Admin Dashboard</p>
             </div>
           </div>
           <Button variant="outline" size="sm" onClick={handleSignOut}>
@@ -154,73 +159,150 @@ const CompanyAdminDashboard = () => {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
-        {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Total Learners" value={stats.total.toString()} />
-          <StatCard label="Avg Completion" value={`${stats.avgCompletion.toFixed(0)}%`} />
-          <StatCard label="Avg Quiz Score" value={`${stats.avgScore.toFixed(0)}%`} />
-          <StatCard label="Certificates Earned" value={stats.certs.toString()} />
-        </div>
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        <Tabs defaultValue="learners" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="learners">Learners</TabsTrigger>
+            <TabsTrigger value="updates">Updates</TabsTrigger>
+            <TabsTrigger value="enhancements">Enhancements</TabsTrigger>
+            <TabsTrigger value="team">Team</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
+          </TabsList>
 
-        {/* Learners table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Learners</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <p className="text-sm text-muted-foreground">Loading...</p>
-            ) : learners.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No learners yet.</p>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Modules</TableHead>
-                    <TableHead>Progress</TableHead>
-                    <TableHead>Avg Score</TableHead>
-                    <TableHead>Last Active</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {learners
-                    .sort((a, b) => b.completed - a.completed)
-                    .map((l) => {
-                      const pct = Math.round((l.completed / TOTAL) * 100);
-                      return (
-                        <TableRow key={l.id}>
-                          <TableCell className="font-medium">{l.full_name}</TableCell>
-                          <TableCell className="text-muted-foreground text-xs">{l.email}</TableCell>
-                          <TableCell>
-                            {l.completed}/{TOTAL}
-                          </TableCell>
-                          <TableCell className="w-32">
-                            <div className="flex items-center gap-2">
-                              <Progress value={pct} className="h-1.5 flex-1" />
-                              <span className="text-xs text-muted-foreground w-8 text-right">
-                                {pct}%
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {l.avgScore !== null ? `${l.avgScore.toFixed(0)}%` : "—"}
-                          </TableCell>
-                          <TableCell className="text-xs text-muted-foreground">
-                            {l.last_active_at
-                              ? new Date(l.last_active_at).toLocaleDateString()
-                              : "—"}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                </TableBody>
-              </Table>
+          {/* Learners Tab */}
+          <TabsContent value="learners" className="space-y-6">
+            {/* Stats */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCard label="Total Learners" value={stats.total.toString()} />
+              <StatCard label="Avg Completion" value={`${stats.avgCompletion.toFixed(0)}%`} />
+              <StatCard label="Avg Quiz Score" value={`${stats.avgScore.toFixed(0)}%`} />
+              <StatCard label="Certificates Earned" value={stats.certs.toString()} />
+            </div>
+
+            {/* Learners table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Learners</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <p className="text-sm text-muted-foreground">Loading...</p>
+                ) : learners.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No learners yet.</p>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Modules</TableHead>
+                        <TableHead>Progress</TableHead>
+                        <TableHead>Avg Score</TableHead>
+                        <TableHead>Last Active</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {learners
+                        .sort((a, b) => b.completed - a.completed)
+                        .map((l) => {
+                          const pct = Math.round((l.completed / TOTAL) * 100);
+                          return (
+                            <TableRow key={l.id}>
+                              <TableCell className="font-medium">{l.full_name}</TableCell>
+                              <TableCell className="text-muted-foreground text-xs">{l.email}</TableCell>
+                              <TableCell>
+                                {l.completed}/{TOTAL}
+                              </TableCell>
+                              <TableCell className="w-32">
+                                <div className="flex items-center gap-2">
+                                  <Progress value={pct} className="h-1.5 flex-1" />
+                                  <span className="text-xs text-muted-foreground w-8 text-right">
+                                    {pct}%
+                                  </span>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                {l.avgScore !== null ? `${l.avgScore.toFixed(0)}%` : "—"}
+                              </TableCell>
+                              <TableCell className="text-xs text-muted-foreground">
+                                {l.last_active_at
+                                  ? new Date(l.last_active_at).toLocaleDateString()
+                                  : "—"}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Updates Tab */}
+          <TabsContent value="updates">
+            {companySlug && (
+              <UpdatesFeed
+                companySlug={companySlug}
+                userEmail={company?.managerEmails?.[0] || "admin@example.com"}
+                userName="Admin"
+                canCreate={true}
+              />
             )}
-          </CardContent>
-        </Card>
+          </TabsContent>
+
+          {/* Enhancements Tab */}
+          <TabsContent value="enhancements">
+            {companySlug && (
+              <EnhancementsModule
+                companySlug={companySlug}
+                userEmail={company?.managerEmails?.[0] || "admin@example.com"}
+                canCreate={true}
+              />
+            )}
+          </TabsContent>
+
+          {/* Team Tab */}
+          <TabsContent value="team">
+            {companySlug && (
+              <TeamManagement
+                companySlug={companySlug}
+                userEmail={company?.managerEmails?.[0] || "admin@example.com"}
+                canInvite={true}
+              />
+            )}
+          </TabsContent>
+
+          {/* Settings Tab */}
+          <TabsContent value="settings" className="space-y-6">
+            {companySlug && (
+              <>
+                <HubSpotTokenManager companySlug={companySlug} canManage={true} />
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Company Settings</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <p className="text-sm font-medium mb-2">Company Name</p>
+                      <p className="text-sm text-muted-foreground">{company?.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium mb-2">Company Slug</p>
+                      <p className="text-sm text-muted-foreground">{companySlug}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium mb-2">Portal Status</p>
+                      <p className="text-sm text-muted-foreground">
+                        {company?.isActive ? "✓ Active" : "✗ Inactive"}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
