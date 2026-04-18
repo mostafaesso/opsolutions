@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { LogOut, Trash2, Save, X, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSuperAdmin } from "@/hooks/useSuperAdmin";
+import { AddCompanyModal } from "@/components/AddCompanyModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -65,7 +66,7 @@ const SuperAdminDashboard = () => {
   const [sortBy, setSortBy] = useState<"progress" | "score">("progress");
 
   useEffect(() => {
-    if (!authLoading && !isSuperAdmin) navigate("/super-admin/login", { replace: true });
+    if (!authLoading && !isSuperAdmin) navigate("/login", { replace: true });
   }, [authLoading, isSuperAdmin, navigate]);
 
   const loadData = async () => {
@@ -183,7 +184,7 @@ const SuperAdminDashboard = () => {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    navigate("/super-admin/login", { replace: true });
+    navigate("/login", { replace: true });
   };
 
   if (authLoading || !isSuperAdmin) {
@@ -222,8 +223,9 @@ const SuperAdminDashboard = () => {
 
         {/* Companies */}
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Companies</CardTitle>
+            <AddCompanyModal onCompanyAdded={loadData} />
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -275,7 +277,7 @@ const SuperAdminDashboard = () => {
                                 setEditDraft((d) => ({ ...d, customDomain: e.target.value }))
                               }
                               placeholder="academy.acme.com"
-                              className="h-8 w-48"
+                              className="h-8 w-40"
                             />
                           ) : (
                             <span className="text-xs text-muted-foreground">
