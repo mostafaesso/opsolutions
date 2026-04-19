@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      benchmarks: {
+        Row: {
+          average_conversion_rate: number
+          data_points: number
+          id: string
+          industry: string
+          last_updated_at: string
+          metric_type: string
+          percentile_25: number | null
+          percentile_75: number | null
+          region: string | null
+        }
+        Insert: {
+          average_conversion_rate?: number
+          data_points?: number
+          id?: string
+          industry: string
+          last_updated_at?: string
+          metric_type: string
+          percentile_25?: number | null
+          percentile_75?: number | null
+          region?: string | null
+        }
+        Update: {
+          average_conversion_rate?: number
+          data_points?: number
+          id?: string
+          industry?: string
+          last_updated_at?: string
+          metric_type?: string
+          percentile_25?: number | null
+          percentile_75?: number | null
+          region?: string | null
+        }
+        Relationships: []
+      }
       companies: {
         Row: {
           created_at: string
@@ -44,6 +80,27 @@ export type Database = {
           manager_emails?: string[] | null
           name?: string
           slug?: string
+        }
+        Relationships: []
+      }
+      company_admins: {
+        Row: {
+          company_slug: string
+          created_at: string
+          email: string
+          id: string
+        }
+        Insert: {
+          company_slug: string
+          created_at?: string
+          email: string
+          id?: string
+        }
+        Update: {
+          company_slug?: string
+          created_at?: string
+          email?: string
+          id?: string
         }
         Relationships: []
       }
@@ -81,6 +138,360 @@ export type Database = {
             referencedColumns: ["slug"]
           },
         ]
+      }
+      company_training_overrides: {
+        Row: {
+          company_slug: string
+          created_at: string
+          custom_notes: string | null
+          custom_video_url: string | null
+          id: string
+          is_hidden: boolean
+          module_id: string
+          updated_at: string
+        }
+        Insert: {
+          company_slug: string
+          created_at?: string
+          custom_notes?: string | null
+          custom_video_url?: string | null
+          id?: string
+          is_hidden?: boolean
+          module_id: string
+          updated_at?: string
+        }
+        Update: {
+          company_slug?: string
+          created_at?: string
+          custom_notes?: string | null
+          custom_video_url?: string | null
+          id?: string
+          is_hidden?: boolean
+          module_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      customer_details: {
+        Row: {
+          company_slug: string
+          created_at: string
+          employee_count: number | null
+          hubspot_account_id: string | null
+          hubspot_token: string | null
+          id: string
+          industry: string | null
+          locations: string[]
+          main_contact_email: string | null
+          main_contact_name: string | null
+          main_contact_phone: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          company_slug: string
+          created_at?: string
+          employee_count?: number | null
+          hubspot_account_id?: string | null
+          hubspot_token?: string | null
+          id?: string
+          industry?: string | null
+          locations?: string[]
+          main_contact_email?: string | null
+          main_contact_name?: string | null
+          main_contact_phone?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          company_slug?: string
+          created_at?: string
+          employee_count?: number | null
+          hubspot_account_id?: string | null
+          hubspot_token?: string | null
+          id?: string
+          industry?: string | null
+          locations?: string[]
+          main_contact_email?: string | null
+          main_contact_name?: string | null
+          main_contact_phone?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      enhancements: {
+        Row: {
+          after_url: string
+          before_url: string
+          category: string | null
+          company_slug: string
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          title: string
+          updated_at: string
+          visibility: string
+        }
+        Insert: {
+          after_url: string
+          before_url: string
+          category?: string | null
+          company_slug: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          title: string
+          updated_at?: string
+          visibility?: string
+        }
+        Update: {
+          after_url?: string
+          before_url?: string
+          category?: string | null
+          company_slug?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          title?: string
+          updated_at?: string
+          visibility?: string
+        }
+        Relationships: []
+      }
+      hubspot_credentials: {
+        Row: {
+          company_slug: string
+          created_at: string
+          id: string
+          private_app_token: string
+          updated_at: string
+        }
+        Insert: {
+          company_slug: string
+          created_at?: string
+          id?: string
+          private_app_token: string
+          updated_at?: string
+        }
+        Update: {
+          company_slug?: string
+          created_at?: string
+          id?: string
+          private_app_token?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      improvements: {
+        Row: {
+          after_image_url: string | null
+          after_metrics: string | null
+          before_image_url: string | null
+          before_metrics: string | null
+          category: string
+          company_slug: string
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          impact_summary: string | null
+          implemented_date: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          after_image_url?: string | null
+          after_metrics?: string | null
+          before_image_url?: string | null
+          before_metrics?: string | null
+          category?: string
+          company_slug: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          impact_summary?: string | null
+          implemented_date?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          after_image_url?: string | null
+          after_metrics?: string | null
+          before_image_url?: string | null
+          before_metrics?: string | null
+          category?: string
+          company_slug?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          impact_summary?: string | null
+          implemented_date?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pipeline_conversions: {
+        Row: {
+          company_slug: string
+          conversion_date: string
+          conversion_rate: number
+          created_at: string
+          from_count: number
+          from_stage: string
+          id: string
+          to_count: number
+          to_stage: string
+        }
+        Insert: {
+          company_slug: string
+          conversion_date: string
+          conversion_rate?: number
+          created_at?: string
+          from_count?: number
+          from_stage: string
+          id?: string
+          to_count?: number
+          to_stage: string
+        }
+        Update: {
+          company_slug?: string
+          conversion_date?: string
+          conversion_rate?: number
+          created_at?: string
+          from_count?: number
+          from_stage?: string
+          id?: string
+          to_count?: number
+          to_stage?: string
+        }
+        Relationships: []
+      }
+      pipeline_metrics: {
+        Row: {
+          company_slug: string
+          created_at: string
+          id: string
+          leads_assigned: number
+          leads_conversion_rate: number
+          leads_count: number
+          leads_offline_source: number
+          leads_online_source: number
+          leads_unassigned: number
+          metric_date: string
+          mql_contact_status: string
+          mql_conversion_rate: number
+          mql_count: number
+          opportunity_count: number
+          opportunity_value: number
+          opportunity_win_rate: number
+          sql_conversion_rate: number
+          sql_count: number
+          subscribers_conversion_rate: number
+          subscribers_count: number
+          subscribers_impressions: number
+          subscribers_posts: number
+          updated_at: string
+          views_conversion_rate: number
+          views_count: number
+          views_sessions: number
+        }
+        Insert: {
+          company_slug: string
+          created_at?: string
+          id?: string
+          leads_assigned?: number
+          leads_conversion_rate?: number
+          leads_count?: number
+          leads_offline_source?: number
+          leads_online_source?: number
+          leads_unassigned?: number
+          metric_date: string
+          mql_contact_status?: string
+          mql_conversion_rate?: number
+          mql_count?: number
+          opportunity_count?: number
+          opportunity_value?: number
+          opportunity_win_rate?: number
+          sql_conversion_rate?: number
+          sql_count?: number
+          subscribers_conversion_rate?: number
+          subscribers_count?: number
+          subscribers_impressions?: number
+          subscribers_posts?: number
+          updated_at?: string
+          views_conversion_rate?: number
+          views_count?: number
+          views_sessions?: number
+        }
+        Update: {
+          company_slug?: string
+          created_at?: string
+          id?: string
+          leads_assigned?: number
+          leads_conversion_rate?: number
+          leads_count?: number
+          leads_offline_source?: number
+          leads_online_source?: number
+          leads_unassigned?: number
+          metric_date?: string
+          mql_contact_status?: string
+          mql_conversion_rate?: number
+          mql_count?: number
+          opportunity_count?: number
+          opportunity_value?: number
+          opportunity_win_rate?: number
+          sql_conversion_rate?: number
+          sql_count?: number
+          subscribers_conversion_rate?: number
+          subscribers_count?: number
+          subscribers_impressions?: number
+          subscribers_posts?: number
+          updated_at?: string
+          views_conversion_rate?: number
+          views_count?: number
+          views_sessions?: number
+        }
+        Relationships: []
+      }
+      team_members: {
+        Row: {
+          company_slug: string
+          email: string
+          full_name: string
+          id: string
+          invited_at: string
+          invited_by: string | null
+          role: string
+          status: string
+        }
+        Insert: {
+          company_slug: string
+          email: string
+          full_name: string
+          id?: string
+          invited_at?: string
+          invited_by?: string | null
+          role?: string
+          status?: string
+        }
+        Update: {
+          company_slug?: string
+          email?: string
+          full_name?: string
+          id?: string
+          invited_at?: string
+          invited_by?: string | null
+          role?: string
+          status?: string
+        }
+        Relationships: []
       }
       training_completions: {
         Row: {
@@ -138,6 +549,74 @@ export type Database = {
           full_name?: string
           id?: string
           last_active_at?: string | null
+        }
+        Relationships: []
+      }
+      update_comments: {
+        Row: {
+          author_email: string
+          author_name: string
+          content: string
+          created_at: string
+          id: string
+          update_id: string
+        }
+        Insert: {
+          author_email: string
+          author_name: string
+          content: string
+          created_at?: string
+          id?: string
+          update_id: string
+        }
+        Update: {
+          author_email?: string
+          author_name?: string
+          content?: string
+          created_at?: string
+          id?: string
+          update_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "update_comments_update_id_fkey"
+            columns: ["update_id"]
+            isOneToOne: false
+            referencedRelation: "updates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      updates: {
+        Row: {
+          company_slug: string
+          content: string
+          created_at: string
+          created_by: string
+          id: string
+          title: string
+          updated_at: string
+          visibility: string
+        }
+        Insert: {
+          company_slug: string
+          content: string
+          created_at?: string
+          created_by: string
+          id?: string
+          title: string
+          updated_at?: string
+          visibility?: string
+        }
+        Update: {
+          company_slug?: string
+          content?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          visibility?: string
         }
         Relationships: []
       }
