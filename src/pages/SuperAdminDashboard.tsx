@@ -1,12 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Trash2, Save, X, Pencil } from "lucide-react";
+import { LogOut, Trash2, Save, X, Pencil, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSuperAdmin } from "@/hooks/useSuperAdmin";
 import { AddCompanyModal } from "@/components/AddCompanyModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
@@ -64,6 +72,9 @@ const SuperAdminDashboard = () => {
   });
   const [filterCompany, setFilterCompany] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"progress" | "score">("progress");
+  const [addLearnerOpen, setAddLearnerOpen] = useState(false);
+  const [addLearnerForm, setAddLearnerForm] = useState({ full_name: "", email: "", company_slug: "" });
+  const [addLearnerSubmitting, setAddLearnerSubmitting] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !isSuperAdmin) navigate("/login", { replace: true });
@@ -179,6 +190,35 @@ const SuperAdminDashboard = () => {
       toast({ title: "Company deleted" });
     } catch (e: any) {
       toast({ title: "Delete failed", description: e.message, variant: "destructive" });
+    }
+  };
+
+  const openAddLearnerForCompany = (slug: string) => {
+    setAddLearnerForm({ full_name: "", email: "", company_slug: slug });
+    setAddLearnerOpen(true);
+  };
+
+  const handleAddLearner = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAddLearnerSubmitting(true);
+    try {
+      const { error } = await supabase.from("training_users").upsert(
+        {
+          email: addLearnerForm.email.trim().toLowerCase(),
+          full_name: addLearnerForm.full_name.trim(),
+          company_slug: addLearnerForm.company_slug,
+        },
+        { onConflict: "email,company_slug" },
+      );
+      if (error) throw error;
+      toast({ title: "Learner added", description: `${addLearnerForm.full_name} added to ${addLearnerForm.company_slug}` });
+      setAddLearnerOpen(false);
+      setAddLearnerForm({ full_name: "", email: "", company_slug: "" });
+      loadData();
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "Failed to add learner", variant: "destructive" });
+    } finally {
+      setAddLearnerSubmitting(false);
     }
   };
 
@@ -300,6 +340,16 @@ const SuperAdminDashboard = () => {
                         <TableCell>{avg.toFixed(0)}%</TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="gap-1"
+                              onClick={() => openAddLearnerForCompany(c.slug)}
+                              title="Add learner to this company"
+                            >
+                              <UserPlus className="h-4 w-4" />
+                              Add Learner
+                            </Button>
                             {editing ? (
                               <>
                                 <Button size="sm" variant="outline" onClick={() => saveEdit(c)}>
@@ -356,6 +406,86 @@ const SuperAdminDashboard = () => {
           <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap">
             <CardTitle>All Learners</CardTitle>
             <div className="flex items-center gap-2">
+              <Dialog open={addLearnerOpen} onOpenChange={setAddLearnerOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="gap-2">
+                    <UserPlus className="h-4 w-4" />
+                    Add Learner
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add Learner</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleAddLearner} className="space-y-4 pt-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="al-company">Company *</Label>
+                      {addLearnerForm.company_slug ? (
+                        <div className="flex items-center gap-2">
+                          <Input
+                            value={companies.find((c) => c.slug === addLearnerForm.company_slug)?.name || addLearnerForm.company_slug}
+                            readOnly
+                            className="bg-muted"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setAddLearnerForm((f) => ({ ...f, company_slug: "" }))}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <select
+                          id="al-company"
+                          required
+                          value={addLearnerForm.company_slug}
+                          onChange={(e) => setAddLearnerForm((f) => ({ ...f, company_slug: e.target.value }))}
+                          className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
+                        >
+                          <option value="">Select a company</option>
+                          {companies.map((c) => (
+                            <option key={c.slug} value={c.slug}>{c.name}</option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="al-name">Full Name *</Label>
+                      <Input
+                        id="al-name"
+                        placeholder="Jane Smith"
+                        value={addLearnerForm.full_name}
+                        onChange={(e) => setAddLearnerForm((f) => ({ ...f, full_name: e.target.value }))}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="al-email">Email *</Label>
+                      <Input
+                        id="al-email"
+                        type="email"
+                        placeholder="jane@company.com"
+                        value={addLearnerForm.email}
+                        onChange={(e) => setAddLearnerForm((f) => ({ ...f, email: e.target.value }))}
+                        required
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      The learner can log in at /register/{addLearnerForm.company_slug || "<company>"} with their email.
+                    </p>
+                    <div className="flex justify-end gap-2 pt-2">
+                      <Button variant="outline" type="button" onClick={() => setAddLearnerOpen(false)} disabled={addLearnerSubmitting}>
+                        Cancel
+                      </Button>
+                      <Button type="submit" disabled={addLearnerSubmitting}>
+                        {addLearnerSubmitting ? "Adding..." : "Add Learner"}
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
               <Select value={filterCompany} onValueChange={setFilterCompany}>
                 <SelectTrigger className="w-48 h-9">
                   <SelectValue placeholder="Filter by company" />

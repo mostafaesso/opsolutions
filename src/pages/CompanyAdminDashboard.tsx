@@ -3,12 +3,16 @@ import { useNavigate, useParams } from "react-router-dom";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { InviteEmployeeModal } from "@/components/InviteEmployeeModal";
+import { CustomerManagement } from "@/components/CustomerManagement";
+import { PipelineDashboard } from "@/components/PipelineDashboard";
+import { ImprovementsTracker } from "@/components/ImprovementsTracker";
 import { fetchCompanyBySlug, Company } from "@/lib/companies";
 import { trainingCards } from "@/lib/trainingData";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const TOTAL = trainingCards.length;
 
@@ -28,6 +32,7 @@ const CompanyAdminDashboard = () => {
   const [learners, setLearners] = useState<LearnerRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
+  const [userEmail, setUserEmail] = useState<string>("");
 
   useEffect(() => {
     const check = async () => {
@@ -36,11 +41,12 @@ const CompanyAdminDashboard = () => {
         navigate("/login", { replace: true });
         return;
       }
-      const userEmail = data.session.user.email?.toLowerCase();
+      const email = data.session.user.email?.toLowerCase() ?? "";
+      setUserEmail(email);
       const { data: admin } = await supabase
         .from("company_admins" as any)
         .select("company_slug")
-        .eq("email", userEmail)
+        .eq("email", email)
         .maybeSingle();
 
       if (!admin || (admin as any).company_slug !== companySlug) {
@@ -141,7 +147,7 @@ const CompanyAdminDashboard = () => {
             )}
             <div>
               <h1 className="text-lg font-bold">{company?.name ?? companySlug}</h1>
-              <p className="text-xs text-muted-foreground">Training Dashboard</p>
+              <p className="text-xs text-muted-foreground">Admin Dashboard</p>
             </div>
           </div>
           <Button variant="outline" size="sm" onClick={handleSignOut}>
@@ -151,74 +157,101 @@ const CompanyAdminDashboard = () => {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
-        {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Total Employees" value={stats.total.toString()} />
-          <StatCard label="Avg Completion" value={`${stats.avgCompletion.toFixed(0)}%`} />
-          <StatCard label="Avg Quiz Score" value={`${stats.avgScore.toFixed(0)}%`} />
-          <StatCard label="Certificates Earned" value={stats.certs.toString()} />
-        </div>
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        <Tabs defaultValue="training">
+          <TabsList className="mb-6">
+            <TabsTrigger value="training">Training</TabsTrigger>
+            <TabsTrigger value="customers">Customers</TabsTrigger>
+            <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
+            <TabsTrigger value="improvements">Improvements</TabsTrigger>
+          </TabsList>
 
-        {/* Employees */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Team Members</CardTitle>
-            {companySlug && <InviteEmployeeModal companySlug={companySlug} onEmployeeAdded={loadData} />}
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <p className="text-sm text-muted-foreground">Loading...</p>
-            ) : learners.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No employees yet. Invite your first team member.</p>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Modules</TableHead>
-                    <TableHead>Progress</TableHead>
-                    <TableHead>Avg Score</TableHead>
-                    <TableHead>Last Active</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {learners
-                    .sort((a, b) => b.completed - a.completed)
-                    .map((l) => {
-                      const pct = Math.round((l.completed / TOTAL) * 100);
-                      return (
-                        <TableRow key={l.id}>
-                          <TableCell className="font-medium">{l.full_name}</TableCell>
-                          <TableCell className="text-muted-foreground text-xs">{l.email}</TableCell>
-                          <TableCell>
-                            {l.completed}/{TOTAL}
-                          </TableCell>
-                          <TableCell className="w-32">
-                            <div className="flex items-center gap-2">
-                              <Progress value={pct} className="h-1.5 flex-1" />
-                              <span className="text-xs text-muted-foreground w-8 text-right">
-                                {pct}%
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {l.avgScore !== null ? `${l.avgScore.toFixed(0)}%` : "—"}
-                          </TableCell>
-                          <TableCell className="text-xs text-muted-foreground">
-                            {l.last_active_at
-                              ? new Date(l.last_active_at).toLocaleDateString()
-                              : "—"}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                </TableBody>
-              </Table>
+          {/* Training Tab */}
+          <TabsContent value="training" className="space-y-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCard label="Total Employees" value={stats.total.toString()} />
+              <StatCard label="Avg Completion" value={`${stats.avgCompletion.toFixed(0)}%`} />
+              <StatCard label="Avg Quiz Score" value={`${stats.avgScore.toFixed(0)}%`} />
+              <StatCard label="Certificates Earned" value={stats.certs.toString()} />
+            </div>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Team Members</CardTitle>
+                {companySlug && <InviteEmployeeModal companySlug={companySlug} onEmployeeAdded={loadData} />}
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <p className="text-sm text-muted-foreground">Loading...</p>
+                ) : learners.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No employees yet. Invite your first team member.</p>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Modules</TableHead>
+                        <TableHead>Progress</TableHead>
+                        <TableHead>Avg Score</TableHead>
+                        <TableHead>Last Active</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {learners
+                        .sort((a, b) => b.completed - a.completed)
+                        .map((l) => {
+                          const pct = Math.round((l.completed / TOTAL) * 100);
+                          return (
+                            <TableRow key={l.id}>
+                              <TableCell className="font-medium">{l.full_name}</TableCell>
+                              <TableCell className="text-muted-foreground text-xs">{l.email}</TableCell>
+                              <TableCell>
+                                {l.completed}/{TOTAL}
+                              </TableCell>
+                              <TableCell className="w-32">
+                                <div className="flex items-center gap-2">
+                                  <Progress value={pct} className="h-1.5 flex-1" />
+                                  <span className="text-xs text-muted-foreground w-8 text-right">
+                                    {pct}%
+                                  </span>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                {l.avgScore !== null ? `${l.avgScore.toFixed(0)}%` : "—"}
+                              </TableCell>
+                              <TableCell className="text-xs text-muted-foreground">
+                                {l.last_active_at
+                                  ? new Date(l.last_active_at).toLocaleDateString()
+                                  : "—"}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Customers Tab */}
+          <TabsContent value="customers">
+            <CustomerManagement companySlug={companySlug} />
+          </TabsContent>
+
+          {/* Pipeline Tab */}
+          <TabsContent value="pipeline">
+            {companySlug && <PipelineDashboard companySlug={companySlug} />}
+          </TabsContent>
+
+          {/* Improvements Tab */}
+          <TabsContent value="improvements">
+            {companySlug && (
+              <ImprovementsTracker companySlug={companySlug} userEmail={userEmail} />
             )}
-          </CardContent>
-        </Card>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
