@@ -32,7 +32,7 @@ export const useTrainingOverrides = (companySlug: string | undefined) => {
         .select("*")
         .eq("company_slug", companySlug);
       if (err) throw err;
-      setOverrides((data as TrainingOverride[]) || []);
+      setOverrides(((data as unknown) as TrainingOverride[]) || []);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -61,7 +61,7 @@ export const useTrainingOverrides = (companySlug: string | undefined) => {
           .single();
         if (err) throw err;
         setOverrides((prev) =>
-          prev.map((o) => (o.module_id === moduleId ? (data as TrainingOverride) : o))
+          prev.map((o) => (o.module_id === moduleId ? ((data as unknown) as TrainingOverride) : o))
         );
       } else {
         const { data, error: err } = await supabase
@@ -70,7 +70,7 @@ export const useTrainingOverrides = (companySlug: string | undefined) => {
           .select()
           .single();
         if (err) throw err;
-        setOverrides((prev) => [...prev, data as TrainingOverride]);
+        setOverrides((prev) => [...prev, ((data as unknown) as TrainingOverride)]);
       }
     } catch (err: any) {
       setError(err.message);
