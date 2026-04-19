@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Trash2, Save, X, Pencil, UserPlus, ChevronDown, ChevronRight } from "lucide-react";
+import { LogOut, Trash2, Save, X, Pencil, UserPlus, ChevronDown, ChevronRight, BookOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSuperAdmin } from "@/hooks/useSuperAdmin";
 import { AddCompanyModal } from "@/components/AddCompanyModal";
+import { CompanyTrainingManager } from "@/components/CompanyTrainingManager";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -73,6 +74,7 @@ const SuperAdminDashboard = () => {
   const [filterCompany, setFilterCompany] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"progress" | "score">("progress");
   const [expandedCompany, setExpandedCompany] = useState<string | null>(null);
+  const [trainingManagerSlug, setTrainingManagerSlug] = useState<string | null>(null);
   const [addLearnerOpen, setAddLearnerOpen] = useState(false);
   const [addLearnerForm, setAddLearnerForm] = useState({ full_name: "", email: "", company_slug: "" });
   const [addLearnerSubmitting, setAddLearnerSubmitting] = useState(false);
@@ -370,6 +372,16 @@ const SuperAdminDashboard = () => {
                               size="sm"
                               variant="outline"
                               className="gap-1"
+                              onClick={(e) => { e.stopPropagation(); setTrainingManagerSlug(c.slug); }}
+                              title="Manage training material for this company"
+                            >
+                              <BookOpen className="h-4 w-4" />
+                              Training
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="gap-1"
                               onClick={() => openAddLearnerForCompany(c.slug)}
                               title="Add learner to this company"
                             >
@@ -641,6 +653,16 @@ const SuperAdminDashboard = () => {
           </CardContent>
         </Card>
       </main>
+
+      {/* Per-company training manager */}
+      {trainingManagerSlug && (
+        <CompanyTrainingManager
+          companySlug={trainingManagerSlug}
+          companyName={companyName(trainingManagerSlug)}
+          open={!!trainingManagerSlug}
+          onClose={() => setTrainingManagerSlug(null)}
+        />
+      )}
     </div>
   );
 };
