@@ -18,7 +18,7 @@ export const PipelineDashboard: React.FC<{ companySlug: string }> = ({ companySl
   } = usePipeline(companySlug);
   const { customer, fetchBySlug } = useCustomers(companySlug);
   const [showEditForm, setShowEditForm] = useState(false);
-  const [formData, setFormData] = useState<Record<string, unknown>>(currentMetric || {});
+  const [formData, setFormData] = useState<Record<string, unknown>>((currentMetric as unknown as Record<string, unknown>) || {});
 
   useEffect(() => {
     fetchMetrics(companySlug);
@@ -164,7 +164,7 @@ export const PipelineDashboard: React.FC<{ companySlug: string }> = ({ companySl
       <Button 
         variant="outline" 
         onClick={() => {
-          setFormData((currentMetric as Record<string, unknown>) || {});
+          setFormData((currentMetric as unknown as Record<string, unknown>) || {});
           setShowEditForm(!showEditForm);
         }}
       >

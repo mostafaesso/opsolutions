@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase as supabaseClient } from '@/integrations/supabase/client';
 import { CustomerDetails } from '@/integrations/supabase/phase2_types';
+
+// Cast to any: customer_details table not yet in generated types
+const supabase = supabaseClient as any;
 
 export const useCustomers = (companySlug?: string) => {
   const [customers, setCustomers] = useState<CustomerDetails[]>([]);
