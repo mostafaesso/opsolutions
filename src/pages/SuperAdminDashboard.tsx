@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Trash2, Save, X, Pencil, UserPlus } from "lucide-react";
+import { LogOut, Trash2, Save, X, Pencil, UserPlus, ChevronDown, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSuperAdmin } from "@/hooks/useSuperAdmin";
 import { AddCompanyModal } from "@/components/AddCompanyModal";
@@ -72,6 +72,7 @@ const SuperAdminDashboard = () => {
   });
   const [filterCompany, setFilterCompany] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"progress" | "score">("progress");
+  const [expandedCompany, setExpandedCompany] = useState<string | null>(null);
   const [addLearnerOpen, setAddLearnerOpen] = useState(false);
   const [addLearnerForm, setAddLearnerForm] = useState({ full_name: "", email: "", company_slug: "" });
   const [addLearnerSubmitting, setAddLearnerSubmitting] = useState(false);
@@ -198,6 +199,18 @@ const SuperAdminDashboard = () => {
     setAddLearnerOpen(true);
   };
 
+  const handleDeleteLearner = async (id: string, name: string) => {
+    if (!confirm(`Remove "${name}" from the platform? This cannot be undone.`)) return;
+    try {
+      const { error } = await supabase.from("training_users").delete().eq("id", id);
+      if (error) throw error;
+      toast({ title: "Learner removed", description: `${name} has been deleted.` });
+      loadData();
+    } catch (e: any) {
+      toast({ title: "Delete failed", description: e.message, variant: "destructive" });
+    }
+  };
+
   const handleAddLearner = async (e: React.FormEvent) => {
     e.preventDefault();
     setAddLearnerSubmitting(true);
@@ -293,8 +306,13 @@ const SuperAdminDashboard = () => {
                         ? (ls.reduce((s, l) => s + l.completed / TOTAL_MODULES, 0) / ls.length) * 100
                         : 0;
                     const editing = editingSlug === c.slug;
+                    const isExpanded = expandedCompany === c.slug;
                     return (
-                      <TableRow key={c.slug}>
+                      <React.Fragment key={c.slug}>
+                      <TableRow
+                        className="cursor-pointer hover:bg-muted/30"
+                        onClick={() => setExpandedCompany(isExpanded ? null : c.slug)}
+                      >
                         <TableCell className="font-medium">{c.name}</TableCell>
                         <TableCell>
                           {editing ? (
@@ -336,7 +354,15 @@ const SuperAdminDashboard = () => {
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell>{ls.length}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1.5">
+                            {isExpanded
+                              ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                              : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+                            }
+                            {ls.length}
+                          </div>
+                        </TableCell>
                         <TableCell>{avg.toFixed(0)}%</TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2">
@@ -393,6 +419,58 @@ const SuperAdminDashboard = () => {
                           </div>
                         </TableCell>
                       </TableRow>
+                      {isExpanded && (
+                        <TableRow className="bg-muted/20 hover:bg-muted/20">
+                          <TableCell colSpan={7} className="p-0">
+                            <div className="px-6 py-3">
+                              {ls.length === 0 ? (
+                                <p className="text-xs text-muted-foreground py-1">No learners yet.</p>
+                              ) : (
+                                <table className="w-full text-sm">
+                                  <thead>
+                                    <tr className="text-xs text-muted-foreground border-b">
+                                      <th className="text-left pb-1 font-medium w-40">Name</th>
+                                      <th className="text-left pb-1 font-medium">Email</th>
+                                      <th className="text-left pb-1 font-medium w-24">Modules</th>
+                                      <th className="text-left pb-1 font-medium w-20">Score</th>
+                                      <th className="w-8"></th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {ls.map((l) => (
+                                      <tr key={l.id} className="border-b last:border-0">
+                                        <td className="py-1.5 font-medium pr-4">{l.full_name}</td>
+                                        <td className="py-1.5 text-muted-foreground pr-4">{l.email}</td>
+                                        <td className="py-1.5">{l.completed}/{TOTAL_MODULES}</td>
+                                        <td className="py-1.5">{l.avgScore !== null ? `${l.avgScore.toFixed(0)}%` : "—"}</td>
+                                        <td className="py-1.5">
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="text-red-500 hover:text-red-700 h-6 w-6 p-0"
+                                            onClick={(e) => { e.stopPropagation(); handleDeleteLearner(l.id, l.full_name); }}
+                                          >
+                                            <Trash2 className="h-3 w-3" />
+                                          </Button>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              )}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="mt-2 gap-1 h-7 text-xs"
+                                onClick={(e) => { e.stopPropagation(); openAddLearnerForCompany(c.slug); }}
+                              >
+                                <UserPlus className="h-3 w-3" /> Add Learner
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                      </React.Fragment>
                     );
                   })}
                 </TableBody>
@@ -525,6 +603,7 @@ const SuperAdminDashboard = () => {
                     <TableHead>Modules</TableHead>
                     <TableHead>Avg Score</TableHead>
                     <TableHead>Last Active</TableHead>
+                    <TableHead className="w-10"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -543,6 +622,16 @@ const SuperAdminDashboard = () => {
                         {l.last_active_at
                           ? new Date(l.last_active_at).toLocaleDateString()
                           : "—"}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50 h-7 w-7 p-0"
+                          onClick={() => handleDeleteLearner(l.id, l.full_name)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
