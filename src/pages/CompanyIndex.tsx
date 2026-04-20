@@ -212,7 +212,7 @@ const CompanyIndex = () => {
 
           {showGtmTab && (
             <TabsContent value="gtm">
-              <GTMFlow isAdmin={isManager} />
+              <GTMFlow />
             </TabsContent>
           )}
         </Tabs>
