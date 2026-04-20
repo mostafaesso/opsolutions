@@ -14,6 +14,9 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [resetMode, setResetMode] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+  const [resetSubmitting, setResetSubmitting] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -61,6 +64,24 @@ const Login = () => {
     redirectByRole(role, companySlug);
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) {
+      toast({ title: "Enter your email first", variant: "destructive" });
+      return;
+    }
+    setResetSubmitting(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+      redirectTo: `${window.location.origin}/login`,
+    });
+    setResetSubmitting(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      setResetSent(true);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-6">
       <div className="w-full max-w-md space-y-6">
@@ -74,62 +95,115 @@ const Login = () => {
 
         <Card>
           <CardHeader className="pb-4">
-            <h1 className="text-2xl font-bold text-center">Academy Login</h1>
+            <h1 className="text-2xl font-bold text-center">
+              {resetMode ? "Reset Password" : "Academy Login"}
+            </h1>
             <p className="text-sm text-muted-foreground text-center">
-              Sign in to access your training portal
+              {resetMode
+                ? "Enter your email and we'll send a reset link"
+                : "Sign in to access your training portal"}
             </p>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@company.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  autoComplete="email"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  autoComplete="current-password"
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={submitting}>
-                {submitting ? "Signing in..." : "Sign in"}
-              </Button>
-            </form>
+            {resetMode ? (
+              resetSent ? (
+                <div className="text-center space-y-4">
+                  <p className="text-sm text-foreground">
+                    Reset link sent to <strong>{email}</strong>. Check your inbox.
+                  </p>
+                  <Button variant="outline" className="w-full" onClick={() => { setResetMode(false); setResetSent(false); }}>
+                    Back to Sign in
+                  </Button>
+                </div>
+              ) : (
+                <form onSubmit={handleResetPassword} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="you@company.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      autoComplete="email"
+                    />
+                  </div>
+                  <Button type="submit" className="w-full" disabled={resetSubmitting}>
+                    {resetSubmitting ? "Sending..." : "Send reset link"}
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => setResetMode(false)}
+                    className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Back to Sign in
+                  </button>
+                </form>
+              )
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="you@company.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Password</Label>
+                    <button
+                      type="button"
+                      onClick={() => setResetMode(true)}
+                      className="text-xs text-primary hover:underline"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    autoComplete="current-password"
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={submitting}>
+                  {submitting ? "Signing in..." : "Sign in"}
+                </Button>
+              </form>
+            )}
           </CardContent>
         </Card>
 
-        <div className="rounded-lg border bg-card p-4 space-y-2">
-          <p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
-            Access levels
-          </p>
-          <div className="space-y-1.5 text-muted-foreground text-sm">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0" />
-              <span>Academy Admin — full platform access</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
-              <span>Company Admin — your company's employees</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
-              <span>Employee — your training modules</span>
+        {!resetMode && (
+          <div className="rounded-lg border bg-card p-4 space-y-2">
+            <p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+              Access levels
+            </p>
+            <div className="space-y-1.5 text-muted-foreground text-sm">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0" />
+                <span>Academy Admin — full platform access</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+                <span>Company Admin — your company's employees</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
+                <span>Employee — your training modules</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
