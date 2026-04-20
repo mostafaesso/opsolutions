@@ -13,6 +13,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ImpersonationBanner from "@/components/ImpersonationBanner";
+import { getImpersonation } from "@/lib/impersonation";
 
 const TOTAL = trainingCards.length;
 
@@ -34,7 +36,15 @@ const CompanyAdminDashboard = () => {
   const [authChecked, setAuthChecked] = useState(false);
   const [userEmail, setUserEmail] = useState<string>("");
 
+  const impersonation = getImpersonation();
+  const isImpersonating = !!impersonation && impersonation.companySlug === companySlug && impersonation.role === "admin";
+
   useEffect(() => {
+    if (isImpersonating) {
+      setUserEmail("ops-admin@opsolutions.com");
+      setAuthChecked(true);
+      return;
+    }
     const check = async () => {
       const { data } = await supabase.auth.getSession();
       if (!data.session) {
@@ -56,7 +66,7 @@ const CompanyAdminDashboard = () => {
       setAuthChecked(true);
     };
     check();
-  }, [navigate, companySlug]);
+  }, [navigate, companySlug, isImpersonating]);
 
   const loadData = async () => {
     if (!authChecked || !companySlug) return;
@@ -138,7 +148,8 @@ const CompanyAdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className={`min-h-screen bg-background ${isImpersonating ? "pt-10" : ""}`}>
+      {isImpersonating && <ImpersonationBanner state={impersonation!} />}
       <header className="border-b bg-card">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
