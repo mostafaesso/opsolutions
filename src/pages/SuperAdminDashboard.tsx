@@ -607,8 +607,11 @@ const SuperAdminDashboard = () => {
             )}
           </CardContent>
         </Card>
+        </>
+        )}
 
-        {/* Learners */}
+        {/* ── Learners ── */}
+        {section === "learners" && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap">
             <CardTitle>All Learners</CardTitle>
@@ -769,6 +772,20 @@ const SuperAdminDashboard = () => {
             )}
           </CardContent>
         </Card>
+        )}
+
+        {/* ── ICP Template ── */}
+        {section === "icp" && <IcpTemplatesPanel companies={companies} />}
+
+        {/* ── GTM Stack ── */}
+        {section === "gtm" && <GtmStackPanel companies={companies} />}
+
+        {/* ── Trainings ── */}
+        {section === "trainings" && <TrainingsPanel companies={companies} />}
+
+        {/* ── CRM Updates ── */}
+        {section === "crm" && <CrmUpdatesPanel companies={companies} />}
+        </div>
       </main>
 
       {/* Per-company training manager */}
