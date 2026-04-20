@@ -6,25 +6,95 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Target, Library, Building2, Save, Wand2, Copy } from "lucide-react";
+import {
+  Plus, Trash2, Target, Library, Building2, Save, Wand2, Copy,
+  Building, Users, Flame, ShieldAlert, CheckCircle2, FileDown,
+} from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { generateIcpPdf } from "@/lib/icpPdf";
 
 interface Props {
   companies: Company[];
 }
 
-const FIELDS: { key: keyof IcpTemplate; label: string; placeholder: string; multi?: boolean }[] = [
-  { key: "industry", label: "Industry / Vertical", placeholder: "e.g. B2B SaaS, Manufacturing, Real Estate" },
-  { key: "company_size", label: "Company Size", placeholder: "e.g. 50–500 employees, $5M–$50M ARR" },
-  { key: "geography", label: "Geography", placeholder: "e.g. GCC, EU, North America" },
-  { key: "budget_range", label: "Budget Range", placeholder: "e.g. $20k–$100k annual contract" },
-  { key: "goals", label: "Their Goals", placeholder: "What outcomes they want", multi: true },
-  { key: "pain_points", label: "Pain Points", placeholder: "Problems they need solved", multi: true },
-  { key: "buying_triggers", label: "Buying Triggers", placeholder: "Events that signal readiness", multi: true },
-  { key: "decision_process", label: "Decision Process", placeholder: "How they buy — stakeholders, timeline, criteria", multi: true },
-  { key: "disqualifiers", label: "Disqualifiers", placeholder: "Red flags that disqualify a prospect", multi: true },
-  { key: "notes", label: "Notes", placeholder: "Anything else worth capturing", multi: true },
+type FieldDef = {
+  key: keyof IcpTemplate;
+  label: string;
+  placeholder: string;
+  multi?: boolean;
+};
+
+// Sections aligned with the "Building Your ICP" doc
+const SECTIONS: { id: string; title: string; icon: any; description: string; fields: FieldDef[] }[] = [
+  {
+    id: "company",
+    title: "Layer 1 · Company-Level",
+    icon: Building,
+    description: "Which companies are the best fit for your offer.",
+    fields: [
+      { key: "industry", label: "Industry / Vertical", placeholder: "SaaS, FinTech, HRTech, Logistics…" },
+      { key: "company_size", label: "Company Size", placeholder: "10–500 employees, $1M–$20M revenue" },
+      { key: "geography", label: "Location / Region", placeholder: "GCC, MENA, EU, US" },
+      { key: "funding_stage", label: "Funding Stage", placeholder: "Seed, Series A/B, Bootstrapped" },
+      { key: "hiring_activity", label: "Hiring Activity", placeholder: "Hiring SDRs, RevOps, expanding sales team" },
+      { key: "tech_stack", label: "Tech Stack Signals", placeholder: "Uses HubSpot, Apollo, Salesforce…" },
+      { key: "growth_signals", label: "Growth Signals", placeholder: "Recent funding, expansion, product launch", multi: true },
+    ],
+  },
+  {
+    id: "contact",
+    title: "Layer 2 · Contact-Level",
+    icon: Users,
+    description: "Who inside these companies should receive your message.",
+    fields: [
+      { key: "departments", label: "Departments", placeholder: "Sales, Marketing, RevOps, Partnerships" },
+      { key: "seniority", label: "Seniority", placeholder: "C-level, VP, Director, Head of…" },
+      { key: "buying_role", label: "Role in Buying Process", placeholder: "Decision maker, champion, influencer" },
+    ],
+  },
+  {
+    id: "strategy",
+    title: "Pain · Triggers · Goals",
+    icon: Flame,
+    description: "Shapes your cold-email problem statement and timing.",
+    fields: [
+      { key: "pain_points", label: "Pain Points", placeholder: "Unpredictable pipeline, low conversion, fragmented GTM…", multi: true },
+      { key: "buying_triggers", label: "Buying Triggers", placeholder: "New funding, hiring SDRs, expansion, launch", multi: true },
+      { key: "goals", label: "Their Goals", placeholder: "Predictable pipeline, faster sales cycles…", multi: true },
+      { key: "decision_process", label: "Decision Process", placeholder: "Stakeholders, timeline, criteria", multi: true },
+      { key: "budget_range", label: "Budget Range", placeholder: "$20k–$100k annual contract" },
+    ],
+  },
+  {
+    id: "exclusions",
+    title: "Exclusions & Disqualifiers",
+    icon: ShieldAlert,
+    description: "Keeps data clean and campaigns focused.",
+    fields: [
+      { key: "exclusions", label: "Exclusions", placeholder: "B2C, Government, early-stage startups", multi: true },
+      { key: "disqualifiers", label: "Red-flag Disqualifiers", placeholder: "Anything that immediately disqualifies a prospect", multi: true },
+    ],
+  },
+  {
+    id: "validation",
+    title: "Validation",
+    icon: CheckCircle2,
+    description: "Audit clients, test TAM, and capture pilot results.",
+    fields: [
+      { key: "tam_estimate", label: "TAM Estimate", placeholder: "e.g. ~8,000 contacts in Apollo / Sales Nav" },
+      { key: "validation_notes", label: "Validation Notes", placeholder: "Top 5 client patterns, pilot results, reply rate…", multi: true },
+      { key: "notes", label: "Other Notes", placeholder: "Anything else worth capturing", multi: true },
+    ],
+  },
 ];
+
+const TIER_OPTIONS = [
+  { value: "Tier 1: Dream ICPs", desc: "High-value strategic accounts — sniper mode" },
+  { value: "Tier 2: Mid ICPs", desc: "Scalable, proven segment — balanced personalization" },
+  { value: "Tier 3: Test ICPs", desc: "Experimental verticals — shotgun mode" },
+];
+
+const PERSONALIZATION_OPTIONS = ["Sniper (highly personalized)", "Balanced", "Shotgun (automated)"];
 
 const IcpTemplatesPanel = ({ companies }: Props) => {
   const { templates, loading, create, update, remove } = useIcpTemplates();
@@ -38,7 +108,6 @@ const IcpTemplatesPanel = ({ companies }: Props) => {
 
   return (
     <div className="space-y-6">
-      {/* View switch */}
       <div className="flex items-center gap-2 bg-muted/40 border border-border rounded-xl p-1 w-fit">
         <button
           onClick={() => setView("library")}
@@ -91,16 +160,115 @@ const IcpTemplatesPanel = ({ companies }: Props) => {
   );
 };
 
-// ─── LIBRARY ─────────────────────────────────────────────
+// ─── Shared editor body ─────────────────────────────────────
+
+const TierAndModeRow = ({
+  tier, personalization, onChange,
+}: {
+  tier: string | null;
+  personalization: string | null;
+  onChange: (patch: { tier?: string | null; personalization_level?: string | null }) => void;
+}) => (
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <Label className="text-xs">Tier</Label>
+      <Select value={tier ?? ""} onValueChange={(v) => onChange({ tier: v || null })}>
+        <SelectTrigger className="mt-1"><SelectValue placeholder="Pick a tier (Dream / Mid / Test)" /></SelectTrigger>
+        <SelectContent>
+          {TIER_OPTIONS.map((t) => (
+            <SelectItem key={t.value} value={t.value}>
+              <div className="flex flex-col">
+                <span className="font-medium">{t.value}</span>
+                <span className="text-xs text-muted-foreground">{t.desc}</span>
+              </div>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+    <div>
+      <Label className="text-xs">Personalization Level</Label>
+      <Select value={personalization ?? ""} onValueChange={(v) => onChange({ personalization_level: v || null })}>
+        <SelectTrigger className="mt-1"><SelectValue placeholder="Sniper / Balanced / Shotgun" /></SelectTrigger>
+        <SelectContent>
+          {PERSONALIZATION_OPTIONS.map((p) => (
+            <SelectItem key={p} value={p}>{p}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  </div>
+);
+
+const SectionFields = ({
+  draft, setDraft,
+}: {
+  draft: any;
+  setDraft: (d: any) => void;
+}) => (
+  <div className="space-y-6">
+    {SECTIONS.map((section) => {
+      const Icon = section.icon;
+      return (
+        <div key={section.id} className="rounded-xl border border-border bg-muted/20 p-5">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Icon className="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-foreground">{section.title}</h4>
+              <p className="text-xs text-muted-foreground">{section.description}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {section.id === "contact" && (
+              <div className="md:col-span-2">
+                <Label className="text-xs">Decision-maker Titles (comma-separated)</Label>
+                <Input
+                  value={(draft.job_titles ?? []).join(", ")}
+                  onChange={(e) =>
+                    setDraft({
+                      ...draft,
+                      job_titles: e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean),
+                    })
+                  }
+                  placeholder="CEO, CMO, VP Sales, Founder, Head of Partnerships"
+                  className="mt-1"
+                />
+              </div>
+            )}
+            {section.fields.map((f) => (
+              <div key={String(f.key)} className={f.multi ? "md:col-span-2" : ""}>
+                <Label className="text-xs">{f.label}</Label>
+                {f.multi ? (
+                  <Textarea
+                    value={(draft as any)[f.key] ?? ""}
+                    onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })}
+                    placeholder={f.placeholder}
+                    className="mt-1 min-h-[72px]"
+                  />
+                ) : (
+                  <Input
+                    value={(draft as any)[f.key] ?? ""}
+                    onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })}
+                    placeholder={f.placeholder}
+                    className="mt-1"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    })}
+  </div>
+);
+
+// ─── LIBRARY ─────────────────────────────────────
 
 const LibraryView = ({
-  templates,
-  loading,
-  editingId,
-  setEditingId,
-  onCreate,
-  onUpdate,
-  onRemove,
+  templates, loading, editingId, setEditingId, onCreate, onUpdate, onRemove,
 }: {
   templates: IcpTemplate[];
   loading: boolean;
@@ -118,11 +286,7 @@ const LibraryView = ({
       <div className="space-y-3">
         <div className="rounded-xl border border-border bg-card p-3 space-y-2">
           <Label className="text-xs">New template name</Label>
-          <Input
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            placeholder="e.g. Mid-market SaaS RevOps"
-          />
+          <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="e.g. HRTech SaaS — GCC" />
           <Button
             size="sm"
             onClick={async () => {
@@ -157,7 +321,7 @@ const LibraryView = ({
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-foreground truncate">{t.name}</p>
                   <p className="text-xs text-muted-foreground truncate">
-                    {t.industry || "No industry"} · {t.geography || "Any geo"}
+                    {t.tier ? `${t.tier} · ` : ""}{t.industry || "No industry"} · {t.geography || "Any geo"}
                   </p>
                 </div>
               </div>
@@ -188,26 +352,15 @@ const LibraryView = ({
 };
 
 const TemplateEditor = ({
-  template,
-  onSave,
-  onRemove,
+  template, onSave, onRemove,
 }: {
   template: IcpTemplate;
   onSave: (patch: Partial<IcpTemplate>) => Promise<void>;
   onRemove: () => Promise<void>;
 }) => {
   const [draft, setDraft] = useState<IcpTemplate>(template);
-  const [titlesText, setTitlesText] = useState((template.job_titles ?? []).join(", "));
 
-  useEffect(() => {
-    setDraft(template);
-    setTitlesText((template.job_titles ?? []).join(", "));
-  }, [template]);
-
-  const handleSave = async () => {
-    const titles = titlesText.split(",").map((s) => s.trim()).filter(Boolean);
-    await onSave({ ...draft, job_titles: titles });
-  };
+  useEffect(() => setDraft(template), [template]);
 
   return (
     <div className="space-y-5">
@@ -241,41 +394,16 @@ const TemplateEditor = ({
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {FIELDS.map((f) => (
-          <div key={String(f.key)} className={f.multi ? "md:col-span-2" : ""}>
-            <Label className="text-xs">{f.label}</Label>
-            {f.multi ? (
-              <Textarea
-                value={(draft as any)[f.key] ?? ""}
-                onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value } as any)}
-                placeholder={f.placeholder}
-                className="mt-1 min-h-[80px]"
-              />
-            ) : (
-              <Input
-                value={(draft as any)[f.key] ?? ""}
-                onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value } as any)}
-                placeholder={f.placeholder}
-                className="mt-1"
-              />
-            )}
-          </div>
-        ))}
+      <TierAndModeRow
+        tier={draft.tier}
+        personalization={draft.personalization_level}
+        onChange={(p) => setDraft({ ...draft, ...p })}
+      />
 
-        <div className="md:col-span-2">
-          <Label className="text-xs">Job titles targeted (comma-separated)</Label>
-          <Input
-            value={titlesText}
-            onChange={(e) => setTitlesText(e.target.value)}
-            placeholder="CRO, Head of Sales, RevOps Lead"
-            className="mt-1"
-          />
-        </div>
-      </div>
+      <SectionFields draft={draft} setDraft={setDraft} />
 
       <div className="flex justify-end pt-2">
-        <Button onClick={handleSave}>
+        <Button onClick={() => onSave(draft)}>
           <Save className="w-4 h-4 mr-2" /> Save template
         </Button>
       </div>
@@ -286,10 +414,7 @@ const TemplateEditor = ({
 // ─── PER-COMPANY VIEW ────────────────────────────────────
 
 const CompanyView = ({
-  companies,
-  selectedCompany,
-  onSelectCompany,
-  templates,
+  companies, selectedCompany, onSelectCompany, templates,
 }: {
   companies: Company[];
   selectedCompany: string;
@@ -299,12 +424,9 @@ const CompanyView = ({
   const company = companies.find((c) => c.slug === selectedCompany);
   const { icp, loading, save, applyTemplate } = useCompanyIcp(selectedCompany);
   const [draft, setDraft] = useState(icp);
-  const [titlesText, setTitlesText] = useState("");
+  const [exporting, setExporting] = useState(false);
 
-  useEffect(() => {
-    setDraft(icp);
-    setTitlesText((icp?.job_titles ?? []).join(", "));
-  }, [icp]);
+  useEffect(() => setDraft(icp), [icp]);
 
   if (companies.length === 0) {
     return (
@@ -316,8 +438,7 @@ const CompanyView = ({
 
   const handleSave = async () => {
     if (!draft) return;
-    const titles = titlesText.split(",").map((s) => s.trim()).filter(Boolean);
-    await save({ ...draft, job_titles: titles });
+    await save(draft);
     toast({ title: `ICP saved for ${company?.name}` });
   };
 
@@ -329,6 +450,19 @@ const CompanyView = ({
     toast({ title: `Applied "${tpl.name}" to ${company?.name}` });
   };
 
+  const handleDownloadPdf = async () => {
+    if (!company || !draft) return;
+    setExporting(true);
+    try {
+      await generateIcpPdf(company, draft);
+      toast({ title: "PDF generated", description: `ICP-${company.name}.pdf is downloading.` });
+    } catch (e: any) {
+      toast({ title: "Could not generate PDF", description: e?.message ?? String(e), variant: "destructive" });
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center gap-3 bg-muted/40 border border-border rounded-xl p-4">
@@ -337,14 +471,10 @@ const CompanyView = ({
           <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Company</Label>
         </div>
         <Select value={selectedCompany} onValueChange={onSelectCompany}>
-          <SelectTrigger className="w-[260px] bg-background">
-            <SelectValue placeholder="Pick a company" />
-          </SelectTrigger>
+          <SelectTrigger className="w-[260px] bg-background"><SelectValue placeholder="Pick a company" /></SelectTrigger>
           <SelectContent>
             {companies.map((c) => (
-              <SelectItem key={c.slug} value={c.slug}>
-                {c.name}
-              </SelectItem>
+              <SelectItem key={c.slug} value={c.slug}>{c.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -369,6 +499,16 @@ const CompanyView = ({
               ))}
             </SelectContent>
           </Select>
+
+          <Button
+            variant="outline"
+            onClick={handleDownloadPdf}
+            disabled={exporting || !draft}
+            className="gap-2"
+          >
+            <FileDown className="w-4 h-4" />
+            {exporting ? "Generating…" : "Download PDF"}
+          </Button>
         </div>
       </div>
 
@@ -378,9 +518,7 @@ const CompanyView = ({
         <div className="rounded-2xl border border-border bg-card p-6 space-y-5">
           <div className="flex items-center gap-2">
             <Target className="w-4 h-4 text-primary" />
-            <h3 className="text-base font-bold text-foreground">
-              ICP for {company?.name}
-            </h3>
+            <h3 className="text-base font-bold text-foreground">ICP for {company?.name}</h3>
             {draft.template_id && (
               <span className="text-[10px] uppercase tracking-wider bg-primary/10 text-primary px-2 py-0.5 rounded-full ml-1">
                 <Copy className="w-2.5 h-2.5 inline mr-1" />
@@ -397,45 +535,34 @@ const CompanyView = ({
             <Input
               value={draft.name ?? ""}
               onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-              placeholder="e.g. Primary ICP"
+              placeholder="e.g. Primary ICP — HRTech CEOs in GCC"
               className="mt-1"
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {FIELDS.map((f) => (
-              <div key={String(f.key)} className={f.multi ? "md:col-span-2" : ""}>
-                <Label className="text-xs">{f.label}</Label>
-                {f.multi ? (
-                  <Textarea
-                    value={(draft as any)[f.key] ?? ""}
-                    onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value } as any)}
-                    placeholder={f.placeholder}
-                    className="mt-1 min-h-[80px]"
-                  />
-                ) : (
-                  <Input
-                    value={(draft as any)[f.key] ?? ""}
-                    onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value } as any)}
-                    placeholder={f.placeholder}
-                    className="mt-1"
-                  />
-                )}
-              </div>
-            ))}
-
-            <div className="md:col-span-2">
-              <Label className="text-xs">Job titles targeted (comma-separated)</Label>
-              <Input
-                value={titlesText}
-                onChange={(e) => setTitlesText(e.target.value)}
-                placeholder="CRO, Head of Sales, RevOps Lead"
-                className="mt-1"
-              />
-            </div>
+          <div>
+            <Label className="text-xs">Description</Label>
+            <Textarea
+              value={draft.description ?? ""}
+              onChange={(e) => setDraft({ ...draft, description: e.target.value })}
+              placeholder="Short summary of who this ICP is and why."
+              className="mt-1"
+            />
           </div>
 
-          <div className="flex justify-end pt-2">
+          <TierAndModeRow
+            tier={draft.tier}
+            personalization={draft.personalization_level}
+            onChange={(p) => setDraft({ ...draft, ...p })}
+          />
+
+          <SectionFields draft={draft} setDraft={setDraft} />
+
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={handleDownloadPdf} disabled={exporting} className="gap-2">
+              <FileDown className="w-4 h-4" />
+              {exporting ? "Generating…" : "Download branded PDF"}
+            </Button>
             <Button onClick={handleSave}>
               <Save className="w-4 h-4 mr-2" /> Save for {company?.name}
             </Button>
