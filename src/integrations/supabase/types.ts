@@ -107,63 +107,99 @@ export type Database = {
       company_icp: {
         Row: {
           budget_range: string | null
+          buying_role: string | null
           buying_triggers: string | null
           company_size: string | null
           company_slug: string
           created_at: string
           decision_process: string | null
+          departments: string | null
           description: string | null
           disqualifiers: string | null
+          exclusions: string | null
+          funding_stage: string | null
           geography: string | null
           goals: string | null
+          growth_signals: string | null
+          hiring_activity: string | null
           id: string
           industry: string | null
           job_titles: string[]
           name: string | null
           notes: string | null
           pain_points: string | null
+          personalization_level: string | null
+          seniority: string | null
+          tam_estimate: string | null
+          tech_stack: string | null
           template_id: string | null
+          tier: string | null
           updated_at: string
+          validation_notes: string | null
         }
         Insert: {
           budget_range?: string | null
+          buying_role?: string | null
           buying_triggers?: string | null
           company_size?: string | null
           company_slug: string
           created_at?: string
           decision_process?: string | null
+          departments?: string | null
           description?: string | null
           disqualifiers?: string | null
+          exclusions?: string | null
+          funding_stage?: string | null
           geography?: string | null
           goals?: string | null
+          growth_signals?: string | null
+          hiring_activity?: string | null
           id?: string
           industry?: string | null
           job_titles?: string[]
           name?: string | null
           notes?: string | null
           pain_points?: string | null
+          personalization_level?: string | null
+          seniority?: string | null
+          tam_estimate?: string | null
+          tech_stack?: string | null
           template_id?: string | null
+          tier?: string | null
           updated_at?: string
+          validation_notes?: string | null
         }
         Update: {
           budget_range?: string | null
+          buying_role?: string | null
           buying_triggers?: string | null
           company_size?: string | null
           company_slug?: string
           created_at?: string
           decision_process?: string | null
+          departments?: string | null
           description?: string | null
           disqualifiers?: string | null
+          exclusions?: string | null
+          funding_stage?: string | null
           geography?: string | null
           goals?: string | null
+          growth_signals?: string | null
+          hiring_activity?: string | null
           id?: string
           industry?: string | null
           job_titles?: string[]
           name?: string | null
           notes?: string | null
           pain_points?: string | null
+          personalization_level?: string | null
+          seniority?: string | null
+          tam_estimate?: string | null
+          tech_stack?: string | null
           template_id?: string | null
+          tier?: string | null
           updated_at?: string
+          validation_notes?: string | null
         }
         Relationships: [
           {
@@ -554,57 +590,93 @@ export type Database = {
       icp_templates: {
         Row: {
           budget_range: string | null
+          buying_role: string | null
           buying_triggers: string | null
           company_size: string | null
           created_at: string
           decision_process: string | null
+          departments: string | null
           description: string | null
           disqualifiers: string | null
+          exclusions: string | null
+          funding_stage: string | null
           geography: string | null
           goals: string | null
+          growth_signals: string | null
+          hiring_activity: string | null
           id: string
           industry: string | null
           job_titles: string[]
           name: string
           notes: string | null
           pain_points: string | null
+          personalization_level: string | null
+          seniority: string | null
+          tam_estimate: string | null
+          tech_stack: string | null
+          tier: string | null
           updated_at: string
+          validation_notes: string | null
         }
         Insert: {
           budget_range?: string | null
+          buying_role?: string | null
           buying_triggers?: string | null
           company_size?: string | null
           created_at?: string
           decision_process?: string | null
+          departments?: string | null
           description?: string | null
           disqualifiers?: string | null
+          exclusions?: string | null
+          funding_stage?: string | null
           geography?: string | null
           goals?: string | null
+          growth_signals?: string | null
+          hiring_activity?: string | null
           id?: string
           industry?: string | null
           job_titles?: string[]
           name: string
           notes?: string | null
           pain_points?: string | null
+          personalization_level?: string | null
+          seniority?: string | null
+          tam_estimate?: string | null
+          tech_stack?: string | null
+          tier?: string | null
           updated_at?: string
+          validation_notes?: string | null
         }
         Update: {
           budget_range?: string | null
+          buying_role?: string | null
           buying_triggers?: string | null
           company_size?: string | null
           created_at?: string
           decision_process?: string | null
+          departments?: string | null
           description?: string | null
           disqualifiers?: string | null
+          exclusions?: string | null
+          funding_stage?: string | null
           geography?: string | null
           goals?: string | null
+          growth_signals?: string | null
+          hiring_activity?: string | null
           id?: string
           industry?: string | null
           job_titles?: string[]
           name?: string
           notes?: string | null
           pain_points?: string | null
+          personalization_level?: string | null
+          seniority?: string | null
+          tam_estimate?: string | null
+          tech_stack?: string | null
+          tier?: string | null
           updated_at?: string
+          validation_notes?: string | null
         }
         Relationships: []
       }
