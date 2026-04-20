@@ -8,6 +8,8 @@ import AdminPasswordGate from "@/components/AdminPasswordGate";
 import { startImpersonation, ImpersonateRole } from "@/lib/impersonation";
 import { GTM_LAYERS } from "@/components/GTMFlow";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import CompanyModuleControls from "@/components/admin/CompanyModuleControls";
+import GtmModule from "@/components/gtm/GtmModule";
 
 const AdminPanelContent = () => {
   const navigate = useNavigate();
@@ -205,7 +207,10 @@ const AdminPanelContent = () => {
                   }}
                 />
 
-                {/* GTM Stack Assignment */}
+                {/* Module Visibility + Videos */}
+                <CompanyModuleControls companySlug={company.slug} />
+
+                {/* GTM Stack Assignment (legacy toggle) */}
                 <GtmSection
                   company={company}
                   onUpdate={async (updated: Company) => {
@@ -214,6 +219,15 @@ const AdminPanelContent = () => {
                     setCompanies(all);
                   }}
                 />
+
+                {/* Full GTM editor (ICP + 8 layers) */}
+                <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-muted-foreground" />
+                    <h3 className="text-sm font-semibold text-foreground">GTM ICP & Stack Editor</h3>
+                  </div>
+                  <GtmModule companySlug={company.slug} canEdit={true} />
+                </div>
 
                 {/* View As */}
                 <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
