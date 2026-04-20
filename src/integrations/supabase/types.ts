@@ -620,7 +620,6 @@ export type Database = {
         }
         Relationships: []
       }
-    }
       internal_users: {
         Row: {
           id: string
@@ -856,6 +855,144 @@ export type Database = {
             columns: ["parent_id"]
             isOneToOne: false
             referencedRelation: "module_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gtm_flow_steps: {
+        Row: {
+          id: string
+          title: string
+          description: string | null
+          order_index: number
+          hubspot_integration_note: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          description?: string | null
+          order_index?: number
+          hubspot_integration_note?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          description?: string | null
+          order_index?: number
+          hubspot_integration_note?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      gtm_tier_tools: {
+        Row: {
+          id: string
+          step_id: string
+          tier: string
+          tool_name: string
+          tool_url: string | null
+          monthly_cost: number
+          notes: string | null
+          order_index: number
+        }
+        Insert: {
+          id?: string
+          step_id: string
+          tier: string
+          tool_name: string
+          tool_url?: string | null
+          monthly_cost?: number
+          notes?: string | null
+          order_index?: number
+        }
+        Update: {
+          id?: string
+          step_id?: string
+          tier?: string
+          tool_name?: string
+          tool_url?: string | null
+          monthly_cost?: number
+          notes?: string | null
+          order_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gtm_tier_tools_step_id_fkey"
+            columns: ["step_id"]
+            isOneToOne: false
+            referencedRelation: "gtm_flow_steps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_gtm_access: {
+        Row: {
+          id: string
+          company_id: string
+          tiers_visible: string[]
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          tiers_visible?: string[]
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          company_id?: string
+          tiers_visible?: string[]
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_gtm_access_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comment_routing: {
+        Row: {
+          id: string
+          company_id: string
+          route_to: string[]
+          additional_emails: string[]
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          route_to?: string[]
+          additional_emails?: string[]
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          company_id?: string
+          route_to?: string[]
+          additional_emails?: string[]
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_routing_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]

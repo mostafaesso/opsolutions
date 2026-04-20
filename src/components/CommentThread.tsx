@@ -70,6 +70,33 @@ const CommentThread = ({ moduleId, moduleType, companyId, currentUser, canCommen
     fetchComments();
   }, [fetchComments]);
 
+  const notifyRouting = async () => {
+    try {
+      const { data } = await (supabase as any)
+        .from("comment_routing")
+        .select("route_to, additional_emails")
+        .eq("company_id", companyId)
+        .maybeSingle();
+      if (!data) return;
+      const LABELS: Record<string, string> = {
+        super_admin: "Super Admin",
+        company_owner: "Company Owner",
+        admins: "Admins",
+        managers: "Managers",
+        all: "All Users",
+      };
+      const targets = [
+        ...(data.route_to || []).map((r: string) => LABELS[r] ?? r),
+        ...(data.additional_emails || []),
+      ];
+      if (targets.length > 0) {
+        toast({ title: "Comment notification sent", description: `Notified: ${targets.join(", ")}` });
+      }
+    } catch {
+      // silent — routing is non-critical
+    }
+  };
+
   const submitComment = async () => {
     if (!newText.trim() || submitting) return;
     setSubmitting(true);
@@ -87,6 +114,7 @@ const CommentThread = ({ moduleId, moduleType, companyId, currentUser, canCommen
       if (error) throw error;
       setNewText("");
       await fetchComments();
+      notifyRouting();
     } catch (e: any) {
       toast({ title: "Error posting comment", description: e.message, variant: "destructive" });
     } finally {

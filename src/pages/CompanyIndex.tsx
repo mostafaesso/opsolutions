@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronRight, CheckCircle2, Lock, PlayCircle } from "lucide-react";
+import { ChevronRight, CheckCircle2, Lock, PlayCircle, BarChart2 } from "lucide-react";
 import { fetchCompanyBySlug, Company } from "@/lib/companies";
 import { trainingCards } from "@/lib/trainingData";
 import { useTrainingUser, useCompletions } from "@/hooks/useTrainingUser";
@@ -10,6 +10,7 @@ import TeamProgress from "@/components/TeamProgress";
 import CertificateDownload from "@/components/CertificateDownload";
 import VideoPlayer from "@/components/VideoPlayer";
 import CommentThread from "@/components/CommentThread";
+import GTMFlow from "@/components/GTMFlow";
 import { useEffect, useState, useCallback } from "react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -79,6 +80,17 @@ const CompanyIndex = () => {
     );
   }
 
+  const [gtmActive, setGtmActive] = useState(false);
+  useEffect(() => {
+    if (!company.id) return;
+    (supabase as any)
+      .from("company_gtm_access")
+      .select("is_active")
+      .eq("company_id", company.id)
+      .maybeSingle()
+      .then(({ data }: any) => { if (data?.is_active) setGtmActive(true); });
+  }, [company.id]);
+
   const completedCount = completions.size;
   const totalCards = trainingCards.length;
   const progressPercent = Math.round((completedCount / totalCards) * 100);
@@ -108,6 +120,11 @@ const CompanyIndex = () => {
             <TabsTrigger value="videos" className="flex items-center gap-1.5">
               <PlayCircle className="w-4 h-4" /> Videos
             </TabsTrigger>
+            {gtmActive && (
+              <TabsTrigger value="gtm" className="flex items-center gap-1.5">
+                <BarChart2 className="w-4 h-4" /> GTM Flow
+              </TabsTrigger>
+            )}
             {isManager && <TabsTrigger value="team">Team Progress</TabsTrigger>}
           </TabsList>
 
@@ -191,6 +208,16 @@ const CompanyIndex = () => {
               <p className="text-sm text-muted-foreground">Videos unavailable.</p>
             )}
           </TabsContent>
+
+          {/* ── GTM Flow Tab ─────────────────────────────────────────────── */}
+          {gtmActive && company.id && (
+            <TabsContent value="gtm">
+              <GTMFlow
+                companyId={company.id}
+                currentUser={{ id: user.id, full_name: user.full_name, email: user.email }}
+              />
+            </TabsContent>
+          )}
 
           {/* ── Team Tab ─────────────────────────────────────────────────── */}
           {isManager && (

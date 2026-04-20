@@ -7,6 +7,8 @@ import { toast } from "@/hooks/use-toast";
 import AdminPasswordGate from "@/components/AdminPasswordGate";
 import AdminTeamTab from "@/components/AdminTeamTab";
 import AdminPermissionsPanel from "@/components/AdminPermissionsPanel";
+import AdminGTMAccess from "@/components/AdminGTMAccess";
+import AdminCommentRouting from "@/components/AdminCommentRouting";
 
 // ─── Companies Tab ────────────────────────────────────────────────────────────
 
@@ -172,6 +174,16 @@ const CompaniesTab = () => {
             {/* Module Permissions */}
             {company.id && (
               <AdminPermissionsPanel companyId={company.id} companyName={company.name} />
+            )}
+
+            {/* GTM Access */}
+            {company.id && (
+              <AdminGTMAccess companyId={company.id} companyName={company.name} />
+            )}
+
+            {/* Comment Routing */}
+            {company.id && (
+              <AdminCommentRouting companyId={company.id} companyName={company.name} />
             )}
 
             {/* Admin Guide */}
