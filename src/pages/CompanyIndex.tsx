@@ -96,6 +96,9 @@ const CompanyIndex = () => {
   const progressPercent = Math.round((completedCount / totalCards) * 100);
   const isManager = company.managerEmails?.some(e => e.toLowerCase() === user.email.toLowerCase());
 
+  // Managers/admins always see GTM; employees see it only when company has it enabled
+  const showGtm = isManager || gtmActive;
+
   return (
     <div className="min-h-screen bg-background">
       <header className="flex items-center justify-between px-6 md:px-8 py-4 bg-card/95 backdrop-blur-md sticky top-0 z-50 border-b border-border shadow-sm">
@@ -120,7 +123,7 @@ const CompanyIndex = () => {
             <TabsTrigger value="videos" className="flex items-center gap-1.5">
               <PlayCircle className="w-4 h-4" /> Videos
             </TabsTrigger>
-            {gtmActive && (
+            {showGtm && (
               <TabsTrigger value="gtm" className="flex items-center gap-1.5">
                 <BarChart2 className="w-4 h-4" /> GTM Flow
               </TabsTrigger>
@@ -210,11 +213,12 @@ const CompanyIndex = () => {
           </TabsContent>
 
           {/* ── GTM Flow Tab ─────────────────────────────────────────────── */}
-          {gtmActive && company.id && (
+          {showGtm && company.id && (
             <TabsContent value="gtm">
               <GTMFlow
                 companyId={company.id}
                 currentUser={{ id: user.id, full_name: user.full_name, email: user.email }}
+                isAdmin={isManager}
               />
             </TabsContent>
           )}

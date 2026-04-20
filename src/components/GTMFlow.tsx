@@ -36,6 +36,7 @@ interface CurrentUser {
 interface GTMFlowProps {
   companyId: string;
   currentUser: CurrentUser;
+  isAdmin?: boolean;
 }
 
 type Tier = "free" | "mid" | "pro";
@@ -46,7 +47,7 @@ const TIER_LABELS: Record<Tier, string> = {
   pro: "$1,500 / mo",
 };
 
-const GTMFlow = ({ companyId, currentUser }: GTMFlowProps) => {
+const GTMFlow = ({ companyId, currentUser, isAdmin = false }: GTMFlowProps) => {
   const [steps, setSteps] = useState<GTMStep[]>([]);
   const [tools, setTools] = useState<GTMTool[]>([]);
   const [access, setAccess] = useState<GTMAccess | null>(null);
@@ -70,7 +71,7 @@ const GTMFlow = ({ companyId, currentUser }: GTMFlowProps) => {
 
   if (loading) return <p className="text-sm text-muted-foreground">Loading GTM flow…</p>;
 
-  if (!access?.is_active) {
+  if (!access?.is_active && !isAdmin) {
     return (
       <div className="rounded-2xl border border-border bg-card p-12 text-center">
         <BarChart2 className="w-12 h-12 text-muted-foreground/40 mx-auto mb-3" />
@@ -80,7 +81,8 @@ const GTMFlow = ({ companyId, currentUser }: GTMFlowProps) => {
     );
   }
 
-  const visibleTiers = (access.tiers_visible || ["free", "mid", "pro"]) as Tier[];
+  // Admins always see all tiers; others see what's configured
+  const visibleTiers = (isAdmin ? ["free", "mid", "pro"] : (access?.tiers_visible || ["free", "mid", "pro"])) as Tier[];
   const activeTier = visibleTiers.includes(selectedTier) ? selectedTier : visibleTiers[0];
 
   const toolsForStep = (stepId: string) =>
