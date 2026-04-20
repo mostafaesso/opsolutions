@@ -8,10 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Plus, Trash2, Target, Library, Building2, Save, Wand2, Copy,
-  Building, Users, Flame, ShieldAlert, CheckCircle2, FileDown,
+  Building, Users, Flame, ShieldAlert, CheckCircle2, FileDown, Sparkles, Gauge,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { generateIcpPdf } from "@/lib/icpPdf";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   companies: Company[];
