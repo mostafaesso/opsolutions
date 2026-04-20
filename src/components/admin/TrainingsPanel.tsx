@@ -99,7 +99,7 @@ const TrainingsPanel = ({ companies }: Props) => {
             ) : (
               <ModuleEditor
                 module={editing}
-                onSave={(patch) => update(editing.id, patch).then(() => toast({ title: "Saved" }))}
+                onSave={async (patch) => { await update(editing.id, patch); toast({ title: "Saved" }); }}
                 onRemove={async () => {
                   if (!confirm(`Delete module "${editing.title}"?`)) return;
                   await remove(editing.id);
@@ -236,7 +236,7 @@ const CompanyAssignmentsView = ({
                 assignment={a}
                 module={mod}
                 companyName={company?.name ?? ""}
-                onUpdate={(patch) => updateAssignment(a.id, patch).then(() => toast({ title: "Saved" }))}
+                onUpdate={async (patch) => { await updateAssignment(a.id, patch); toast({ title: "Saved" }); }}
                 onRemove={async () => {
                   if (!confirm(`Unassign "${mod.title}" from ${company?.name}?`)) return;
                   await unassign(a.id);
