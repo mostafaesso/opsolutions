@@ -415,12 +415,13 @@ const TemplateEditor = ({
 // ─── PER-COMPANY VIEW ────────────────────────────────────
 
 const CompanyView = ({
-  companies, selectedCompany, onSelectCompany, templates,
+  companies, selectedCompany, onSelectCompany, templates, onCompaniesChanged,
 }: {
   companies: Company[];
   selectedCompany: string;
   onSelectCompany: (slug: string) => void;
   templates: IcpTemplate[];
+  onCompaniesChanged?: () => void;
 }) => {
   const company = companies.find((c) => c.slug === selectedCompany);
   const { icps, loading, create, save, remove, createFromTemplate, duplicate } = useCompanyIcps(selectedCompany);
@@ -430,6 +431,23 @@ const CompanyView = ({
   const [aiHint, setAiHint] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
   const [aiScore, setAiScore] = useState<{ overall: number; fields: Record<string, number> } | null>(null);
+
+  // Editable company info (logo, domain, name)
+  const [companyDraft, setCompanyDraft] = useState<{ name: string; logoUrl: string; customDomain: string }>({
+    name: "", logoUrl: "", customDomain: "",
+  });
+  const [savingCompany, setSavingCompany] = useState(false);
+
+  useEffect(() => {
+    if (company) {
+      setCompanyDraft({
+        name: company.name ?? "",
+        logoUrl: company.logoUrl ?? "",
+        customDomain: company.customDomain ?? "",
+      });
+    }
+  }, [company?.slug, company?.name, company?.logoUrl, company?.customDomain]);
+
 
   // Auto-select first ICP when list loads / company changes
   useEffect(() => {
