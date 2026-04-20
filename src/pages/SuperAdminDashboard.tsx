@@ -243,6 +243,18 @@ const SuperAdminDashboard = () => {
     navigate("/login", { replace: true });
   };
 
+  const handleViewAs = (slug: string, name: string, role: ImpersonateRole) => {
+    startImpersonation({ companySlug: slug, companyName: name, role });
+    if (role === "admin") navigate(`/admin/${slug}/dashboard`);
+    else navigate(`/${slug}`);
+  };
+
+  const handleManage = (slug: string) => {
+    // Open the rich AdminPanel with this company pre-selected
+    sessionStorage.setItem("admin-panel-selected-company", slug);
+    navigate("/admin");
+  };
+
   if (authLoading || !isSuperAdmin) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
