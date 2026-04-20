@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase as supabaseClient } from "@/integrations/supabase/client";
-
-// Cast to any: team_members table not yet in generated types
-const supabase = supabaseClient as any;
+import { supabase } from "@/integrations/supabase/client";
 
 export interface TeamMember {
   id: string;
@@ -36,7 +33,7 @@ export const useTeamMembers = (companySlug: string | undefined) => {
         .order("invited_at", { ascending: false });
 
       if (err) throw err;
-      setMembers(data || []);
+      setMembers((data as TeamMember[]) || []);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -65,8 +62,8 @@ export const useTeamMembers = (companySlug: string | undefined) => {
         .single();
 
       if (err) throw err;
-      setMembers([data, ...members]);
-      return data;
+      setMembers([data as TeamMember, ...members]);
+      return data as TeamMember;
     } catch (err: any) {
       setError(err.message);
       throw err;
@@ -83,8 +80,8 @@ export const useTeamMembers = (companySlug: string | undefined) => {
         .single();
 
       if (err) throw err;
-      setMembers(members.map(m => m.id === memberId ? data : m));
-      return data;
+      setMembers(members.map(m => m.id === memberId ? (data as TeamMember) : m));
+      return data as TeamMember;
     } catch (err: any) {
       setError(err.message);
       throw err;
@@ -101,8 +98,8 @@ export const useTeamMembers = (companySlug: string | undefined) => {
         .single();
 
       if (err) throw err;
-      setMembers(members.map(m => m.id === memberId ? data : m));
-      return data;
+      setMembers(members.map(m => m.id === memberId ? (data as TeamMember) : m));
+      return data as TeamMember;
     } catch (err: any) {
       setError(err.message);
       throw err;

@@ -1,8 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase as supabaseClient } from "@/integrations/supabase/client";
-
-// Cast to any: company_admins/team_members tables not yet in generated types
-const supabase = supabaseClient as any;
+import { supabase } from "@/integrations/supabase/client";
 
 export type UserRole = "super_admin" | "company_admin" | "manager" | "employee" | null;
 

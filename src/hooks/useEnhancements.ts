@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase as supabaseClient } from "@/integrations/supabase/client";
-
-// Cast to any: enhancements table not yet in generated types
-const supabase = supabaseClient as any;
+import { supabase } from "@/integrations/supabase/client";
 
 export interface Enhancement {
   id: string;
@@ -39,7 +36,7 @@ export const useEnhancements = (companySlug: string | undefined) => {
         .order("created_at", { ascending: false });
 
       if (err) throw err;
-      setEnhancements(data || []);
+      setEnhancements((data as Enhancement[]) || []);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -73,8 +70,8 @@ export const useEnhancements = (companySlug: string | undefined) => {
         .single();
 
       if (err) throw err;
-      setEnhancements([data, ...enhancements]);
-      return data;
+      setEnhancements([data as Enhancement, ...enhancements]);
+      return data as Enhancement;
     } catch (err: any) {
       setError(err.message);
       throw err;

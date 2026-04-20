@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react';
-import { supabase as supabaseClient } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { PipelineMetric, PipelineConversion, Benchmark, Pipeline } from '@/integrations/supabase/phase2_types';
-
-// Cast to any: pipeline_* and benchmarks tables not yet in generated types
-const supabase = supabaseClient as any;
 
 export const usePipeline = (companySlug?: string) => {
   const [metrics, setMetrics] = useState<PipelineMetric[]>([]);
@@ -132,6 +129,7 @@ export const usePipeline = (companySlug?: string) => {
         .from('pipeline_conversions')
         .insert([{
           company_slug: slug,
+          conversion_date: new Date().toISOString().split('T')[0],
           from_stage: fromStage,
           to_stage: toStage,
           from_count: fromCount,

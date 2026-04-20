@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react';
-import { supabase as supabaseClient } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { Improvement } from '@/integrations/supabase/phase2_types';
-
-// Cast to any: improvements table not yet in generated types
-const supabase = supabaseClient as any;
 
 export const useImprovements = (companySlug?: string) => {
   const [improvements, setImprovements] = useState<Improvement[]>([]);

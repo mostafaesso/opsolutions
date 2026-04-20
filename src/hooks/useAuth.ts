@@ -23,13 +23,13 @@ export async function resolveUserRole(
   }
 
   const { data: companyAdmin } = await supabase
-    .from("company_admins" as any)
+    .from("company_admins")
     .select("company_slug")
     .eq("email", email)
     .maybeSingle();
 
   if (companyAdmin) {
-    return { role: "company_admin", companySlug: (companyAdmin as any).company_slug };
+    return { role: "company_admin", companySlug: companyAdmin.company_slug };
   }
 
   const { data: trainingUser } = await supabase
