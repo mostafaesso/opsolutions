@@ -1,121 +1,113 @@
-import { CheckCircle2, Lock } from "lucide-react";
-
-interface Tier {
+interface GTMLayer {
+  number: number;
   name: string;
-  price: string;
-  description: string;
-  features: string[];
-  highlight?: boolean;
+  purpose: string;
+  tools: string;
 }
 
-const TIERS: Tier[] = [
+export const GTM_LAYERS: GTMLayer[] = [
   {
-    name: "Free",
-    price: "$0",
-    description: "Core HubSpot setup to get your team started.",
-    features: [
-      "HubSpot CRM onboarding",
-      "Contact & deal pipeline setup",
-      "Basic training access",
-      "Email support",
-    ],
+    number: 1,
+    name: "Data Sources",
+    purpose: "Where do you find your target companies and contacts",
+    tools: "Apollo, LinkedIn Sales Navigator, Ocean.io, D7, Maroof.sa, Clay",
   },
   {
-    name: "Growth",
-    price: "$400/mo",
-    description: "Hands-on optimization for growing teams.",
-    features: [
-      "Everything in Free",
-      "Monthly strategy sessions",
-      "Custom pipeline configuration",
-      "Marketing automation setup",
-      "Reporting dashboards",
-    ],
-    highlight: true,
+    number: 2,
+    name: "Data Scraping",
+    purpose: "Extracting lead info from websites and directories",
+    tools: "Instant Data Scraper, Apify, PhantomBuster",
   },
   {
-    name: "Scale",
-    price: "$1,500/mo",
-    description: "Full-service GTM execution and ongoing support.",
-    features: [
-      "Everything in Growth",
-      "Dedicated ops specialist",
-      "Weekly check-ins",
-      "Sales enablement content",
-      "Advanced integrations",
-      "Priority support",
-    ],
+    number: 3,
+    name: "Enrichment",
+    purpose: "Completing missing data fields (email, phone, title, LinkedIn)",
+    tools: "Clay, Leads Magic, Full Enrich, iSkala Enrich",
+  },
+  {
+    number: 4,
+    name: "Buying Signals",
+    purpose: "Detecting intent or activity that shows readiness",
+    tools: "PhantomBuster (activity trackers), Trigify",
+  },
+  {
+    number: 5,
+    name: "Copywriting / Personalization",
+    purpose: "Writing messages tailored to each lead",
+    tools: "ChatGPT, Twain, Clay (AI fields)",
+  },
+  {
+    number: 6,
+    name: "Email Validation",
+    purpose: "Ensuring emails are valid and won't bounce",
+    tools: "Leads Magic, MillionVerifier, BounceBan",
+  },
+  {
+    number: 7,
+    name: "Outreach Execution",
+    purpose: "Sending your campaigns via email or LinkedIn",
+    tools: "Apollo, Smartlead, Instantly, Lemlist, Heyreach, Aimfox",
+  },
+  {
+    number: 8,
+    name: "Infrastructure & Deliverability",
+    purpose: "Domains, mailboxes, SMTPs, and routing",
+    tools: "Google Workspace, Microsoft 365, Mailreef, Zapmail, Inboxology",
   },
 ];
 
-interface GTMFlowProps {
-  isAdmin: boolean;
-  activeAccess?: "free" | "growth" | "scale" | null;
-}
-
-const tierOrder = ["free", "growth", "scale"];
-
-const GTMFlow = ({ isAdmin, activeAccess }: GTMFlowProps) => {
-  const activeTierIndex = activeAccess ? tierOrder.indexOf(activeAccess) : -1;
-
+const GTMFlow = () => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div>
-        <h2 className="text-xl font-bold text-foreground mb-1">GTM Flow</h2>
+        <h2 className="text-xl font-bold text-foreground mb-1">Core GTM Stack Layers</h2>
         <p className="text-sm text-muted-foreground">
-          Choose the engagement level that fits your team's goals.
+          Below are the 8 essential layers every cold email GTM engine is built on.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {TIERS.map((tier, idx) => {
-          const tierKey = tierOrder[idx] as "free" | "growth" | "scale";
-          const isUnlocked = isAdmin || activeTierIndex >= idx;
+      <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
+        {/* Header */}
+        <div className="grid grid-cols-[48px_1fr_2fr_2fr] gap-0 bg-muted/50 border-b border-border">
+          <div className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">#</div>
+          <div className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Layer</div>
+          <div className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Purpose</div>
+          <div className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Example Tools</div>
+        </div>
 
-          return (
-            <div
-              key={tier.name}
-              className={`relative rounded-2xl border p-6 flex flex-col gap-4 transition-all ${
-                tier.highlight
-                  ? "border-primary/60 bg-primary/5 shadow-sm"
-                  : "border-border bg-card"
-              } ${!isUnlocked ? "opacity-60" : ""}`}
-            >
-              {tier.highlight && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-semibold bg-primary text-primary-foreground px-3 py-0.5 rounded-full">
-                  Most Popular
-                </span>
-              )}
-
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <h3 className="text-base font-bold text-foreground">{tier.name}</h3>
-                  {!isUnlocked && <Lock className="w-4 h-4 text-muted-foreground" />}
-                </div>
-                <p className="text-2xl font-bold text-primary">{tier.price}</p>
-                <p className="text-sm text-muted-foreground mt-1">{tier.description}</p>
-              </div>
-
-              <ul className="space-y-2 flex-1">
-                {tier.features.map((f) => (
-                  <li key={f} className="flex items-start gap-2 text-sm text-foreground">
-                    <CheckCircle2
-                      className="w-4 h-4 mt-0.5 shrink-0"
-                      style={{ color: isUnlocked ? "hsl(160, 84%, 39%)" : undefined }}
-                    />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-
-              {!isUnlocked && (
-                <p className="text-xs text-muted-foreground text-center mt-2">
-                  Contact your manager to unlock this tier.
-                </p>
-              )}
+        {/* Rows */}
+        {GTM_LAYERS.map((layer, idx) => (
+          <div
+            key={layer.number}
+            className={`grid grid-cols-[48px_1fr_2fr_2fr] gap-0 border-b border-border last:border-0 hover:bg-muted/20 transition-colors ${
+              idx % 2 === 0 ? "bg-background" : "bg-muted/10"
+            }`}
+          >
+            <div className="px-4 py-4 flex items-start">
+              <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center shrink-0">
+                {layer.number}
+              </span>
             </div>
-          );
-        })}
+            <div className="px-4 py-4">
+              <span className="text-sm font-semibold text-foreground">{layer.name}</span>
+            </div>
+            <div className="px-4 py-4">
+              <span className="text-sm text-muted-foreground">{layer.purpose}</span>
+            </div>
+            <div className="px-4 py-4">
+              <div className="flex flex-wrap gap-1">
+                {layer.tools.split(", ").map((tool) => (
+                  <span
+                    key={tool}
+                    className="inline-block text-xs bg-secondary text-secondary-foreground px-2 py-0.5 rounded-md"
+                  >
+                    {tool}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
