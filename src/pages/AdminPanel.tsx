@@ -360,24 +360,20 @@ const AdminPanelContent = () => {
             )}
           </div>
         </div>
-          </TabsContent>
+          )}
 
           {/* ── Modules ── */}
-          <TabsContent value="modules">
+          {section === "modules" && (
             <div className="rounded-2xl border border-border bg-card p-8 flex flex-col items-center justify-center min-h-[300px] text-center gap-3">
               <ImageIcon className="w-10 h-10 text-muted-foreground/40" />
               <p className="text-sm font-medium text-muted-foreground">Modules management coming soon</p>
-              <p className="text-xs text-muted-foreground">Select a company in the Companies tab to manage its training images.</p>
+              <p className="text-xs text-muted-foreground">Select a company in the Companies section to manage its training images.</p>
             </div>
-          </TabsContent>
+          )}
 
           {/* ── GTM ── */}
-          <TabsContent value="gtm">
+          {section === "gtm" && (
             <div className="space-y-4">
-              <div>
-                <h2 className="text-lg font-bold text-foreground mb-1">Core GTM Stack Layers</h2>
-                <p className="text-sm text-muted-foreground">Assign the GTM template to companies from the Companies tab.</p>
-              </div>
               <div className="rounded-2xl border border-border bg-card overflow-hidden">
                 <div className="grid grid-cols-[40px_160px_1fr_1fr] bg-muted/50 border-b border-border text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   <div className="px-4 py-3">#</div>
@@ -424,10 +420,10 @@ const AdminPanelContent = () => {
                 </div>
               </div>
             </div>
-          </TabsContent>
+          )}
 
           {/* ── Trainings ── */}
-          <TabsContent value="trainings">
+          {section === "trainings" && (
             <div className="rounded-2xl border border-border bg-card overflow-hidden">
               <div className="grid grid-cols-[40px_1fr_2fr] bg-muted/50 border-b border-border text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 <div className="px-4 py-3">#</div>
@@ -442,19 +438,18 @@ const AdminPanelContent = () => {
                 </div>
               ))}
             </div>
-          </TabsContent>
+          )}
 
           {/* ── CRM Updates ── */}
-          <TabsContent value="crm">
+          {section === "crm" && (
             <div className="rounded-2xl border border-border bg-card p-8 flex flex-col items-center justify-center min-h-[300px] text-center gap-3">
               <TrendingUp className="w-10 h-10 text-muted-foreground/40" />
               <p className="text-sm font-medium text-muted-foreground">CRM Updates coming soon</p>
               <p className="text-xs text-muted-foreground">Manage CRM-related updates and announcements per company.</p>
             </div>
-          </TabsContent>
-
-        </Tabs>
-      </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 };
