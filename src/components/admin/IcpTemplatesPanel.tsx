@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useIcpTemplates, useCompanyIcps, IcpTemplate, CompanyIcp } from "@/hooks/useIcpTemplates";
-import { Company } from "@/lib/companies";
+import { Company, updateCompanyInDb } from "@/lib/companies";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -415,12 +415,13 @@ const TemplateEditor = ({
 // ─── PER-COMPANY VIEW ────────────────────────────────────
 
 const CompanyView = ({
-  companies, selectedCompany, onSelectCompany, templates,
+  companies, selectedCompany, onSelectCompany, templates, onCompaniesChanged,
 }: {
   companies: Company[];
   selectedCompany: string;
   onSelectCompany: (slug: string) => void;
   templates: IcpTemplate[];
+  onCompaniesChanged?: () => void;
 }) => {
   const company = companies.find((c) => c.slug === selectedCompany);
   const { icps, loading, create, save, remove, createFromTemplate, duplicate } = useCompanyIcps(selectedCompany);
@@ -430,6 +431,23 @@ const CompanyView = ({
   const [aiHint, setAiHint] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
   const [aiScore, setAiScore] = useState<{ overall: number; fields: Record<string, number> } | null>(null);
+
+  // Editable company info (logo, domain, name)
+  const [companyDraft, setCompanyDraft] = useState<{ name: string; logoUrl: string; customDomain: string }>({
+    name: "", logoUrl: "", customDomain: "",
+  });
+  const [savingCompany, setSavingCompany] = useState(false);
+
+  useEffect(() => {
+    if (company) {
+      setCompanyDraft({
+        name: company.name ?? "",
+        logoUrl: company.logoUrl ?? "",
+        customDomain: company.customDomain ?? "",
+      });
+    }
+  }, [company?.slug, company?.name, company?.logoUrl, company?.customDomain]);
+
 
   // Auto-select first ICP when list loads / company changes
   useEffect(() => {
@@ -503,11 +521,50 @@ const CompanyView = ({
     }
   };
 
+  const handleSaveCompany = async () => {
+    if (!company) return;
+    if (!companyDraft.name.trim()) {
+      toast({ title: "Name is required", variant: "destructive" });
+      return;
+    }
+    setSavingCompany(true);
+    try {
+      await updateCompanyInDb(
+        {
+          ...company,
+          name: companyDraft.name.trim(),
+          logoUrl: companyDraft.logoUrl.trim(),
+          customDomain: companyDraft.customDomain.trim() || null,
+        },
+        company.slug,
+      );
+      toast({ title: "Company info saved" });
+      onCompaniesChanged?.();
+    } catch (e: any) {
+      toast({ title: "Could not save company", description: e?.message ?? String(e), variant: "destructive" });
+    } finally {
+      setSavingCompany(false);
+    }
+  };
+
   const callGenerateIcp = async (compareTo: CompanyIcp | null) => {
     if (!company) return null;
+    const domain = (companyDraft.customDomain || company.customDomain || "").trim();
+    if (!domain) {
+      toast({
+        title: "Company domain is required",
+        description: "Add the company's website domain above (e.g. acme.com) before generating an ICP. Domain content is what makes the AI accurate.",
+        variant: "destructive",
+      });
+      return null;
+    }
     const { data, error } = await supabase.functions.invoke("generate-icp", {
       body: {
-        company: { name: company.name, slug: company.slug, customDomain: company.customDomain },
+        company: {
+          name: companyDraft.name || company.name,
+          slug: company.slug,
+          customDomain: domain,
+        },
         hint: aiHint,
         compareTo: compareTo ? { ...compareTo, job_titles: compareTo.job_titles ?? [] } : null,
       },
@@ -520,7 +577,7 @@ const CompanyView = ({
       toast({ title: "AI generation failed", description: (data as any).error, variant: "destructive" });
       return null;
     }
-    return data as { draft: any; score: { overall: number; fields: Record<string, number> } | null };
+    return data as { draft: any; score: { overall: number; fields: Record<string, number> } | null; siteFetched?: boolean };
   };
 
   const handleAiGenerateNew = async () => {
@@ -535,7 +592,12 @@ const CompanyView = ({
         name: result.draft.name || `AI · ${company.name}`,
       });
       if (created?.id) setActiveId(created.id);
-      toast({ title: "AI ICP generated", description: "Edit any field to refine it." });
+      toast({
+        title: "AI ICP generated",
+        description: result.siteFetched === false
+          ? "Note: site couldn't be fetched — review carefully."
+          : "Edit any field to refine it.",
+      });
     } finally {
       setAiBusy(false);
     }
@@ -599,6 +661,68 @@ const CompanyView = ({
           </Select>
         </div>
       </div>
+
+      {/* Company info — editable, used to ground AI */}
+      {company && (
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <div className="flex items-center gap-3 mb-4">
+            {companyDraft.logoUrl ? (
+              <img
+                src={companyDraft.logoUrl}
+                alt={`${companyDraft.name} logo`}
+                className="w-10 h-10 rounded-lg object-contain bg-muted"
+                onError={(e) => ((e.currentTarget.style.display = "none"))}
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                <Building2 className="w-4 h-4 text-muted-foreground" />
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm font-bold text-foreground">Company info</h3>
+              <p className="text-xs text-muted-foreground">
+                Domain is <strong>required</strong> — the AI scrapes it for accurate ICP grounding.
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <Label className="text-xs">Company name</Label>
+              <Input
+                value={companyDraft.name}
+                onChange={(e) => setCompanyDraft({ ...companyDraft, name: e.target.value })}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-xs">Logo URL</Label>
+              <Input
+                value={companyDraft.logoUrl}
+                onChange={(e) => setCompanyDraft({ ...companyDraft, logoUrl: e.target.value })}
+                placeholder="https://…/logo.png"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-xs">
+                Website / Domain <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                value={companyDraft.customDomain}
+                onChange={(e) => setCompanyDraft({ ...companyDraft, customDomain: e.target.value })}
+                placeholder="acme.com"
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end mt-3">
+            <Button size="sm" onClick={handleSaveCompany} disabled={savingCompany} className="gap-2">
+              <Save className="w-3.5 h-3.5" />
+              {savingCompany ? "Saving…" : "Save company info"}
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* AI Generator */}
       <div className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/5 to-transparent p-5">
