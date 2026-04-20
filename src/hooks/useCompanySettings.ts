@@ -51,7 +51,12 @@ export const useCompanySettings = (companySlug: string | undefined) => {
     await (supabase as any)
       .from("company_settings")
       .upsert(
-        { company_slug: companySlug, ...next, company_slug_dup: undefined },
+        {
+          company_slug: companySlug,
+          training_doc_enabled: next.training_doc_enabled,
+          training_video_enabled: next.training_video_enabled,
+          crm_updates_employee_visible: next.crm_updates_employee_visible,
+        },
         { onConflict: "company_slug" }
       );
   };
