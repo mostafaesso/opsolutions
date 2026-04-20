@@ -139,6 +139,36 @@ export type Database = {
           },
         ]
       }
+      company_settings: {
+        Row: {
+          company_slug: string
+          created_at: string
+          crm_updates_employee_visible: boolean
+          id: string
+          training_doc_enabled: boolean
+          training_video_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          company_slug: string
+          created_at?: string
+          crm_updates_employee_visible?: boolean
+          id?: string
+          training_doc_enabled?: boolean
+          training_video_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          company_slug?: string
+          created_at?: string
+          crm_updates_employee_visible?: boolean
+          id?: string
+          training_doc_enabled?: boolean
+          training_video_enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       company_training_overrides: {
         Row: {
           company_slug: string
@@ -169,6 +199,39 @@ export type Database = {
           is_hidden?: boolean
           module_id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      company_videos: {
+        Row: {
+          company_slug: string
+          created_at: string
+          description: string | null
+          id: string
+          sort_order: number
+          title: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          company_slug: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          company_slug?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+          url?: string
         }
         Relationships: []
       }
@@ -262,6 +325,84 @@ export type Database = {
         }
         Relationships: []
       }
+      gtm_icp: {
+        Row: {
+          buying_triggers: string | null
+          company_size: string | null
+          company_slug: string
+          created_at: string
+          geography: string | null
+          id: string
+          industry: string | null
+          job_titles: string[]
+          notes: string | null
+          pain_points: string | null
+          updated_at: string
+        }
+        Insert: {
+          buying_triggers?: string | null
+          company_size?: string | null
+          company_slug: string
+          created_at?: string
+          geography?: string | null
+          id?: string
+          industry?: string | null
+          job_titles?: string[]
+          notes?: string | null
+          pain_points?: string | null
+          updated_at?: string
+        }
+        Update: {
+          buying_triggers?: string | null
+          company_size?: string | null
+          company_slug?: string
+          created_at?: string
+          geography?: string | null
+          id?: string
+          industry?: string | null
+          job_titles?: string[]
+          notes?: string | null
+          pain_points?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      gtm_layers: {
+        Row: {
+          calculator_data: Json
+          comments: string | null
+          company_slug: string
+          created_at: string
+          id: string
+          is_complete: boolean
+          layer_number: number
+          tools_selected: string[]
+          updated_at: string
+        }
+        Insert: {
+          calculator_data?: Json
+          comments?: string | null
+          company_slug: string
+          created_at?: string
+          id?: string
+          is_complete?: boolean
+          layer_number: number
+          tools_selected?: string[]
+          updated_at?: string
+        }
+        Update: {
+          calculator_data?: Json
+          comments?: string | null
+          company_slug?: string
+          created_at?: string
+          id?: string
+          is_complete?: boolean
+          layer_number?: number
+          tools_selected?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       hubspot_credentials: {
         Row: {
           company_slug: string
@@ -297,9 +438,12 @@ export type Database = {
           created_at: string
           created_by: string
           description: string | null
+          goal: string | null
           id: string
           impact_summary: string | null
           implemented_date: string
+          issue_solved: string | null
+          simple_explanation: string | null
           title: string
           updated_at: string
         }
@@ -313,9 +457,12 @@ export type Database = {
           created_at?: string
           created_by: string
           description?: string | null
+          goal?: string | null
           id?: string
           impact_summary?: string | null
           implemented_date?: string
+          issue_solved?: string | null
+          simple_explanation?: string | null
           title: string
           updated_at?: string
         }
@@ -329,9 +476,12 @@ export type Database = {
           created_at?: string
           created_by?: string
           description?: string | null
+          goal?: string | null
           id?: string
           impact_summary?: string | null
           implemented_date?: string
+          issue_solved?: string | null
+          simple_explanation?: string | null
           title?: string
           updated_at?: string
         }
