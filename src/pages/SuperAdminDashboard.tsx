@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Trash2, Save, X, Pencil, UserPlus, ChevronDown, ChevronRight, BookOpen } from "lucide-react";
+import { LogOut, Trash2, Save, X, Pencil, UserPlus, ChevronDown, ChevronRight, BookOpen, Settings2, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSuperAdmin } from "@/hooks/useSuperAdmin";
+import { startImpersonation, ImpersonateRole } from "@/lib/impersonation";
 import { AddCompanyModal } from "@/components/AddCompanyModal";
 import { CompanyTrainingManager } from "@/components/CompanyTrainingManager";
 import { Button } from "@/components/ui/button";
