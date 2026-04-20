@@ -1,6 +1,10 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Trash2, Save, X, Pencil, UserPlus, ChevronDown, ChevronRight, BookOpen, Settings2, Eye } from "lucide-react";
+import { LogOut, Trash2, Save, X, Pencil, UserPlus, ChevronDown, ChevronRight, BookOpen, Settings2, Eye, LayoutDashboard, Building2, Users, Target, Layers, GraduationCap, Bell } from "lucide-react";
+import IcpTemplatesPanel from "@/components/admin/IcpTemplatesPanel";
+import GtmStackPanel from "@/components/admin/GtmStackPanel";
+import TrainingsPanel from "@/components/admin/TrainingsPanel";
+import CrmUpdatesPanel from "@/components/admin/CrmUpdatesPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { useSuperAdmin } from "@/hooks/useSuperAdmin";
 import { startImpersonation, ImpersonateRole } from "@/lib/impersonation";
