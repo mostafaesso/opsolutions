@@ -28,11 +28,11 @@ export const useTrainingOverrides = (companySlug: string | undefined) => {
     setError(null);
     try {
       const { data, error: err } = await supabase
-        .from("company_training_overrides" as any)
+        .from("company_training_overrides")
         .select("*")
         .eq("company_slug", companySlug);
       if (err) throw err;
-      setOverrides(((data as unknown) as TrainingOverride[]) || []);
+      setOverrides((data as TrainingOverride[]) || []);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -53,7 +53,7 @@ export const useTrainingOverrides = (companySlug: string | undefined) => {
       const existing = getOverride(moduleId);
       if (existing) {
         const { data, error: err } = await supabase
-          .from("company_training_overrides" as any)
+          .from("company_training_overrides")
           .update({ ...updates, updated_at: new Date().toISOString() })
           .eq("company_slug", companySlug)
           .eq("module_id", moduleId)
@@ -61,16 +61,16 @@ export const useTrainingOverrides = (companySlug: string | undefined) => {
           .single();
         if (err) throw err;
         setOverrides((prev) =>
-          prev.map((o) => (o.module_id === moduleId ? ((data as unknown) as TrainingOverride) : o))
+          prev.map((o) => (o.module_id === moduleId ? (data as TrainingOverride) : o))
         );
       } else {
         const { data, error: err } = await supabase
-          .from("company_training_overrides" as any)
+          .from("company_training_overrides")
           .insert({ company_slug: companySlug, module_id: moduleId, ...updates })
           .select()
           .single();
         if (err) throw err;
-        setOverrides((prev) => [...prev, ((data as unknown) as TrainingOverride)]);
+        setOverrides((prev) => [...prev, (data as TrainingOverride)]);
       }
     } catch (err: any) {
       setError(err.message);

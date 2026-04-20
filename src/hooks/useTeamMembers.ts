@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase as supabaseClient } from "@/integrations/supabase/client";
-
-// Cast to any: team_members table not yet in generated types
-const supabase = supabaseClient as any;
+import { supabase } from "@/integrations/supabase/client";
 
 export interface TeamMember {
   id: string;

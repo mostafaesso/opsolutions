@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase as supabaseClient } from "@/integrations/supabase/client";
-
-// Cast to any: enhancements table not yet in generated types
-const supabase = supabaseClient as any;
+import { supabase } from "@/integrations/supabase/client";
 
 export interface Enhancement {
   id: string;
