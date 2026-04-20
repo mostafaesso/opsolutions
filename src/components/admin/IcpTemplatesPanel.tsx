@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useIcpTemplates, useCompanyIcp, IcpTemplate } from "@/hooks/useIcpTemplates";
+import { useIcpTemplates, useCompanyIcps, IcpTemplate, CompanyIcp } from "@/hooks/useIcpTemplates";
 import { Company } from "@/lib/companies";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
