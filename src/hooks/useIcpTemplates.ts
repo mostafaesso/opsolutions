@@ -5,16 +5,33 @@ export interface IcpTemplate {
   id: string;
   name: string;
   description: string | null;
+  // Tier
+  tier: string | null;
+  personalization_level: string | null;
+  // Company-level
   industry: string | null;
   company_size: string | null;
   geography: string | null;
+  funding_stage: string | null;
+  hiring_activity: string | null;
+  tech_stack: string | null;
+  growth_signals: string | null;
+  // Contact-level
   job_titles: string[];
+  departments: string | null;
+  seniority: string | null;
+  buying_role: string | null;
+  // Strategy
   pain_points: string | null;
   buying_triggers: string | null;
   decision_process: string | null;
+  exclusions: string | null;
   disqualifiers: string | null;
   budget_range: string | null;
   goals: string | null;
+  // Validation
+  tam_estimate: string | null;
+  validation_notes: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -72,16 +89,28 @@ export interface CompanyIcp {
   template_id: string | null;
   name: string | null;
   description: string | null;
+  tier: string | null;
+  personalization_level: string | null;
   industry: string | null;
   company_size: string | null;
   geography: string | null;
+  funding_stage: string | null;
+  hiring_activity: string | null;
+  tech_stack: string | null;
+  growth_signals: string | null;
   job_titles: string[];
+  departments: string | null;
+  seniority: string | null;
+  buying_role: string | null;
   pain_points: string | null;
   buying_triggers: string | null;
   decision_process: string | null;
+  exclusions: string | null;
   disqualifiers: string | null;
   budget_range: string | null;
   goals: string | null;
+  tam_estimate: string | null;
+  validation_notes: string | null;
   notes: string | null;
 }
 
@@ -90,18 +119,38 @@ const EMPTY_COMPANY_ICP = (slug: string): CompanyIcp => ({
   template_id: null,
   name: null,
   description: null,
+  tier: null,
+  personalization_level: null,
   industry: null,
   company_size: null,
   geography: null,
+  funding_stage: null,
+  hiring_activity: null,
+  tech_stack: null,
+  growth_signals: null,
   job_titles: [],
+  departments: null,
+  seniority: null,
+  buying_role: null,
   pain_points: null,
   buying_triggers: null,
   decision_process: null,
+  exclusions: null,
   disqualifiers: null,
   budget_range: null,
   goals: null,
+  tam_estimate: null,
+  validation_notes: null,
   notes: null,
 });
+
+const COMPANY_ICP_COLUMNS: (keyof CompanyIcp)[] = [
+  "company_slug","template_id","name","description","tier","personalization_level",
+  "industry","company_size","geography","funding_stage","hiring_activity","tech_stack","growth_signals",
+  "job_titles","departments","seniority","buying_role",
+  "pain_points","buying_triggers","decision_process","exclusions","disqualifiers","budget_range","goals",
+  "tam_estimate","validation_notes","notes",
+];
 
 export const useCompanyIcp = (companySlug: string | undefined) => {
   const [icp, setIcp] = useState<CompanyIcp | null>(null);
@@ -128,28 +177,11 @@ export const useCompanyIcp = (companySlug: string | undefined) => {
     if (!companySlug) return;
     const next: CompanyIcp = { ...(icp ?? EMPTY_COMPANY_ICP(companySlug)), ...patch, company_slug: companySlug };
     setIcp(next);
+    const payload: any = {};
+    for (const k of COMPANY_ICP_COLUMNS) payload[k] = (next as any)[k];
     await (supabase as any)
       .from("company_icp")
-      .upsert(
-        {
-          company_slug: companySlug,
-          template_id: next.template_id,
-          name: next.name,
-          description: next.description,
-          industry: next.industry,
-          company_size: next.company_size,
-          geography: next.geography,
-          job_titles: next.job_titles,
-          pain_points: next.pain_points,
-          buying_triggers: next.buying_triggers,
-          decision_process: next.decision_process,
-          disqualifiers: next.disqualifiers,
-          budget_range: next.budget_range,
-          goals: next.goals,
-          notes: next.notes,
-        },
-        { onConflict: "company_slug" }
-      );
+      .upsert(payload, { onConflict: "company_slug" });
   };
 
   const applyTemplate = async (template: IcpTemplate) => {
@@ -158,16 +190,28 @@ export const useCompanyIcp = (companySlug: string | undefined) => {
       template_id: template.id,
       name: template.name,
       description: template.description,
+      tier: template.tier,
+      personalization_level: template.personalization_level,
       industry: template.industry,
       company_size: template.company_size,
       geography: template.geography,
+      funding_stage: template.funding_stage,
+      hiring_activity: template.hiring_activity,
+      tech_stack: template.tech_stack,
+      growth_signals: template.growth_signals,
       job_titles: template.job_titles,
+      departments: template.departments,
+      seniority: template.seniority,
+      buying_role: template.buying_role,
       pain_points: template.pain_points,
       buying_triggers: template.buying_triggers,
       decision_process: template.decision_process,
+      exclusions: template.exclusions,
       disqualifiers: template.disqualifiers,
       budget_range: template.budget_range,
       goals: template.goals,
+      tam_estimate: template.tam_estimate,
+      validation_notes: template.validation_notes,
       notes: template.notes,
     });
   };
