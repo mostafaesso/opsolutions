@@ -104,6 +104,77 @@ export type Database = {
         }
         Relationships: []
       }
+      company_icp: {
+        Row: {
+          budget_range: string | null
+          buying_triggers: string | null
+          company_size: string | null
+          company_slug: string
+          created_at: string
+          decision_process: string | null
+          description: string | null
+          disqualifiers: string | null
+          geography: string | null
+          goals: string | null
+          id: string
+          industry: string | null
+          job_titles: string[]
+          name: string | null
+          notes: string | null
+          pain_points: string | null
+          template_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          budget_range?: string | null
+          buying_triggers?: string | null
+          company_size?: string | null
+          company_slug: string
+          created_at?: string
+          decision_process?: string | null
+          description?: string | null
+          disqualifiers?: string | null
+          geography?: string | null
+          goals?: string | null
+          id?: string
+          industry?: string | null
+          job_titles?: string[]
+          name?: string | null
+          notes?: string | null
+          pain_points?: string | null
+          template_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          budget_range?: string | null
+          buying_triggers?: string | null
+          company_size?: string | null
+          company_slug?: string
+          created_at?: string
+          decision_process?: string | null
+          description?: string | null
+          disqualifiers?: string | null
+          geography?: string | null
+          goals?: string | null
+          id?: string
+          industry?: string | null
+          job_titles?: string[]
+          name?: string | null
+          notes?: string | null
+          pain_points?: string | null
+          template_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_icp_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "icp_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_media: {
         Row: {
           caption: string | null
@@ -168,6 +239,56 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      company_training_assignments: {
+        Row: {
+          company_slug: string
+          created_at: string
+          custom_description: string | null
+          custom_notes: string | null
+          custom_title: string | null
+          custom_video_url: string | null
+          id: string
+          is_visible: boolean
+          module_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          company_slug: string
+          created_at?: string
+          custom_description?: string | null
+          custom_notes?: string | null
+          custom_title?: string | null
+          custom_video_url?: string | null
+          id?: string
+          is_visible?: boolean
+          module_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          company_slug?: string
+          created_at?: string
+          custom_description?: string | null
+          custom_notes?: string | null
+          custom_title?: string | null
+          custom_video_url?: string | null
+          id?: string
+          is_visible?: boolean
+          module_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_training_assignments_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "training_modules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       company_training_overrides: {
         Row: {
@@ -376,6 +497,7 @@ export type Database = {
           id: string
           is_complete: boolean
           layer_number: number
+          phase: string
           tools_selected: string[]
           updated_at: string
         }
@@ -387,6 +509,7 @@ export type Database = {
           id?: string
           is_complete?: boolean
           layer_number: number
+          phase?: string
           tools_selected?: string[]
           updated_at?: string
         }
@@ -398,6 +521,7 @@ export type Database = {
           id?: string
           is_complete?: boolean
           layer_number?: number
+          phase?: string
           tools_selected?: string[]
           updated_at?: string
         }
@@ -423,6 +547,63 @@ export type Database = {
           created_at?: string
           id?: string
           private_app_token?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      icp_templates: {
+        Row: {
+          budget_range: string | null
+          buying_triggers: string | null
+          company_size: string | null
+          created_at: string
+          decision_process: string | null
+          description: string | null
+          disqualifiers: string | null
+          geography: string | null
+          goals: string | null
+          id: string
+          industry: string | null
+          job_titles: string[]
+          name: string
+          notes: string | null
+          pain_points: string | null
+          updated_at: string
+        }
+        Insert: {
+          budget_range?: string | null
+          buying_triggers?: string | null
+          company_size?: string | null
+          created_at?: string
+          decision_process?: string | null
+          description?: string | null
+          disqualifiers?: string | null
+          geography?: string | null
+          goals?: string | null
+          id?: string
+          industry?: string | null
+          job_titles?: string[]
+          name: string
+          notes?: string | null
+          pain_points?: string | null
+          updated_at?: string
+        }
+        Update: {
+          budget_range?: string | null
+          buying_triggers?: string | null
+          company_size?: string | null
+          created_at?: string
+          decision_process?: string | null
+          description?: string | null
+          disqualifiers?: string | null
+          geography?: string | null
+          goals?: string | null
+          id?: string
+          industry?: string | null
+          job_titles?: string[]
+          name?: string
+          notes?: string | null
+          pain_points?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -674,6 +855,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      training_modules: {
+        Row: {
+          category: string | null
+          created_at: string
+          default_notes: string | null
+          default_video_url: string | null
+          description: string | null
+          id: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          default_notes?: string | null
+          default_video_url?: string | null
+          description?: string | null
+          id?: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          default_notes?: string | null
+          default_video_url?: string | null
+          description?: string | null
+          id?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       training_users: {
         Row: {

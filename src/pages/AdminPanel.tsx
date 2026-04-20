@@ -1,6 +1,6 @@
 import { useState, useEffect, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { Building2, Plus, X, Copy, Link as LinkIcon, ImageIcon, ChevronRight, ChevronDown, ExternalLink, Trash2, CheckCircle2, BookOpen, Share2, Info, Mail, TrendingUp, Eye, Layers, GraduationCap, Bell, Settings2 } from "lucide-react";
+import { Building2, Plus, X, Copy, Link as LinkIcon, ImageIcon, ChevronRight, ChevronDown, ExternalLink, Trash2, CheckCircle2, BookOpen, Share2, Info, Mail, TrendingUp, Eye, Layers, GraduationCap, Bell, Settings2, Target } from "lucide-react";
 import { fetchCompanies, addCompanyToDb, removeCompanyFromDb, updateCompanyInDb, fetchCompanyMedia, addCompanyMedia, removeCompanyMedia, Company } from "@/lib/companies";
 import { trainingTopics, trainingCards } from "@/lib/trainingData";
 import { toast } from "@/hooks/use-toast";
@@ -10,12 +10,17 @@ import { GTM_LAYERS } from "@/components/GTMFlow";
 import CompanyModuleControls from "@/components/admin/CompanyModuleControls";
 import ModulesTable from "@/components/admin/ModulesTable";
 import GtmModule from "@/components/gtm/GtmModule";
+import IcpTemplatesPanel from "@/components/admin/IcpTemplatesPanel";
+import GtmStackPanel from "@/components/admin/GtmStackPanel";
+import TrainingsPanel from "@/components/admin/TrainingsPanel";
+import CrmUpdatesPanel from "@/components/admin/CrmUpdatesPanel";
 
-type AdminSection = "companies" | "modules" | "gtm" | "trainings" | "crm";
+type AdminSection = "companies" | "modules" | "icp" | "gtm" | "trainings" | "crm";
 
 const SECTIONS: { key: AdminSection; label: string; icon: ReactNode }[] = [
   { key: "companies", label: "Companies", icon: <Building2 className="w-4 h-4" /> },
   { key: "modules", label: "Modules", icon: <Settings2 className="w-4 h-4" /> },
+  { key: "icp", label: "ICP Template", icon: <Target className="w-4 h-4" /> },
   { key: "gtm", label: "GTM Stack", icon: <Layers className="w-4 h-4" /> },
   { key: "trainings", label: "Trainings", icon: <GraduationCap className="w-4 h-4" /> },
   { key: "crm", label: "CRM Updates", icon: <Bell className="w-4 h-4" /> },
@@ -374,83 +379,18 @@ const AdminPanelContent = () => {
             />
           )}
 
-          {/* ── GTM ── */}
-          {section === "gtm" && (
-            <div className="space-y-4">
-              <div className="rounded-2xl border border-border bg-card overflow-hidden">
-                <div className="grid grid-cols-[40px_160px_1fr_1fr] bg-muted/50 border-b border-border text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  <div className="px-4 py-3">#</div>
-                  <div className="px-4 py-3">Layer</div>
-                  <div className="px-4 py-3">Purpose</div>
-                  <div className="px-4 py-3">Example Tools</div>
-                </div>
-                {GTM_LAYERS.map((layer, idx) => (
-                  <div key={layer.number} className={`grid grid-cols-[40px_160px_1fr_1fr] border-b border-border last:border-0 text-sm ${idx % 2 === 0 ? "bg-background" : "bg-muted/10"}`}>
-                    <div className="px-4 py-3 text-muted-foreground font-medium">{layer.number}</div>
-                    <div className="px-4 py-3 font-semibold text-foreground">{layer.name}</div>
-                    <div className="px-4 py-3 text-muted-foreground">{layer.purpose}</div>
-                    <div className="px-4 py-3 text-muted-foreground">{layer.tools}</div>
-                  </div>
-                ))}
-              </div>
-              <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
-                <p className="text-sm font-semibold text-foreground">Company Assignment</p>
-                <div className="space-y-2">
-                  {companies.map((c) => (
-                    <div key={c.slug} className="flex items-center justify-between bg-background border border-border rounded-lg px-4 py-2.5">
-                      <div className="flex items-center gap-3">
-                        <img src={c.logoUrl} alt={c.name} className="h-6 w-6 object-contain rounded" />
-                        <span className="text-sm font-medium text-foreground">{c.name}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {c.gtmEnabled ? (
-                          <>
-                            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Assigned</span>
-                            <button
-                              onClick={async () => { await updateCompanyInDb({ ...c, gtmEnabled: false }); const all = await fetchCompanies(); setCompanies(all); toast({ title: "GTM removed from " + c.name }); }}
-                              className="text-xs text-destructive hover:underline"
-                            >Remove</button>
-                          </>
-                        ) : (
-                          <button
-                            onClick={async () => { await updateCompanyInDb({ ...c, gtmEnabled: true }); const all = await fetchCompanies(); setCompanies(all); toast({ title: "GTM assigned to " + c.name }); }}
-                            className="text-xs bg-primary text-primary-foreground px-3 py-1 rounded-lg hover:bg-primary/90 transition-colors"
-                          >Assign</button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+          {/* ── ICP Template ── */}
+          {section === "icp" && <IcpTemplatesPanel companies={companies} />}
 
-          {/* ── Trainings ── */}
-          {section === "trainings" && (
-            <div className="rounded-2xl border border-border bg-card overflow-hidden">
-              <div className="grid grid-cols-[40px_1fr_2fr] bg-muted/50 border-b border-border text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                <div className="px-4 py-3">#</div>
-                <div className="px-4 py-3">Module</div>
-                <div className="px-4 py-3">Description</div>
-              </div>
-              {trainingCards.map((card, idx) => (
-                <div key={card.id} className={`grid grid-cols-[40px_1fr_2fr] border-b border-border last:border-0 text-sm ${idx % 2 === 0 ? "bg-background" : "bg-muted/10"}`}>
-                  <div className="px-4 py-3 text-muted-foreground font-medium">{card.number}</div>
-                  <div className="px-4 py-3 font-semibold text-foreground">{card.title}</div>
-                  <div className="px-4 py-3 text-muted-foreground">{card.desc}</div>
-                </div>
-              ))}
-            </div>
-          )}
+          {/* ── GTM Stack (with phases) ── */}
+          {section === "gtm" && <GtmStackPanel companies={companies} />}
 
-          {/* ── CRM Updates ── */}
-          {section === "crm" && (
-            <div className="rounded-2xl border border-border bg-card p-8 flex flex-col items-center justify-center min-h-[300px] text-center gap-3">
-              <TrendingUp className="w-10 h-10 text-muted-foreground/40" />
-              <p className="text-sm font-medium text-muted-foreground">CRM Updates coming soon</p>
-              <p className="text-xs text-muted-foreground">Manage CRM-related updates and announcements per company.</p>
-            </div>
-          )}
+          {/* ── Trainings (CRUD per company) ── */}
+          {section === "trainings" && <TrainingsPanel companies={companies} />}
+
+          {/* ── CRM Updates (CRUD per company) ── */}
+          {section === "crm" && <CrmUpdatesPanel companies={companies} />}
+
         </div>
       </main>
     </div>
