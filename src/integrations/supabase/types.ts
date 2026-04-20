@@ -621,6 +621,246 @@ export type Database = {
         Relationships: []
       }
     }
+      internal_users: {
+        Row: {
+          id: string
+          email: string
+          name: string
+          role: Database["public"]["Enums"]["platform_role"]
+          created_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          email: string
+          name: string
+          role?: Database["public"]["Enums"]["platform_role"]
+          created_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          email?: string
+          name?: string
+          role?: Database["public"]["Enums"]["platform_role"]
+          created_by?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      internal_company_access: {
+        Row: {
+          id: string
+          internal_user_id: string
+          company_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          internal_user_id: string
+          company_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          internal_user_id?: string
+          company_id?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "internal_company_access_internal_user_id_fkey"
+            columns: ["internal_user_id"]
+            isOneToOne: false
+            referencedRelation: "internal_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "internal_company_access_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      module_permissions: {
+        Row: {
+          id: string
+          company_id: string
+          module_id: string
+          role: Database["public"]["Enums"]["platform_role"]
+          can_view: boolean
+          can_comment: boolean
+          can_edit: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          company_id: string
+          module_id: string
+          role: Database["public"]["Enums"]["platform_role"]
+          can_view?: boolean
+          can_comment?: boolean
+          can_edit?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          company_id?: string
+          module_id?: string
+          role?: Database["public"]["Enums"]["platform_role"]
+          can_view?: boolean
+          can_comment?: boolean
+          can_edit?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "module_permissions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_modules: {
+        Row: {
+          id: string
+          title: string
+          description: string | null
+          video_url: string
+          duration: number | null
+          thumbnail_url: string | null
+          order_index: number
+          is_published: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          description?: string | null
+          video_url: string
+          duration?: number | null
+          thumbnail_url?: string | null
+          order_index?: number
+          is_published?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          description?: string | null
+          video_url?: string
+          duration?: number | null
+          thumbnail_url?: string | null
+          order_index?: number
+          is_published?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      video_completions: {
+        Row: {
+          id: string
+          user_id: string
+          video_id: string
+          completed_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          video_id: string
+          completed_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          video_id?: string
+          completed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_completions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "training_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_completions_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "video_modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      module_comments: {
+        Row: {
+          id: string
+          module_id: string
+          module_type: string
+          company_id: string
+          author_name: string
+          author_email: string
+          content: string
+          parent_id: string | null
+          is_pinned: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          module_id: string
+          module_type: string
+          company_id: string
+          author_name: string
+          author_email: string
+          content: string
+          parent_id?: string | null
+          is_pinned?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          module_id?: string
+          module_type?: string
+          company_id?: string
+          author_name?: string
+          author_email?: string
+          content?: string
+          parent_id?: string | null
+          is_pinned?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "module_comments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "module_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "module_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
     Views: {
       [_ in never]: never
     }
@@ -628,7 +868,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      platform_role: "super_admin" | "internal_admin" | "company_admin" | "manager" | "employee"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -755,6 +995,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      platform_role: ["super_admin", "internal_admin", "company_admin", "manager", "employee"] as const,
+    },
   },
 } as const

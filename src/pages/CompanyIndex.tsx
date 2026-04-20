@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronRight, CheckCircle2, Lock } from "lucide-react";
+import { ChevronRight, CheckCircle2, Lock, PlayCircle } from "lucide-react";
 import { fetchCompanyBySlug, Company } from "@/lib/companies";
 import { trainingCards } from "@/lib/trainingData";
 import { useTrainingUser, useCompletions } from "@/hooks/useTrainingUser";
@@ -8,8 +8,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import RegistrationGate from "@/components/RegistrationGate";
 import TeamProgress from "@/components/TeamProgress";
 import CertificateDownload from "@/components/CertificateDownload";
-import { useEffect, useState } from "react";
+import VideoPlayer from "@/components/VideoPlayer";
+import CommentThread from "@/components/CommentThread";
+import { useEffect, useState, useCallback } from "react";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+
+interface VideoModule {
+  id: string;
+  title: string;
+  description: string | null;
+  video_url: string;
+  duration: number | null;
+  thumbnail_url: string | null;
+  order_index: number;
+}
 
 const CompanyIndex = () => {
   const { companySlug } = useParams<{ companySlug: string }>();
@@ -19,10 +32,7 @@ const CompanyIndex = () => {
 
   useEffect(() => {
     if (!companySlug) { setCompanyLoading(false); return; }
-    fetchCompanyBySlug(companySlug).then((c) => {
-      setCompany(c);
-      setCompanyLoading(false);
-    });
+    fetchCompanyBySlug(companySlug).then(c => { setCompany(c); setCompanyLoading(false); });
   }, [companySlug]);
 
   const { user, loading: regLoading, register } = useTrainingUser(companySlug || "");
@@ -52,9 +62,7 @@ const CompanyIndex = () => {
       <div className="min-h-screen bg-background flex items-center justify-center px-6">
         <div className="text-center max-w-md">
           <h1 className="text-2xl font-bold text-foreground mb-2">This portal is currently unavailable</h1>
-          <p className="text-muted-foreground">
-            Access to this training portal has been temporarily disabled. Please contact your administrator.
-          </p>
+          <p className="text-muted-foreground">Access has been temporarily disabled. Please contact your administrator.</p>
         </div>
       </div>
     );
@@ -74,6 +82,7 @@ const CompanyIndex = () => {
   const completedCount = completions.size;
   const totalCards = trainingCards.length;
   const progressPercent = Math.round((completedCount / totalCards) * 100);
+  const isManager = company.managerEmails?.some(e => e.toLowerCase() === user.email.toLowerCase());
 
   return (
     <div className="min-h-screen bg-background">
@@ -96,11 +105,13 @@ const CompanyIndex = () => {
         <Tabs defaultValue="training" className="space-y-6">
           <TabsList>
             <TabsTrigger value="training">My Training</TabsTrigger>
-            {company.managerEmails?.some(e => e.toLowerCase() === user.email.toLowerCase()) && (
-              <TabsTrigger value="team">Team Progress</TabsTrigger>
-            )}
+            <TabsTrigger value="videos" className="flex items-center gap-1.5">
+              <PlayCircle className="w-4 h-4" /> Videos
+            </TabsTrigger>
+            {isManager && <TabsTrigger value="team">Team Progress</TabsTrigger>}
           </TabsList>
 
+          {/* ── Training Tab ─────────────────────────────────────────────── */}
           <TabsContent value="training">
             <div className="rounded-xl border border-border bg-card p-4 mb-6 flex items-center gap-4">
               <div className="flex-1">
@@ -131,18 +142,11 @@ const CompanyIndex = () => {
                     return (
                       <button
                         key={card.id}
-                        onClick={() =>
-                          toast({
-                            title: `Complete module ${trainingCards[idx - 1].number} first`,
-                            description: `Finish "${trainingCards[idx - 1].title}" to unlock this module.`,
-                          })
-                        }
+                        onClick={() => toast({ title: `Complete module ${trainingCards[idx - 1].number} first`, description: `Finish "${trainingCards[idx - 1].title}" to unlock this module.` })}
                         className="group flex items-center justify-between rounded-xl border border-border bg-muted/40 p-5 text-left opacity-60 cursor-not-allowed"
                       >
                         <div className="flex-1">
-                          <h3 className="text-base font-bold text-muted-foreground mb-1">
-                            {card.number}. {card.title}
-                          </h3>
+                          <h3 className="text-base font-bold text-muted-foreground mb-1">{card.number}. {card.title}</h3>
                           <p className="text-sm text-muted-foreground">{card.desc}</p>
                         </div>
                         <Lock className="w-4 h-4 text-muted-foreground shrink-0 ml-3" />
@@ -155,24 +159,18 @@ const CompanyIndex = () => {
                       key={card.id}
                       onClick={() => navigate(`/${companySlug}/training/${card.id}`)}
                       className={`group flex items-center justify-between rounded-xl border p-5 text-left transition-all hover:shadow-md ${
-                        isCompleted
-                          ? "border-green-200 bg-green-50/50"
-                          : "border-border bg-background hover:border-primary/30"
+                        isCompleted ? "border-green-200 bg-green-50/50" : "border-border bg-background hover:border-primary/30"
                       }`}
                     >
                       <div className="flex-1">
-                        <h3 className="text-base font-bold text-foreground mb-1">
-                          {card.number}. {card.title}
-                        </h3>
+                        <h3 className="text-base font-bold text-foreground mb-1">{card.number}. {card.title}</h3>
                         <p className="text-sm text-muted-foreground">{card.desc}</p>
                       </div>
                       <div className="flex flex-col items-end gap-1 shrink-0 ml-3">
                         {isCompleted ? (
                           <>
                             <CheckCircle2 className="w-5 h-5" style={{ color: "hsl(160, 84%, 39%)" }} />
-                            {score !== undefined && (
-                              <span className="text-xs font-semibold text-green-600">{score}%</span>
-                            )}
+                            {score !== undefined && <span className="text-xs font-semibold text-green-600">{score}%</span>}
                           </>
                         ) : (
                           <ChevronRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -185,13 +183,127 @@ const CompanyIndex = () => {
             </div>
           </TabsContent>
 
-          {company.managerEmails?.some(e => e.toLowerCase() === user.email.toLowerCase()) && (
+          {/* ── Videos Tab ───────────────────────────────────────────────── */}
+          <TabsContent value="videos">
+            {company.id ? (
+              <VideosSection companyId={company.id} userId={user.id} userName={user.full_name} userEmail={user.email} />
+            ) : (
+              <p className="text-sm text-muted-foreground">Videos unavailable.</p>
+            )}
+          </TabsContent>
+
+          {/* ── Team Tab ─────────────────────────────────────────────────── */}
+          {isManager && (
             <TabsContent value="team">
               <TeamProgress companySlug={companySlug!} companyName={company.name} />
             </TabsContent>
           )}
         </Tabs>
       </div>
+    </div>
+  );
+};
+
+// ─── Videos Section ───────────────────────────────────────────────────────────
+
+interface VideosSectionProps {
+  companyId: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+}
+
+const VideosSection = ({ companyId, userId, userName, userEmail }: VideosSectionProps) => {
+  const [videos, setVideos] = useState<VideoModule[]>([]);
+  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
+  const [selected, setSelected] = useState<VideoModule | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = useCallback(async () => {
+    const [{ data: vids }, { data: comps }] = await Promise.all([
+      (supabase as any).from("video_modules").select("*").eq("is_published", true).order("order_index"),
+      (supabase as any).from("video_completions").select("video_id").eq("user_id", userId),
+    ]);
+    const list: VideoModule[] = vids || [];
+    setVideos(list);
+    setCompletedIds(new Set((comps || []).map((c: any) => c.video_id)));
+    if (list.length > 0 && !selected) setSelected(list[0]);
+    setLoading(false);
+  }, [userId]);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  if (loading) return <p className="text-sm text-muted-foreground">Loading videos…</p>;
+
+  if (videos.length === 0) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-12 text-center">
+        <PlayCircle className="w-12 h-12 text-muted-foreground/40 mx-auto mb-3" />
+        <p className="text-sm font-medium text-muted-foreground">No videos available yet.</p>
+        <p className="text-xs text-muted-foreground mt-1">Check back soon — new training videos are on the way.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
+      {/* Sidebar: video list */}
+      <div className="space-y-2">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+          {videos.length} Video{videos.length !== 1 ? "s" : ""}
+        </h3>
+        {videos.map((v, i) => {
+          const done = completedIds.has(v.id);
+          return (
+            <button
+              key={v.id}
+              onClick={() => setSelected(v)}
+              className={`w-full flex items-start gap-3 rounded-xl border p-3 text-left transition-all ${
+                selected?.id === v.id
+                  ? "border-primary bg-primary/5 shadow-sm"
+                  : "border-border bg-card hover:border-primary/30"
+              }`}
+            >
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold ${
+                done ? "bg-green-100 text-green-600" : "bg-muted text-muted-foreground"
+              }`}>
+                {done ? <CheckCircle2 className="w-3.5 h-3.5" /> : i + 1}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm font-medium truncate ${selected?.id === v.id ? "text-primary" : "text-foreground"}`}>{v.title}</p>
+                {v.duration && (
+                  <p className="text-xs text-muted-foreground mt-0.5">{Math.floor(v.duration / 60)}m {v.duration % 60}s</p>
+                )}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Main: player + comments */}
+      {selected && (
+        <div className="space-y-8">
+          <VideoPlayer
+            videoId={selected.id}
+            title={selected.title}
+            description={selected.description}
+            videoUrl={selected.video_url}
+            userId={userId}
+            isCompleted={completedIds.has(selected.id)}
+            onComplete={() => {
+              setCompletedIds(prev => new Set([...prev, selected.id]));
+            }}
+          />
+          <div className="h-px bg-border" />
+          <CommentThread
+            moduleId={selected.id}
+            moduleType="video"
+            companyId={companyId}
+            currentUser={{ id: userId, full_name: userName, email: userEmail }}
+            canComment={true}
+          />
+        </div>
+      )}
     </div>
   );
 };

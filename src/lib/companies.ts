@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export interface Company {
+  id?: string;
   slug: string;
   name: string;
   logoUrl: string;
@@ -24,6 +25,7 @@ export const fetchCompanies = async (): Promise<Company[]> => {
 
   if (error) throw error;
   return (data || []).map((c: any) => ({
+    id: c.id,
     slug: c.slug,
     name: c.name,
     logoUrl: c.logo_url,
@@ -44,6 +46,7 @@ export const fetchCompanyBySlug = async (slug: string): Promise<Company | null> 
   if (!data) return null;
   const d: any = data;
   return {
+    id: d.id,
     slug: d.slug,
     name: d.name,
     logoUrl: d.logo_url,
