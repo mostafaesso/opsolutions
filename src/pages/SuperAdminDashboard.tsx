@@ -84,6 +84,8 @@ const SuperAdminDashboard = () => {
   const [addLearnerForm, setAddLearnerForm] = useState({ full_name: "", email: "", company_slug: "" });
   const [addLearnerSubmitting, setAddLearnerSubmitting] = useState(false);
 
+  const [section, setSection] = useState<"overview" | "companies" | "learners" | "icp" | "gtm" | "trainings" | "crm">("overview");
+
   useEffect(() => {
     if (!authLoading && !isSuperAdmin) navigate("/login", { replace: true });
   }, [authLoading, isSuperAdmin, navigate]);
