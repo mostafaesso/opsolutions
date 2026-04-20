@@ -129,6 +129,7 @@ export const usePipeline = (companySlug?: string) => {
         .from('pipeline_conversions')
         .insert([{
           company_slug: slug,
+          conversion_date: new Date().toISOString().split('T')[0],
           from_stage: fromStage,
           to_stage: toStage,
           from_count: fromCount,

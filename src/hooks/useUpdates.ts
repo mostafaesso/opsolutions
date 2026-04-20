@@ -42,7 +42,7 @@ export const useUpdates = (companySlug: string | undefined) => {
         .order("created_at", { ascending: false });
 
       if (err) throw err;
-      setUpdates(data || []);
+      setUpdates((data as Update[]) || []);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -65,8 +65,8 @@ export const useUpdates = (companySlug: string | undefined) => {
         .single();
 
       if (err) throw err;
-      setUpdates([data, ...updates]);
-      return data;
+      setUpdates([data as Update, ...updates]);
+      return data as Update;
     } catch (err: any) {
       setError(err.message);
       throw err;
