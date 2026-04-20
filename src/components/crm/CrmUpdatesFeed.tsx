@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useImprovements } from "@/hooks/useImprovements";
-import { Improvement } from "@/integrations/supabase/phase2_types";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, ChevronDown, ChevronUp } from "lucide-react";
