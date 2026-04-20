@@ -24,7 +24,16 @@ const AdminPanelContent = () => {
   const [logoUrl, setLogoUrl] = useState("");
 
   useEffect(() => {
-    fetchCompanies().then((c) => { setCompanies(c); setLoading(false); });
+    fetchCompanies().then((c) => {
+      setCompanies(c);
+      // Honor preselected slug from Super Admin "Manage" button
+      const preselected = sessionStorage.getItem("admin-panel-selected-company");
+      if (preselected && c.some((x) => x.slug === preselected)) {
+        setSelectedCompany(preselected);
+        sessionStorage.removeItem("admin-panel-selected-company");
+      }
+      setLoading(false);
+    });
   }, []);
 
   const handleNameChange = (val: string) => {

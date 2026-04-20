@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Trash2, Save, X, Pencil, UserPlus, ChevronDown, ChevronRight, BookOpen } from "lucide-react";
+import { LogOut, Trash2, Save, X, Pencil, UserPlus, ChevronDown, ChevronRight, BookOpen, Settings2, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSuperAdmin } from "@/hooks/useSuperAdmin";
+import { startImpersonation, ImpersonateRole } from "@/lib/impersonation";
 import { AddCompanyModal } from "@/components/AddCompanyModal";
 import { CompanyTrainingManager } from "@/components/CompanyTrainingManager";
 import { Button } from "@/components/ui/button";
@@ -242,6 +243,18 @@ const SuperAdminDashboard = () => {
     navigate("/login", { replace: true });
   };
 
+  const handleViewAs = (slug: string, name: string, role: ImpersonateRole) => {
+    startImpersonation({ companySlug: slug, companyName: name, role });
+    if (role === "admin") navigate(`/admin/${slug}/dashboard`);
+    else navigate(`/${slug}`);
+  };
+
+  const handleManage = (slug: string) => {
+    // Open the rich AdminPanel with this company pre-selected
+    sessionStorage.setItem("admin-panel-selected-company", slug);
+    navigate("/admin");
+  };
+
   if (authLoading || !isSuperAdmin) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -372,6 +385,40 @@ const SuperAdminDashboard = () => {
                               size="sm"
                               variant="outline"
                               className="gap-1"
+                              onClick={(e) => { e.stopPropagation(); handleManage(c.slug); }}
+                              title="Manage modules, GTM, videos and screenshots for this company"
+                            >
+                              <Settings2 className="h-4 w-4" />
+                              Manage
+                            </Button>
+                            <div className="flex items-center gap-1 border border-border rounded-md px-1 py-0.5">
+                              <Eye className="h-3.5 w-3.5 text-muted-foreground ml-1" />
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleViewAs(c.slug, c.name, "admin"); }}
+                                className="text-xs px-2 py-0.5 rounded hover:bg-muted transition-colors"
+                                title="View as Company Admin"
+                              >
+                                Admin
+                              </button>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleViewAs(c.slug, c.name, "manager"); }}
+                                className="text-xs px-2 py-0.5 rounded hover:bg-muted transition-colors"
+                                title="View as Manager"
+                              >
+                                Manager
+                              </button>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleViewAs(c.slug, c.name, "employee"); }}
+                                className="text-xs px-2 py-0.5 rounded hover:bg-muted transition-colors"
+                                title="View as Employee"
+                              >
+                                Employee
+                              </button>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="gap-1"
                               onClick={(e) => { e.stopPropagation(); setTrainingManagerSlug(c.slug); }}
                               title="Manage training material for this company"
                             >
@@ -382,7 +429,7 @@ const SuperAdminDashboard = () => {
                               size="sm"
                               variant="outline"
                               className="gap-1"
-                              onClick={() => openAddLearnerForCompany(c.slug)}
+                              onClick={(e) => { e.stopPropagation(); openAddLearnerForCompany(c.slug); }}
                               title="Add learner to this company"
                             >
                               <UserPlus className="h-4 w-4" />
