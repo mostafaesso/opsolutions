@@ -427,6 +427,9 @@ const CompanyView = ({
   const [activeId, setActiveId] = useState<string | null>(null);
   const [draft, setDraft] = useState<CompanyIcp | null>(null);
   const [exporting, setExporting] = useState<string | null>(null);
+  const [aiHint, setAiHint] = useState("");
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiScore, setAiScore] = useState<{ overall: number; fields: Record<string, number> } | null>(null);
 
   // Auto-select first ICP when list loads / company changes
   useEffect(() => {
