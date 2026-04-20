@@ -422,11 +422,28 @@ const CompanyView = ({
   templates: IcpTemplate[];
 }) => {
   const company = companies.find((c) => c.slug === selectedCompany);
-  const { icp, loading, save, applyTemplate } = useCompanyIcp(selectedCompany);
-  const [draft, setDraft] = useState(icp);
-  const [exporting, setExporting] = useState(false);
+  const { icps, loading, create, save, remove, createFromTemplate, duplicate } = useCompanyIcps(selectedCompany);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [draft, setDraft] = useState<CompanyIcp | null>(null);
+  const [exporting, setExporting] = useState<string | null>(null);
 
-  useEffect(() => setDraft(icp), [icp]);
+  // Auto-select first ICP when list loads / company changes
+  useEffect(() => {
+    if (icps.length === 0) {
+      setActiveId(null);
+      setDraft(null);
+      return;
+    }
+    if (!activeId || !icps.find((i) => i.id === activeId)) {
+      setActiveId(icps[0].id ?? null);
+    }
+  }, [icps, activeId]);
+
+  // Sync draft with active ICP
+  useEffect(() => {
+    const active = icps.find((i) => i.id === activeId) ?? null;
+    setDraft(active);
+  }, [activeId, icps]);
 
   if (companies.length === 0) {
     return (
@@ -442,29 +459,49 @@ const CompanyView = ({
     toast({ title: `ICP saved for ${company?.name}` });
   };
 
+  const handleCreateBlank = async () => {
+    const created = await create({ name: "New ICP", tier: "Tier 1: Dream ICPs" });
+    if (created?.id) setActiveId(created.id);
+    toast({ title: "New ICP created" });
+  };
+
   const handleApplyTemplate = async (id: string) => {
     const tpl = templates.find((t) => t.id === id);
     if (!tpl) return;
-    if (!confirm(`Apply template "${tpl.name}" to ${company?.name}? Existing values will be replaced (you can still edit afterwards).`)) return;
-    await applyTemplate(tpl);
-    toast({ title: `Applied "${tpl.name}" to ${company?.name}` });
+    const created = await createFromTemplate(tpl);
+    if (created?.id) setActiveId(created.id);
+    toast({ title: `Created new ICP from "${tpl.name}"` });
   };
 
-  const handleDownloadPdf = async () => {
-    if (!company || !draft) return;
-    setExporting(true);
+  const handleDuplicate = async (icp: CompanyIcp) => {
+    const created = await duplicate(icp);
+    if (created?.id) setActiveId(created.id);
+    toast({ title: "ICP duplicated" });
+  };
+
+  const handleRemove = async (icp: CompanyIcp) => {
+    if (!icp.id) return;
+    if (!confirm(`Delete ICP "${icp.name ?? "Untitled"}"? This cannot be undone.`)) return;
+    await remove(icp.id);
+    toast({ title: "ICP deleted" });
+  };
+
+  const handleDownloadPdf = async (icp: CompanyIcp) => {
+    if (!company || !icp?.id) return;
+    setExporting(icp.id);
     try {
-      await generateIcpPdf(company, draft);
+      await generateIcpPdf(company, icp);
       toast({ title: "PDF generated", description: `ICP-${company.name}.pdf is downloading.` });
     } catch (e: any) {
       toast({ title: "Could not generate PDF", description: e?.message ?? String(e), variant: "destructive" });
     } finally {
-      setExporting(false);
+      setExporting(null);
     }
   };
 
   return (
     <div className="space-y-5">
+      {/* Top toolbar */}
       <div className="flex flex-wrap items-center gap-3 bg-muted/40 border border-border rounded-xl p-4">
         <div className="flex items-center gap-2">
           <Building2 className="w-4 h-4 text-muted-foreground" />
@@ -480,10 +517,12 @@ const CompanyView = ({
         </Select>
 
         <div className="ml-auto flex items-center gap-2">
-          <Label className="text-xs text-muted-foreground">Apply template:</Label>
+          <Button size="sm" variant="outline" onClick={handleCreateBlank} className="gap-2">
+            <Plus className="w-3.5 h-3.5" /> New blank ICP
+          </Button>
           <Select onValueChange={handleApplyTemplate}>
             <SelectTrigger className="w-[240px] bg-background">
-              <SelectValue placeholder="Start from a template…" />
+              <SelectValue placeholder="New ICP from template…" />
             </SelectTrigger>
             <SelectContent>
               {templates.length === 0 && (
@@ -499,26 +538,86 @@ const CompanyView = ({
               ))}
             </SelectContent>
           </Select>
-
-          <Button
-            variant="outline"
-            onClick={handleDownloadPdf}
-            disabled={exporting || !draft}
-            className="gap-2"
-          >
-            <FileDown className="w-4 h-4" />
-            {exporting ? "Generating…" : "Download PDF"}
-          </Button>
         </div>
       </div>
 
-      {loading || !draft ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
-      ) : (
+      {/* Saved ICPs list */}
+      <div className="rounded-2xl border border-border bg-card p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Target className="w-4 h-4 text-primary" />
+          <h3 className="text-sm font-bold text-foreground">
+            Saved ICPs for {company?.name} <span className="text-muted-foreground font-normal">({icps.length})</span>
+          </h3>
+        </div>
+        {loading ? (
+          <p className="text-xs text-muted-foreground px-1">Loading…</p>
+        ) : icps.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <p className="text-sm">No ICPs saved yet for this company.</p>
+            <p className="text-xs mt-1">Create one from scratch or apply a template above.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {icps.map((icp) => {
+              const isActive = activeId === icp.id;
+              return (
+                <div
+                  key={icp.id}
+                  className={`rounded-xl border p-3 transition-all ${
+                    isActive ? "border-primary bg-primary/5 shadow-sm" : "border-border bg-background hover:border-primary/30"
+                  }`}
+                >
+                  <button onClick={() => setActiveId(icp.id ?? null)} className="text-left w-full">
+                    <div className="flex items-start gap-2">
+                      <Target className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-foreground truncate">
+                          {icp.name || "Untitled ICP"}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {icp.tier ? `${icp.tier} · ` : ""}{icp.industry || "No industry"} · {icp.geography || "Any geo"}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                  <div className="flex items-center gap-1 mt-2 pt-2 border-t border-border/50">
+                    <button
+                      onClick={() => handleDownloadPdf(icp)}
+                      disabled={exporting === icp.id}
+                      className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1 px-1.5 py-0.5 rounded"
+                      title="Download PDF"
+                    >
+                      <FileDown className="w-3 h-3" />
+                      {exporting === icp.id ? "…" : "PDF"}
+                    </button>
+                    <button
+                      onClick={() => handleDuplicate(icp)}
+                      className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1 px-1.5 py-0.5 rounded"
+                      title="Duplicate"
+                    >
+                      <Copy className="w-3 h-3" /> Copy
+                    </button>
+                    <button
+                      onClick={() => handleRemove(icp)}
+                      className="text-xs text-muted-foreground hover:text-destructive inline-flex items-center gap-1 px-1.5 py-0.5 rounded ml-auto"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Editor for active ICP */}
+      {draft ? (
         <div className="rounded-2xl border border-border bg-card p-6 space-y-5">
           <div className="flex items-center gap-2">
             <Target className="w-4 h-4 text-primary" />
-            <h3 className="text-base font-bold text-foreground">ICP for {company?.name}</h3>
+            <h3 className="text-base font-bold text-foreground">Editing: {draft.name || "Untitled ICP"}</h3>
             {draft.template_id && (
               <span className="text-[10px] uppercase tracking-wider bg-primary/10 text-primary px-2 py-0.5 rounded-full ml-1">
                 <Copy className="w-2.5 h-2.5 inline mr-1" />
@@ -527,7 +626,7 @@ const CompanyView = ({
             )}
           </div>
           <p className="text-xs text-muted-foreground -mt-3">
-            Edit freely — changes only affect <strong>{company?.name}</strong> and never modify the master template or other companies.
+            Each ICP is independent — edits only affect this one. You can keep multiple tiers/versions for <strong>{company?.name}</strong>.
           </p>
 
           <div>
@@ -535,7 +634,7 @@ const CompanyView = ({
             <Input
               value={draft.name ?? ""}
               onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-              placeholder="e.g. Primary ICP — HRTech CEOs in GCC"
+              placeholder="e.g. Tier 1 — HRTech CEOs in GCC"
               className="mt-1"
             />
           </div>
@@ -559,15 +658,19 @@ const CompanyView = ({
           <SectionFields draft={draft} setDraft={setDraft} />
 
           <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={handleDownloadPdf} disabled={exporting} className="gap-2">
+            <Button variant="outline" onClick={() => handleDownloadPdf(draft)} disabled={exporting === draft.id} className="gap-2">
               <FileDown className="w-4 h-4" />
-              {exporting ? "Generating…" : "Download branded PDF"}
+              {exporting === draft.id ? "Generating…" : "Download branded PDF"}
             </Button>
             <Button onClick={handleSave}>
-              <Save className="w-4 h-4 mr-2" /> Save for {company?.name}
+              <Save className="w-4 h-4 mr-2" /> Save ICP
             </Button>
           </div>
         </div>
+      ) : (
+        !loading && icps.length > 0 && (
+          <p className="text-sm text-muted-foreground text-center py-4">Select an ICP above to edit it.</p>
+        )
       )}
     </div>
   );
