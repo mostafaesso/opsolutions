@@ -365,11 +365,13 @@ const AdminPanelContent = () => {
 
           {/* ── Modules ── */}
           {section === "modules" && (
-            <div className="rounded-2xl border border-border bg-card p-8 flex flex-col items-center justify-center min-h-[300px] text-center gap-3">
-              <ImageIcon className="w-10 h-10 text-muted-foreground/40" />
-              <p className="text-sm font-medium text-muted-foreground">Modules management coming soon</p>
-              <p className="text-xs text-muted-foreground">Select a company in the Companies section to manage its training images.</p>
-            </div>
+            <ModulesTable
+              companies={companies}
+              onCompaniesChanged={async () => {
+                const all = await fetchCompanies();
+                setCompanies(all);
+              }}
+            />
           )}
 
           {/* ── GTM ── */}
