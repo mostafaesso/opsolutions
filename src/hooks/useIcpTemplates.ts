@@ -243,7 +243,7 @@ export const useCompanyIcps = (companySlug: string | undefined) => {
   };
 
   const duplicate = async (icp: CompanyIcp) => {
-    const { id, ...rest } = icp;
+    const { id: _id, ...rest } = icp;
     return create({ ...rest, name: `${icp.name ?? "ICP"} (copy)` });
   };
 
