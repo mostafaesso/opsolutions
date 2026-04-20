@@ -379,8 +379,20 @@ const AdminPanelContent = () => {
             />
           )}
 
-          {/* ── GTM ── */}
-          {section === "gtm" && (
+          {/* ── ICP Template ── */}
+          {section === "icp" && <IcpTemplatesPanel companies={companies} />}
+
+          {/* ── GTM Stack (with phases) ── */}
+          {section === "gtm" && <GtmStackPanel companies={companies} />}
+
+          {/* ── Trainings (CRUD per company) ── */}
+          {section === "trainings" && <TrainingsPanel companies={companies} />}
+
+          {/* ── CRM Updates (CRUD per company) ── */}
+          {section === "crm" && <CrmUpdatesPanel companies={companies} />}
+
+          {/* Legacy GTM table (hidden) */}
+          {false && (
             <div className="space-y-4">
               <div className="rounded-2xl border border-border bg-card overflow-hidden">
                 <div className="grid grid-cols-[40px_160px_1fr_1fr] bg-muted/50 border-b border-border text-xs font-semibold uppercase tracking-wider text-muted-foreground">
