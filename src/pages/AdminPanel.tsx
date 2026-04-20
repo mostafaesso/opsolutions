@@ -8,6 +8,7 @@ import AdminPasswordGate from "@/components/AdminPasswordGate";
 import { startImpersonation, ImpersonateRole } from "@/lib/impersonation";
 import { GTM_LAYERS } from "@/components/GTMFlow";
 import CompanyModuleControls from "@/components/admin/CompanyModuleControls";
+import ModulesTable from "@/components/admin/ModulesTable";
 import GtmModule from "@/components/gtm/GtmModule";
 
 type AdminSection = "companies" | "modules" | "gtm" | "trainings" | "crm";
