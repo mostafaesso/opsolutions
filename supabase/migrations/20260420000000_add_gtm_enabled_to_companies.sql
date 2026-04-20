@@ -1,0 +1,1 @@
+ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS gtm_enabled BOOLEAN NOT NULL DEFAULT false;
