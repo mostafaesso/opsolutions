@@ -662,6 +662,68 @@ const CompanyView = ({
         </div>
       </div>
 
+      {/* Company info — editable, used to ground AI */}
+      {company && (
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <div className="flex items-center gap-3 mb-4">
+            {companyDraft.logoUrl ? (
+              <img
+                src={companyDraft.logoUrl}
+                alt={`${companyDraft.name} logo`}
+                className="w-10 h-10 rounded-lg object-contain bg-muted"
+                onError={(e) => ((e.currentTarget.style.display = "none"))}
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                <Building2 className="w-4 h-4 text-muted-foreground" />
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm font-bold text-foreground">Company info</h3>
+              <p className="text-xs text-muted-foreground">
+                Domain is <strong>required</strong> — the AI scrapes it for accurate ICP grounding.
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <Label className="text-xs">Company name</Label>
+              <Input
+                value={companyDraft.name}
+                onChange={(e) => setCompanyDraft({ ...companyDraft, name: e.target.value })}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-xs">Logo URL</Label>
+              <Input
+                value={companyDraft.logoUrl}
+                onChange={(e) => setCompanyDraft({ ...companyDraft, logoUrl: e.target.value })}
+                placeholder="https://…/logo.png"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-xs">
+                Website / Domain <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                value={companyDraft.customDomain}
+                onChange={(e) => setCompanyDraft({ ...companyDraft, customDomain: e.target.value })}
+                placeholder="acme.com"
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end mt-3">
+            <Button size="sm" onClick={handleSaveCompany} disabled={savingCompany} className="gap-2">
+              <Save className="w-3.5 h-3.5" />
+              {savingCompany ? "Saving…" : "Save company info"}
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* AI Generator */}
       <div className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/5 to-transparent p-5">
         <div className="flex items-start gap-3 mb-3">
