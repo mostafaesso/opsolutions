@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
-import { Building2, Plus, X, Copy, Link as LinkIcon, ImageIcon, ChevronRight, ChevronDown, ExternalLink, Trash2, CheckCircle2, BookOpen, Share2, Info, Mail, TrendingUp } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Building2, Plus, X, Copy, Link as LinkIcon, ImageIcon, ChevronRight, ChevronDown, ExternalLink, Trash2, CheckCircle2, BookOpen, Share2, Info, Mail, TrendingUp, Eye } from "lucide-react";
 import { fetchCompanies, addCompanyToDb, removeCompanyFromDb, updateCompanyInDb, fetchCompanyMedia, addCompanyMedia, removeCompanyMedia, Company } from "@/lib/companies";
 import { trainingTopics, trainingCards } from "@/lib/trainingData";
 import { toast } from "@/hooks/use-toast";
 import AdminPasswordGate from "@/components/AdminPasswordGate";
+import { startImpersonation, ImpersonateRole } from "@/lib/impersonation";
 
 const AdminPanelContent = () => {
+  const navigate = useNavigate();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
   const [expandedTopic, setExpandedTopic] = useState<string | null>(null);
@@ -198,6 +201,32 @@ const AdminPanelContent = () => {
                     setCompanies(all);
                   }}
                 />
+
+                {/* View As */}
+                <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Eye className="w-4 h-4 text-muted-foreground" />
+                    <h3 className="text-sm font-semibold text-foreground">Preview As</h3>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Open the portal as a specific role to see exactly what they see.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {(["admin", "manager", "employee"] as ImpersonateRole[]).map((role) => (
+                      <button
+                        key={role}
+                        onClick={() => {
+                          startImpersonation({ companySlug: company.slug, companyName: company.name, role });
+                          if (role === "admin") navigate(`/admin/${company.slug}/dashboard`);
+                          else navigate(`/${company.slug}`);
+                        }}
+                        className="capitalize text-xs border border-border bg-background text-foreground px-3 py-1.5 rounded-lg hover:bg-primary/5 hover:border-primary/40 transition-colors"
+                      >
+                        {role === "admin" ? "Company Admin" : role === "manager" ? "Manager" : "Employee"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
                 {/* Admin Guide */}
                 <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">

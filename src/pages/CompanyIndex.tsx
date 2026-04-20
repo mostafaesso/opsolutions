@@ -2,21 +2,32 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ChevronRight, CheckCircle2, Lock } from "lucide-react";
 import { fetchCompanyBySlug, Company } from "@/lib/companies";
 import { trainingCards } from "@/lib/trainingData";
-import { useTrainingUser, useCompletions } from "@/hooks/useTrainingUser";
+import { useTrainingUser, useCompletions, TrainingUser } from "@/hooks/useTrainingUser";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import RegistrationGate from "@/components/RegistrationGate";
 import TeamProgress from "@/components/TeamProgress";
 import CertificateDownload from "@/components/CertificateDownload";
 import GTMFlow from "@/components/GTMFlow";
+import ImpersonationBanner from "@/components/ImpersonationBanner";
+import { getImpersonation } from "@/lib/impersonation";
 import { useEffect, useState } from "react";
 import { toast } from "@/hooks/use-toast";
+
+const IMPERSONATE_USER: TrainingUser = {
+  id: "impersonate",
+  email: "ops-admin@opsolutions.com",
+  full_name: "Ops Admin (Preview)",
+  company_slug: "",
+};
 
 const CompanyIndex = () => {
   const { companySlug } = useParams<{ companySlug: string }>();
   const navigate = useNavigate();
   const [company, setCompany] = useState<Company | null>(null);
   const [companyLoading, setCompanyLoading] = useState(true);
+  const impersonation = getImpersonation();
+  const isImpersonating = !!impersonation && impersonation.companySlug === companySlug;
 
   useEffect(() => {
     if (!companySlug) { setCompanyLoading(false); return; }
@@ -26,8 +37,9 @@ const CompanyIndex = () => {
     });
   }, [companySlug]);
 
-  const { user, loading: regLoading, register } = useTrainingUser(companySlug || "");
-  const { completions, scores } = useCompletions(user?.id);
+  const { user: realUser, loading: regLoading, register } = useTrainingUser(companySlug || "");
+  const user = isImpersonating ? { ...IMPERSONATE_USER, company_slug: companySlug || "" } : realUser;
+  const { completions, scores } = useCompletions(isImpersonating ? undefined : realUser?.id);
 
   if (companyLoading) {
     return (
@@ -72,9 +84,9 @@ const CompanyIndex = () => {
     );
   }
 
-  const isManager = company.managerEmails?.some(
-    (e) => e.toLowerCase() === user.email.toLowerCase()
-  ) ?? false;
+  const isManager = isImpersonating
+    ? impersonation!.role === "manager" || impersonation!.role === "admin"
+    : (company.managerEmails?.some((e) => e.toLowerCase() === user.email.toLowerCase()) ?? false);
 
   const showGtmTab = isManager || !!company.gtmEnabled;
 
@@ -83,8 +95,9 @@ const CompanyIndex = () => {
   const progressPercent = Math.round((completedCount / totalCards) * 100);
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="flex items-center justify-between px-6 md:px-8 py-4 bg-card/95 backdrop-blur-md sticky top-0 z-50 border-b border-border shadow-sm">
+    <div className={`min-h-screen bg-background ${isImpersonating ? "pt-10" : ""}`}>
+      {isImpersonating && <ImpersonationBanner state={impersonation!} />}
+      <header className="flex items-center justify-between px-6 md:px-8 py-4 bg-card/95 backdrop-blur-md sticky top-10 z-50 border-b border-border shadow-sm">
         <div className="flex items-center gap-3">
           <img src={company.logoUrl} alt={company.name} className="h-10 object-contain" />
           <div className="hidden sm:block h-6 w-px bg-border" />
