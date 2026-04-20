@@ -600,6 +600,81 @@ const CompanyView = ({
         </div>
       </div>
 
+      {/* AI Generator */}
+      <div className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/5 to-transparent p-5">
+        <div className="flex items-start gap-3 mb-3">
+          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+            <Sparkles className="w-4 h-4 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm font-bold text-foreground">AI ICP Generator</h3>
+            <p className="text-xs text-muted-foreground">
+              Drafts a complete ICP for <strong>{company?.name}</strong>. Fully editable after generation. You can also score how closely your saved ICP matches a fresh AI draft.
+            </p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-2">
+          <Input
+            value={aiHint}
+            onChange={(e) => setAiHint(e.target.value)}
+            placeholder="Optional: extra context (e.g. 'they sell HR software to SMBs in GCC')"
+            className="bg-background"
+          />
+          <Button onClick={handleAiGenerateNew} disabled={aiBusy || !company} className="gap-2">
+            <Sparkles className="w-4 h-4" />
+            {aiBusy ? "Generating…" : "Generate new ICP"}
+          </Button>
+          <Button
+            onClick={handleAiScoreCurrent}
+            disabled={aiBusy || !draft}
+            variant="outline"
+            className="gap-2"
+            title="Generate a fresh AI ICP and compare it to the currently selected ICP"
+          >
+            <Gauge className="w-4 h-4" />
+            Score current ICP
+          </Button>
+        </div>
+
+        {aiScore && (
+          <div className="mt-4 rounded-xl border border-border bg-background p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div
+                className={`w-12 h-12 rounded-full flex items-center justify-center text-base font-bold ${
+                  aiScore.overall >= 70
+                    ? "bg-emerald-500/15 text-emerald-600"
+                    : aiScore.overall >= 40
+                    ? "bg-amber-500/15 text-amber-600"
+                    : "bg-destructive/15 text-destructive"
+                }`}
+              >
+                {aiScore.overall}%
+              </div>
+              <div>
+                <p className="text-sm font-bold text-foreground">Match score vs AI draft</p>
+                <p className="text-xs text-muted-foreground">
+                  How closely your saved ICP overlaps with what AI would suggest for {company?.name}.
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+              {Object.entries(aiScore.fields).map(([k, v]) => (
+                <div key={k} className="rounded-md border border-border bg-muted/30 px-2.5 py-1.5">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground truncate">{k.replace(/_/g, " ")}</p>
+                  <p
+                    className={`text-sm font-semibold ${
+                      v >= 70 ? "text-emerald-600" : v >= 40 ? "text-amber-600" : "text-destructive"
+                    }`}
+                  >
+                    {v}%
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Saved ICPs list */}
       <div className="rounded-2xl border border-border bg-card p-4">
         <div className="flex items-center gap-2 mb-3">
