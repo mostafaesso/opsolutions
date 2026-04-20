@@ -1,15 +1,24 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { Building2, Plus, X, Copy, Link as LinkIcon, ImageIcon, ChevronRight, ChevronDown, ExternalLink, Trash2, CheckCircle2, BookOpen, Share2, Info, Mail, TrendingUp, Eye, Layers } from "lucide-react";
+import { Building2, Plus, X, Copy, Link as LinkIcon, ImageIcon, ChevronRight, ChevronDown, ExternalLink, Trash2, CheckCircle2, BookOpen, Share2, Info, Mail, TrendingUp, Eye, Layers, GraduationCap, Bell, Settings2, LogOut, UserCog } from "lucide-react";
 import { fetchCompanies, addCompanyToDb, removeCompanyFromDb, updateCompanyInDb, fetchCompanyMedia, addCompanyMedia, removeCompanyMedia, Company } from "@/lib/companies";
 import { trainingTopics, trainingCards } from "@/lib/trainingData";
 import { toast } from "@/hooks/use-toast";
 import AdminPasswordGate from "@/components/AdminPasswordGate";
 import { startImpersonation, ImpersonateRole } from "@/lib/impersonation";
 import { GTM_LAYERS } from "@/components/GTMFlow";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CompanyModuleControls from "@/components/admin/CompanyModuleControls";
 import GtmModule from "@/components/gtm/GtmModule";
+
+type AdminSection = "companies" | "modules" | "gtm" | "trainings" | "crm";
+
+const SECTIONS: { key: AdminSection; label: string; icon: ReactNode }[] = [
+  { key: "companies", label: "Companies", icon: <Building2 className="w-4 h-4" /> },
+  { key: "modules", label: "Modules", icon: <Settings2 className="w-4 h-4" /> },
+  { key: "gtm", label: "GTM Stack", icon: <Layers className="w-4 h-4" /> },
+  { key: "trainings", label: "Trainings", icon: <GraduationCap className="w-4 h-4" /> },
+  { key: "crm", label: "CRM Updates", icon: <Bell className="w-4 h-4" /> },
+];
 
 const AdminPanelContent = () => {
   const navigate = useNavigate();
