@@ -1,18 +1,19 @@
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronRight, CheckCircle2, Lock } from "lucide-react";
+import { GraduationCap, Bell, Rocket, FileText, Video } from "lucide-react";
 import { fetchCompanyBySlug, Company } from "@/lib/companies";
-import { trainingCards } from "@/lib/trainingData";
 import { useTrainingUser, useCompletions, TrainingUser } from "@/hooks/useTrainingUser";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useCompanySettings } from "@/hooks/useCompanySettings";
+import { useSuperAdmin } from "@/hooks/useSuperAdmin";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import RegistrationGate from "@/components/RegistrationGate";
-import TeamProgress from "@/components/TeamProgress";
-import CertificateDownload from "@/components/CertificateDownload";
-import GTMFlow from "@/components/GTMFlow";
 import ImpersonationBanner from "@/components/ImpersonationBanner";
 import { getImpersonation } from "@/lib/impersonation";
-import { useEffect, useState } from "react";
-import { toast } from "@/hooks/use-toast";
+import CompanyShell, { SidebarItem } from "@/components/CompanyShell";
+import DocTraining from "@/components/training/DocTraining";
+import VideoTraining from "@/components/training/VideoTraining";
+import CrmUpdatesFeed from "@/components/crm/CrmUpdatesFeed";
+import GtmModule from "@/components/gtm/GtmModule";
 
 const IMPERSONATE_USER: TrainingUser = {
   id: "impersonate",
@@ -21,16 +22,24 @@ const IMPERSONATE_USER: TrainingUser = {
   company_slug: "",
 };
 
+type ModuleKey = "training" | "crm" | "gtm";
+
 const CompanyIndex = () => {
   const { companySlug } = useParams<{ companySlug: string }>();
   const navigate = useNavigate();
   const [company, setCompany] = useState<Company | null>(null);
   const [companyLoading, setCompanyLoading] = useState(true);
+  const [activeModule, setActiveModule] = useState<ModuleKey>("training");
+
   const impersonation = getImpersonation();
   const isImpersonating = !!impersonation && impersonation.companySlug === companySlug;
+  const { isSuperAdmin } = useSuperAdmin();
 
   useEffect(() => {
-    if (!companySlug) { setCompanyLoading(false); return; }
+    if (!companySlug) {
+      setCompanyLoading(false);
+      return;
+    }
     fetchCompanyBySlug(companySlug).then((c) => {
       setCompany(c);
       setCompanyLoading(false);
@@ -38,8 +47,11 @@ const CompanyIndex = () => {
   }, [companySlug]);
 
   const { user: realUser, loading: regLoading, register } = useTrainingUser(companySlug || "");
-  const user = isImpersonating ? { ...IMPERSONATE_USER, company_slug: companySlug || "" } : realUser;
-  const { completions, scores } = useCompletions(isImpersonating ? undefined : realUser?.id);
+  const user = isImpersonating
+    ? { ...IMPERSONATE_USER, company_slug: companySlug || "" }
+    : realUser;
+  const { completions, markComplete } = useCompletions(isImpersonating ? undefined : realUser?.id);
+  const { settings } = useCompanySettings(companySlug);
 
   if (companyLoading) {
     return (
@@ -64,9 +76,12 @@ const CompanyIndex = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-6">
         <div className="text-center max-w-md">
-          <h1 className="text-2xl font-bold text-foreground mb-2">This portal is currently unavailable</h1>
+          <h1 className="text-2xl font-bold text-foreground mb-2">
+            This portal is currently unavailable
+          </h1>
           <p className="text-muted-foreground">
-            Access to this training portal has been temporarily disabled. Please contact your administrator.
+            Access to this training portal has been temporarily disabled. Please contact your
+            administrator.
           </p>
         </div>
       </div>
@@ -86,138 +101,120 @@ const CompanyIndex = () => {
 
   const isManager = isImpersonating
     ? impersonation!.role === "manager" || impersonation!.role === "admin"
-    : (company.managerEmails?.some((e) => e.toLowerCase() === user.email.toLowerCase()) ?? false);
+    : (company.managerEmails?.some((e) => e.toLowerCase() === user.email.toLowerCase()) ??
+        false);
 
-  const showGtmTab = isManager || !!company.gtmEnabled;
+  const canSeeCrmUpdates = isManager || isSuperAdmin || settings.crm_updates_employee_visible;
+  const canSeeGtm = isManager || isSuperAdmin || !!company.gtmEnabled;
 
-  const completedCount = completions.size;
-  const totalCards = trainingCards.length;
-  const progressPercent = Math.round((completedCount / totalCards) * 100);
+  // Build sidebar items based on visibility
+  const sidebarItems: SidebarItem[] = [
+    { key: "training", label: "Training", icon: <GraduationCap className="w-4 h-4" /> },
+  ];
+  if (canSeeCrmUpdates) {
+    sidebarItems.push({ key: "crm", label: "CRM Updates", icon: <Bell className="w-4 h-4" /> });
+  }
+  if (canSeeGtm) {
+    sidebarItems.push({ key: "gtm", label: "GTM", icon: <Rocket className="w-4 h-4" /> });
+  }
+
+  // Training sub-tab default
+  const docOn = settings.training_doc_enabled;
+  const videoOn = settings.training_video_enabled;
+  const defaultTrainingTab = docOn ? "doc" : videoOn ? "video" : "doc";
+
+  // Wrap markComplete for journey steps
+  const handleMarkDone = (stepKey: string) => {
+    if (!realUser?.id) return;
+    markComplete(stepKey, 100);
+  };
 
   return (
-    <div className={`min-h-screen bg-background ${isImpersonating ? "pt-10" : ""}`}>
-      {isImpersonating && <ImpersonationBanner state={impersonation!} />}
-      <header className="flex items-center justify-between px-6 md:px-8 py-4 bg-card/95 backdrop-blur-md sticky top-10 z-50 border-b border-border shadow-sm">
-        <div className="flex items-center gap-3">
-          <img src={company.logoUrl} alt={company.name} className="h-10 object-contain" />
-          <div className="hidden sm:block h-6 w-px bg-border" />
-          <img src="https://www.opsolutionss.com/hubfs/Logos/transparent%20black.png" alt="Ops Solutions" className="hidden sm:block h-8 opacity-60" />
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-muted-foreground hidden sm:block">👋 {user.full_name}</span>
-          <span className="text-sm text-muted-foreground">Powered by Ops Solutions</span>
-        </div>
-      </header>
+    <CompanyShell
+      companyName={company.name}
+      companyLogoUrl={company.logoUrl}
+      userName={user.full_name}
+      items={sidebarItems}
+      activeKey={activeModule}
+      onSelect={(k) => setActiveModule(k as ModuleKey)}
+      topBanner={isImpersonating ? <ImpersonationBanner state={impersonation!} /> : undefined}
+    >
+      {activeModule === "training" && (
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Training</h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Step-by-step guidance built for {company.name}.
+            </p>
+          </div>
 
-      <div className="px-6 md:px-8 py-12 md:py-16 max-w-5xl mx-auto">
-        <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-3">Training for {company.name}</h1>
-        <p className="text-muted-foreground text-lg mb-6 max-w-2xl">Complete HubSpot CRM training modules. Click any card to explore step-by-step guidance.</p>
-
-        <Tabs defaultValue="training" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="training">My Training</TabsTrigger>
-            {isManager && <TabsTrigger value="team">Team Progress</TabsTrigger>}
-            {showGtmTab && <TabsTrigger value="gtm">GTM Flow</TabsTrigger>}
-          </TabsList>
-
-          <TabsContent value="training">
-            <div className="rounded-xl border border-border bg-card p-4 mb-6 flex items-center gap-4">
-              <div className="flex-1">
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-sm font-semibold text-foreground">Your Progress</span>
-                  <span className="text-sm text-muted-foreground">{completedCount}/{totalCards} completed</span>
-                </div>
-                <Progress value={progressPercent} className="h-2.5" />
-              </div>
-              <span className="text-lg font-bold text-primary">{progressPercent}%</span>
+          {!docOn && !videoOn ? (
+            <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center">
+              <p className="text-sm text-muted-foreground">
+                Training is not enabled for this portal yet.
+              </p>
             </div>
+          ) : (
+            <Tabs defaultValue={defaultTrainingTab}>
+              <TabsList>
+                {docOn && (
+                  <TabsTrigger value="doc">
+                    <FileText className="w-4 h-4 mr-2" />
+                    Doc Training
+                  </TabsTrigger>
+                )}
+                {videoOn && (
+                  <TabsTrigger value="video">
+                    <Video className="w-4 h-4 mr-2" />
+                    Video Training
+                  </TabsTrigger>
+                )}
+              </TabsList>
 
-            <CertificateDownload
-              userName={user.full_name}
-              companyName={company.name}
-              completedCount={completedCount}
-              totalCount={totalCards}
-            />
-
-            <div className="rounded-2xl border border-border bg-card p-6 md:p-8 shadow-sm">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {trainingCards.map((card, idx) => {
-                  const isCompleted = completions.has(card.id);
-                  const isLocked = idx > 0 && !completions.has(trainingCards[idx - 1].id);
-                  const score = scores[card.id];
-
-                  if (isLocked) {
-                    return (
-                      <button
-                        key={card.id}
-                        onClick={() =>
-                          toast({
-                            title: `Complete module ${trainingCards[idx - 1].number} first`,
-                            description: `Finish "${trainingCards[idx - 1].title}" to unlock this module.`,
-                          })
-                        }
-                        className="group flex items-center justify-between rounded-xl border border-border bg-muted/40 p-5 text-left opacity-60 cursor-not-allowed"
-                      >
-                        <div className="flex-1">
-                          <h3 className="text-base font-bold text-muted-foreground mb-1">
-                            {card.number}. {card.title}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">{card.desc}</p>
-                        </div>
-                        <Lock className="w-4 h-4 text-muted-foreground shrink-0 ml-3" />
-                      </button>
-                    );
-                  }
-
-                  return (
-                    <button
-                      key={card.id}
-                      onClick={() => navigate(`/${companySlug}/training/${card.id}`)}
-                      className={`group flex items-center justify-between rounded-xl border p-5 text-left transition-all hover:shadow-md ${
-                        isCompleted
-                          ? "border-green-200 bg-green-50/50"
-                          : "border-border bg-background hover:border-primary/30"
-                      }`}
-                    >
-                      <div className="flex-1">
-                        <h3 className="text-base font-bold text-foreground mb-1">
-                          {card.number}. {card.title}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">{card.desc}</p>
-                      </div>
-                      <div className="flex flex-col items-end gap-1 shrink-0 ml-3">
-                        {isCompleted ? (
-                          <>
-                            <CheckCircle2 className="w-5 h-5" style={{ color: "hsl(160, 84%, 39%)" }} />
-                            {score !== undefined && (
-                              <span className="text-xs font-semibold text-green-600">{score}%</span>
-                            )}
-                          </>
-                        ) : (
-                          <ChevronRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </TabsContent>
-
-          {isManager && (
-            <TabsContent value="team">
-              <TeamProgress companySlug={companySlug!} companyName={company.name} />
-            </TabsContent>
+              {docOn && (
+                <TabsContent value="doc" className="mt-6">
+                  <DocTraining
+                    companySlug={companySlug!}
+                    userId={realUser?.id}
+                    completions={completions}
+                    onMarkDone={handleMarkDone}
+                  />
+                </TabsContent>
+              )}
+              {videoOn && (
+                <TabsContent value="video" className="mt-6">
+                  <VideoTraining companySlug={companySlug!} />
+                </TabsContent>
+              )}
+            </Tabs>
           )}
+        </div>
+      )}
 
-          {showGtmTab && (
-            <TabsContent value="gtm">
-              <GTMFlow />
-            </TabsContent>
-          )}
-        </Tabs>
-      </div>
-    </div>
+      {activeModule === "crm" && (
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">CRM Updates</h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Recent changes Ops Solutions has shipped in your HubSpot.
+            </p>
+          </div>
+          <CrmUpdatesFeed companySlug={companySlug!} />
+        </div>
+      )}
+
+      {activeModule === "gtm" && (
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Go-to-Market</h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              ICP definition and the 8-layer GTM stack tailored to {company.name}.
+            </p>
+          </div>
+          <GtmModule companySlug={companySlug!} canEdit={isSuperAdmin} />
+        </div>
+      )}
+    </CompanyShell>
   );
 };
 
