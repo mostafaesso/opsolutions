@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [domain, setDomain] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -36,6 +37,26 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+
+    const normalizedDomain = domain.trim().toLowerCase();
+
+    if (normalizedDomain !== "ops") {
+      const { data: company, error: companyError } = await supabase
+        .from("companies")
+        .select("slug")
+        .eq("slug", normalizedDomain)
+        .maybeSingle();
+
+      if (companyError || !company) {
+        setSubmitting(false);
+        toast({
+          title: "Domain not found",
+          description: `No company found with domain "${normalizedDomain}". Please check and try again.`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email: email.trim().toLowerCase(),
@@ -96,7 +117,7 @@ const Login = () => {
         <Card>
           <CardHeader className="pb-4">
             <h1 className="text-2xl font-bold text-center">
-              {resetMode ? "Reset Password" : "Academy Login"}
+              {resetMode ? "Reset Password" : "Login"}
             </h1>
             <p className="text-sm text-muted-foreground text-center">
               {resetMode
@@ -144,6 +165,18 @@ const Login = () => {
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
+                  <Label htmlFor="domain">Company Domain</Label>
+                  <Input
+                    id="domain"
+                    type="text"
+                    placeholder="e.g. acme, techcorp, ops"
+                    value={domain}
+                    onChange={(e) => setDomain(e.target.value)}
+                    required
+                    autoComplete="off"
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
@@ -182,28 +215,6 @@ const Login = () => {
             )}
           </CardContent>
         </Card>
-
-        {!resetMode && (
-          <div className="rounded-lg border bg-card p-4 space-y-2">
-            <p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
-              Access levels
-            </p>
-            <div className="space-y-1.5 text-muted-foreground text-sm">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0" />
-                <span>Academy Admin — full platform access</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
-                <span>Company Admin — your company's employees</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
-                <span>Employee — your training modules</span>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
