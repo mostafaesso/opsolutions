@@ -24,6 +24,7 @@ const AdminPanelContent = () => {
   const navigate = useNavigate();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
+  const [section, setSection] = useState<AdminSection>("companies");
   const [expandedTopic, setExpandedTopic] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
