@@ -592,7 +592,12 @@ const CompanyView = ({
         name: result.draft.name || `AI · ${company.name}`,
       });
       if (created?.id) setActiveId(created.id);
-      toast({ title: "AI ICP generated", description: "Edit any field to refine it." });
+      toast({
+        title: "AI ICP generated",
+        description: result.siteFetched === false
+          ? "Note: site couldn't be fetched — review carefully."
+          : "Edit any field to refine it.",
+      });
     } finally {
       setAiBusy(false);
     }
