@@ -152,19 +152,53 @@ const COMPANY_ICP_COLUMNS: (keyof CompanyIcp)[] = [
   "tam_estimate","validation_notes","notes",
 ];
 
-export const useCompanyIcp = (companySlug: string | undefined) => {
-  const [icp, setIcp] = useState<CompanyIcp | null>(null);
+const fromTemplate = (slug: string, template: IcpTemplate): CompanyIcp => ({
+  ...EMPTY_COMPANY_ICP(slug),
+  template_id: template.id,
+  name: template.name,
+  description: template.description,
+  tier: template.tier,
+  personalization_level: template.personalization_level,
+  industry: template.industry,
+  company_size: template.company_size,
+  geography: template.geography,
+  funding_stage: template.funding_stage,
+  hiring_activity: template.hiring_activity,
+  tech_stack: template.tech_stack,
+  growth_signals: template.growth_signals,
+  job_titles: template.job_titles ?? [],
+  departments: template.departments,
+  seniority: template.seniority,
+  buying_role: template.buying_role,
+  pain_points: template.pain_points,
+  buying_triggers: template.buying_triggers,
+  decision_process: template.decision_process,
+  exclusions: template.exclusions,
+  disqualifiers: template.disqualifiers,
+  budget_range: template.budget_range,
+  goals: template.goals,
+  tam_estimate: template.tam_estimate,
+  validation_notes: template.validation_notes,
+  notes: template.notes,
+});
+
+export const useCompanyIcps = (companySlug: string | undefined) => {
+  const [icps, setIcps] = useState<CompanyIcp[]>([]);
   const [loading, setLoading] = useState(true);
 
   const refresh = async () => {
-    if (!companySlug) return;
+    if (!companySlug) {
+      setIcps([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const { data } = await (supabase as any)
       .from("company_icp")
       .select("*")
       .eq("company_slug", companySlug)
-      .maybeSingle();
-    setIcp((data as CompanyIcp) ?? EMPTY_COMPANY_ICP(companySlug));
+      .order("created_at", { ascending: true });
+    setIcps((data as CompanyIcp[]) ?? []);
     setLoading(false);
   };
 
@@ -173,48 +207,45 @@ export const useCompanyIcp = (companySlug: string | undefined) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companySlug]);
 
-  const save = async (patch: Partial<CompanyIcp>) => {
-    if (!companySlug) return;
-    const next: CompanyIcp = { ...(icp ?? EMPTY_COMPANY_ICP(companySlug)), ...patch, company_slug: companySlug };
-    setIcp(next);
+  const create = async (initial?: Partial<CompanyIcp>): Promise<CompanyIcp | null> => {
+    if (!companySlug) return null;
+    const base: CompanyIcp = { ...EMPTY_COMPANY_ICP(companySlug), ...initial, company_slug: companySlug };
     const payload: any = {};
-    for (const k of COMPANY_ICP_COLUMNS) payload[k] = (next as any)[k];
+    for (const k of COMPANY_ICP_COLUMNS) payload[k] = (base as any)[k];
+    const { data } = await (supabase as any)
+      .from("company_icp")
+      .insert(payload)
+      .select()
+      .single();
+    await refresh();
+    return data as CompanyIcp;
+  };
+
+  const save = async (icp: CompanyIcp) => {
+    if (!companySlug || !icp.id) return;
+    const payload: any = { updated_at: new Date().toISOString() };
+    for (const k of COMPANY_ICP_COLUMNS) payload[k] = (icp as any)[k];
     await (supabase as any)
       .from("company_icp")
-      .upsert(payload, { onConflict: "company_slug" });
+      .update(payload)
+      .eq("id", icp.id);
+    await refresh();
   };
 
-  const applyTemplate = async (template: IcpTemplate) => {
-    if (!companySlug) return;
-    await save({
-      template_id: template.id,
-      name: template.name,
-      description: template.description,
-      tier: template.tier,
-      personalization_level: template.personalization_level,
-      industry: template.industry,
-      company_size: template.company_size,
-      geography: template.geography,
-      funding_stage: template.funding_stage,
-      hiring_activity: template.hiring_activity,
-      tech_stack: template.tech_stack,
-      growth_signals: template.growth_signals,
-      job_titles: template.job_titles,
-      departments: template.departments,
-      seniority: template.seniority,
-      buying_role: template.buying_role,
-      pain_points: template.pain_points,
-      buying_triggers: template.buying_triggers,
-      decision_process: template.decision_process,
-      exclusions: template.exclusions,
-      disqualifiers: template.disqualifiers,
-      budget_range: template.budget_range,
-      goals: template.goals,
-      tam_estimate: template.tam_estimate,
-      validation_notes: template.validation_notes,
-      notes: template.notes,
-    });
+  const remove = async (id: string) => {
+    await (supabase as any).from("company_icp").delete().eq("id", id);
+    await refresh();
   };
 
-  return { icp: icp ?? (companySlug ? EMPTY_COMPANY_ICP(companySlug) : null), loading, save, applyTemplate, refresh };
+  const createFromTemplate = async (template: IcpTemplate) => {
+    if (!companySlug) return null;
+    return create(fromTemplate(companySlug, template));
+  };
+
+  const duplicate = async (icp: CompanyIcp) => {
+    const { id: _id, ...rest } = icp;
+    return create({ ...rest, name: `${icp.name ?? "ICP"} (copy)` });
+  };
+
+  return { icps, loading, create, save, remove, createFromTemplate, duplicate, refresh };
 };
