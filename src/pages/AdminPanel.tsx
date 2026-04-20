@@ -1,20 +1,30 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { Building2, Plus, X, Copy, Link as LinkIcon, ImageIcon, ChevronRight, ChevronDown, ExternalLink, Trash2, CheckCircle2, BookOpen, Share2, Info, Mail, TrendingUp, Eye, Layers } from "lucide-react";
+import { Building2, Plus, X, Copy, Link as LinkIcon, ImageIcon, ChevronRight, ChevronDown, ExternalLink, Trash2, CheckCircle2, BookOpen, Share2, Info, Mail, TrendingUp, Eye, Layers, GraduationCap, Bell, Settings2 } from "lucide-react";
 import { fetchCompanies, addCompanyToDb, removeCompanyFromDb, updateCompanyInDb, fetchCompanyMedia, addCompanyMedia, removeCompanyMedia, Company } from "@/lib/companies";
 import { trainingTopics, trainingCards } from "@/lib/trainingData";
 import { toast } from "@/hooks/use-toast";
 import AdminPasswordGate from "@/components/AdminPasswordGate";
 import { startImpersonation, ImpersonateRole } from "@/lib/impersonation";
 import { GTM_LAYERS } from "@/components/GTMFlow";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CompanyModuleControls from "@/components/admin/CompanyModuleControls";
 import GtmModule from "@/components/gtm/GtmModule";
+
+type AdminSection = "companies" | "modules" | "gtm" | "trainings" | "crm";
+
+const SECTIONS: { key: AdminSection; label: string; icon: ReactNode }[] = [
+  { key: "companies", label: "Companies", icon: <Building2 className="w-4 h-4" /> },
+  { key: "modules", label: "Modules", icon: <Settings2 className="w-4 h-4" /> },
+  { key: "gtm", label: "GTM Stack", icon: <Layers className="w-4 h-4" /> },
+  { key: "trainings", label: "Trainings", icon: <GraduationCap className="w-4 h-4" /> },
+  { key: "crm", label: "CRM Updates", icon: <Bell className="w-4 h-4" /> },
+];
 
 const AdminPanelContent = () => {
   const navigate = useNavigate();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
+  const [section, setSection] = useState<AdminSection>("companies");
   const [expandedTopic, setExpandedTopic] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -85,31 +95,66 @@ const AdminPanelContent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="flex items-center justify-between px-6 md:px-8 py-4 bg-card/95 backdrop-blur-md sticky top-0 z-50 border-b border-border shadow-sm">
-        <div className="flex items-center gap-3">
-          <img src="https://www.opsolutionss.com/hubfs/Logos/transparent%20black.png" alt="Ops Solutions" className="h-10" />
-          <div className="h-6 w-px bg-border" />
-          <span className="text-sm font-semibold text-primary">Admin Panel</span>
+    <div className="min-h-screen bg-background flex">
+      {/* Sidebar */}
+      <aside className="w-64 shrink-0 bg-card border-r border-border flex flex-col h-screen sticky top-0">
+        <div className="p-5 border-b border-border">
+          <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <img
+              src="https://www.opsolutionss.com/hubfs/Logos/transparent%20black.png"
+              alt="Ops Solutions"
+              className="h-8"
+            />
+          </a>
+          <p className="text-xs text-muted-foreground mt-2">Admin Control Panel</p>
         </div>
-        <a href="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">← Back to Training</a>
-      </header>
 
-      <div className="max-w-6xl mx-auto px-6 md:px-8 py-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">Control Panel</h1>
-        <p className="text-muted-foreground mb-6">Manage companies, training modules, GTM, and more.</p>
+        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+          {SECTIONS.map((s) => {
+            const active = s.key === section;
+            return (
+              <button
+                key={s.key}
+                onClick={() => setSection(s.key)}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all relative ${
+                  active
+                    ? "bg-primary/10 text-primary"
+                    : "text-foreground/70 hover:bg-muted hover:text-foreground"
+                }`}
+              >
+                {active && (
+                  <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-accent" />
+                )}
+                <span className={`shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`}>
+                  {s.icon}
+                </span>
+                <span className="flex-1 text-left">{s.label}</span>
+              </button>
+            );
+          })}
+        </nav>
 
-        <Tabs defaultValue="companies" className="space-y-6">
-          <TabsList className="w-full justify-start">
-            <TabsTrigger value="companies">Companies</TabsTrigger>
-            <TabsTrigger value="modules">Modules</TabsTrigger>
-            <TabsTrigger value="gtm">GTM</TabsTrigger>
-            <TabsTrigger value="trainings">Trainings</TabsTrigger>
-            <TabsTrigger value="crm">CRM Updates</TabsTrigger>
-          </TabsList>
+        <div className="p-4 border-t border-border">
+          <a href="/" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+            ← Back to Training
+          </a>
+        </div>
+      </aside>
+
+      {/* Main content */}
+      <main className="flex-1 min-w-0 overflow-x-hidden">
+        <div className="max-w-6xl mx-auto px-6 md:px-8 py-8 space-y-6">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+              {SECTIONS.find((s) => s.key === section)?.label}
+            </h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Manage companies, training modules, GTM, and more.
+            </p>
+          </div>
 
           {/* ── Companies ── */}
-          <TabsContent value="companies">
+          {section === "companies" && (
         <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
           {/* Left: Company List */}
           <div className="space-y-4">
@@ -315,24 +360,20 @@ const AdminPanelContent = () => {
             )}
           </div>
         </div>
-          </TabsContent>
+          )}
 
           {/* ── Modules ── */}
-          <TabsContent value="modules">
+          {section === "modules" && (
             <div className="rounded-2xl border border-border bg-card p-8 flex flex-col items-center justify-center min-h-[300px] text-center gap-3">
               <ImageIcon className="w-10 h-10 text-muted-foreground/40" />
               <p className="text-sm font-medium text-muted-foreground">Modules management coming soon</p>
-              <p className="text-xs text-muted-foreground">Select a company in the Companies tab to manage its training images.</p>
+              <p className="text-xs text-muted-foreground">Select a company in the Companies section to manage its training images.</p>
             </div>
-          </TabsContent>
+          )}
 
           {/* ── GTM ── */}
-          <TabsContent value="gtm">
+          {section === "gtm" && (
             <div className="space-y-4">
-              <div>
-                <h2 className="text-lg font-bold text-foreground mb-1">Core GTM Stack Layers</h2>
-                <p className="text-sm text-muted-foreground">Assign the GTM template to companies from the Companies tab.</p>
-              </div>
               <div className="rounded-2xl border border-border bg-card overflow-hidden">
                 <div className="grid grid-cols-[40px_160px_1fr_1fr] bg-muted/50 border-b border-border text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   <div className="px-4 py-3">#</div>
@@ -379,10 +420,10 @@ const AdminPanelContent = () => {
                 </div>
               </div>
             </div>
-          </TabsContent>
+          )}
 
           {/* ── Trainings ── */}
-          <TabsContent value="trainings">
+          {section === "trainings" && (
             <div className="rounded-2xl border border-border bg-card overflow-hidden">
               <div className="grid grid-cols-[40px_1fr_2fr] bg-muted/50 border-b border-border text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 <div className="px-4 py-3">#</div>
@@ -397,19 +438,18 @@ const AdminPanelContent = () => {
                 </div>
               ))}
             </div>
-          </TabsContent>
+          )}
 
           {/* ── CRM Updates ── */}
-          <TabsContent value="crm">
+          {section === "crm" && (
             <div className="rounded-2xl border border-border bg-card p-8 flex flex-col items-center justify-center min-h-[300px] text-center gap-3">
               <TrendingUp className="w-10 h-10 text-muted-foreground/40" />
               <p className="text-sm font-medium text-muted-foreground">CRM Updates coming soon</p>
               <p className="text-xs text-muted-foreground">Manage CRM-related updates and announcements per company.</p>
             </div>
-          </TabsContent>
-
-        </Tabs>
-      </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 };
