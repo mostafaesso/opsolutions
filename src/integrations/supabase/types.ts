@@ -54,6 +54,7 @@ export type Database = {
         Row: {
           created_at: string
           custom_domain: string | null
+          gtm_enabled: boolean
           id: string
           is_active: boolean
           logo_url: string
@@ -64,6 +65,7 @@ export type Database = {
         Insert: {
           created_at?: string
           custom_domain?: string | null
+          gtm_enabled?: boolean
           id?: string
           is_active?: boolean
           logo_url: string
@@ -74,6 +76,7 @@ export type Database = {
         Update: {
           created_at?: string
           custom_domain?: string | null
+          gtm_enabled?: boolean
           id?: string
           is_active?: boolean
           logo_url?: string
