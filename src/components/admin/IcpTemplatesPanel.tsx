@@ -521,11 +521,50 @@ const CompanyView = ({
     }
   };
 
+  const handleSaveCompany = async () => {
+    if (!company) return;
+    if (!companyDraft.name.trim()) {
+      toast({ title: "Name is required", variant: "destructive" });
+      return;
+    }
+    setSavingCompany(true);
+    try {
+      await updateCompanyInDb(
+        {
+          ...company,
+          name: companyDraft.name.trim(),
+          logoUrl: companyDraft.logoUrl.trim(),
+          customDomain: companyDraft.customDomain.trim() || null,
+        },
+        company.slug,
+      );
+      toast({ title: "Company info saved" });
+      onCompaniesChanged?.();
+    } catch (e: any) {
+      toast({ title: "Could not save company", description: e?.message ?? String(e), variant: "destructive" });
+    } finally {
+      setSavingCompany(false);
+    }
+  };
+
   const callGenerateIcp = async (compareTo: CompanyIcp | null) => {
     if (!company) return null;
+    const domain = (companyDraft.customDomain || company.customDomain || "").trim();
+    if (!domain) {
+      toast({
+        title: "Company domain is required",
+        description: "Add the company's website domain above (e.g. acme.com) before generating an ICP. Domain content is what makes the AI accurate.",
+        variant: "destructive",
+      });
+      return null;
+    }
     const { data, error } = await supabase.functions.invoke("generate-icp", {
       body: {
-        company: { name: company.name, slug: company.slug, customDomain: company.customDomain },
+        company: {
+          name: companyDraft.name || company.name,
+          slug: company.slug,
+          customDomain: domain,
+        },
         hint: aiHint,
         compareTo: compareTo ? { ...compareTo, job_titles: compareTo.job_titles ?? [] } : null,
       },
@@ -538,7 +577,7 @@ const CompanyView = ({
       toast({ title: "AI generation failed", description: (data as any).error, variant: "destructive" });
       return null;
     }
-    return data as { draft: any; score: { overall: number; fields: Record<string, number> } | null };
+    return data as { draft: any; score: { overall: number; fields: Record<string, number> } | null; siteFetched?: boolean };
   };
 
   const handleAiGenerateNew = async () => {
