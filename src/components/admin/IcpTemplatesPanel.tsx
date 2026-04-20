@@ -503,6 +503,61 @@ const CompanyView = ({
     }
   };
 
+  const callGenerateIcp = async (compareTo: CompanyIcp | null) => {
+    if (!company) return null;
+    const { data, error } = await supabase.functions.invoke("generate-icp", {
+      body: {
+        company: { name: company.name, slug: company.slug, customDomain: company.customDomain },
+        hint: aiHint,
+        compareTo: compareTo ? { ...compareTo, job_titles: compareTo.job_titles ?? [] } : null,
+      },
+    });
+    if (error) {
+      toast({ title: "AI generation failed", description: error.message, variant: "destructive" });
+      return null;
+    }
+    if ((data as any)?.error) {
+      toast({ title: "AI generation failed", description: (data as any).error, variant: "destructive" });
+      return null;
+    }
+    return data as { draft: any; score: { overall: number; fields: Record<string, number> } | null };
+  };
+
+  const handleAiGenerateNew = async () => {
+    if (!company) return;
+    setAiBusy(true);
+    setAiScore(null);
+    try {
+      const result = await callGenerateIcp(null);
+      if (!result) return;
+      const created = await create({
+        ...result.draft,
+        name: result.draft.name || `AI · ${company.name}`,
+      });
+      if (created?.id) setActiveId(created.id);
+      toast({ title: "AI ICP generated", description: "Edit any field to refine it." });
+    } finally {
+      setAiBusy(false);
+    }
+  };
+
+  const handleAiScoreCurrent = async () => {
+    if (!draft) return;
+    setAiBusy(true);
+    setAiScore(null);
+    try {
+      const result = await callGenerateIcp(draft);
+      if (!result) return;
+      setAiScore(result.score);
+      toast({
+        title: `Match score: ${result.score?.overall ?? 0}%`,
+        description: "Compares your saved ICP to a fresh AI draft.",
+      });
+    } finally {
+      setAiBusy(false);
+    }
+  };
+
   return (
     <div className="space-y-5">
       {/* Top toolbar */}
