@@ -271,30 +271,94 @@ const SuperAdminDashboard = () => {
 
   const companyName = (slug: string) => companies.find((c) => c.slug === slug)?.name || slug;
 
+  const SECTIONS: { key: typeof section; label: string; icon: ReactNode }[] = [
+    { key: "overview", label: "Overview", icon: <LayoutDashboard className="w-4 h-4" /> },
+    { key: "companies", label: "Companies", icon: <Building2 className="w-4 h-4" /> },
+    { key: "learners", label: "Learners", icon: <Users className="w-4 h-4" /> },
+    { key: "icp", label: "ICP Template", icon: <Target className="w-4 h-4" /> },
+    { key: "gtm", label: "GTM Stack", icon: <Layers className="w-4 h-4" /> },
+    { key: "trainings", label: "Trainings", icon: <GraduationCap className="w-4 h-4" /> },
+    { key: "crm", label: "CRM Updates", icon: <Bell className="w-4 h-4" /> },
+  ];
+
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold">Super Admin</h1>
-            <p className="text-xs text-muted-foreground">Platform control panel</p>
-          </div>
-          <Button variant="outline" size="sm" onClick={handleSignOut}>
-            <LogOut className="h-4 w-4" />
-            Sign out
+    <div className="min-h-screen bg-background flex">
+      {/* Sidebar */}
+      <aside className="w-64 shrink-0 bg-card border-r border-border flex flex-col h-screen sticky top-0">
+        <div className="p-5 border-b border-border">
+          <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <img
+              src="https://www.opsolutionss.com/hubfs/Logos/transparent%20black.png"
+              alt="Ops Solutions"
+              className="h-8"
+            />
+          </a>
+          <p className="text-xs text-muted-foreground mt-2">Super Admin · Platform Control</p>
+        </div>
+
+        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+          {SECTIONS.map((s) => {
+            const active = s.key === section;
+            return (
+              <button
+                key={s.key}
+                onClick={() => setSection(s.key)}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all relative ${
+                  active
+                    ? "bg-primary/10 text-primary"
+                    : "text-foreground/70 hover:bg-muted hover:text-foreground"
+                }`}
+              >
+                {active && (
+                  <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-accent" />
+                )}
+                <span className={`shrink-0 ${active ? "text-primary" : "text-muted-foreground"}`}>
+                  {s.icon}
+                </span>
+                <span className="flex-1 text-left">{s.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="p-4 border-t border-border space-y-2">
+          <Button variant="outline" size="sm" className="w-full justify-start gap-2" onClick={handleSignOut}>
+            <LogOut className="h-4 w-4" /> Sign out
           </Button>
         </div>
-      </header>
+      </aside>
 
-      <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Total Companies" value={stats.totalCompanies.toString()} />
-          <StatCard label="Total Learners" value={stats.totalLearners.toString()} />
-          <StatCard label="Avg Completion" value={`${stats.avgCompletion.toFixed(0)}%`} />
-          <StatCard label="Avg Quiz Score" value={`${stats.avgScore.toFixed(0)}%`} />
-        </div>
+      {/* Main content */}
+      <main className="flex-1 min-w-0 overflow-x-hidden">
+        <div className="max-w-6xl mx-auto px-6 md:px-8 py-8 space-y-6">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+              {SECTIONS.find((s) => s.key === section)?.label}
+            </h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              {section === "overview" && "Platform-wide stats across every company."}
+              {section === "companies" && "Add, edit, and manage every company on the platform."}
+              {section === "learners" && "View and manage every learner across all companies."}
+              {section === "icp" && "Master ICP templates and per-company ICPs."}
+              {section === "gtm" && "Pre-Launch · Launch · Scale phases per company."}
+              {section === "trainings" && "Global training modules + per-company assignments."}
+              {section === "crm" && "Post company-specific updates with role-based visibility."}
+            </p>
+          </div>
 
+          {/* ── Overview ── */}
+          {section === "overview" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCard label="Total Companies" value={stats.totalCompanies.toString()} />
+              <StatCard label="Total Learners" value={stats.totalLearners.toString()} />
+              <StatCard label="Avg Completion" value={`${stats.avgCompletion.toFixed(0)}%`} />
+              <StatCard label="Avg Quiz Score" value={`${stats.avgScore.toFixed(0)}%`} />
+            </div>
+          )}
+
+          {/* ── Companies ── */}
+          {section === "companies" && (
+          <>
         {/* Companies */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
