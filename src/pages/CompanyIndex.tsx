@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import RegistrationGate from "@/components/RegistrationGate";
 import TeamProgress from "@/components/TeamProgress";
 import CertificateDownload from "@/components/CertificateDownload";
+import GTMFlow from "@/components/GTMFlow";
 import { useEffect, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 
@@ -71,6 +72,12 @@ const CompanyIndex = () => {
     );
   }
 
+  const isManager = company.managerEmails?.some(
+    (e) => e.toLowerCase() === user.email.toLowerCase()
+  ) ?? false;
+
+  const showGtmTab = isManager || !!company.gtmEnabled;
+
   const completedCount = completions.size;
   const totalCards = trainingCards.length;
   const progressPercent = Math.round((completedCount / totalCards) * 100);
@@ -96,9 +103,8 @@ const CompanyIndex = () => {
         <Tabs defaultValue="training" className="space-y-6">
           <TabsList>
             <TabsTrigger value="training">My Training</TabsTrigger>
-            {company.managerEmails?.some(e => e.toLowerCase() === user.email.toLowerCase()) && (
-              <TabsTrigger value="team">Team Progress</TabsTrigger>
-            )}
+            {isManager && <TabsTrigger value="team">Team Progress</TabsTrigger>}
+            {showGtmTab && <TabsTrigger value="gtm">GTM Flow</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="training">
@@ -185,9 +191,15 @@ const CompanyIndex = () => {
             </div>
           </TabsContent>
 
-          {company.managerEmails?.some(e => e.toLowerCase() === user.email.toLowerCase()) && (
+          {isManager && (
             <TabsContent value="team">
               <TeamProgress companySlug={companySlug!} companyName={company.name} />
+            </TabsContent>
+          )}
+
+          {showGtmTab && (
+            <TabsContent value="gtm">
+              <GTMFlow isAdmin={isManager} />
             </TabsContent>
           )}
         </Tabs>

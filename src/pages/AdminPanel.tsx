@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Building2, Plus, X, Copy, Link as LinkIcon, ImageIcon, ChevronRight, ChevronDown, ExternalLink, Trash2, CheckCircle2, BookOpen, Share2, Info, Mail } from "lucide-react";
+import { Building2, Plus, X, Copy, Link as LinkIcon, ImageIcon, ChevronRight, ChevronDown, ExternalLink, Trash2, CheckCircle2, BookOpen, Share2, Info, Mail, TrendingUp } from "lucide-react";
 import { fetchCompanies, addCompanyToDb, removeCompanyFromDb, updateCompanyInDb, fetchCompanyMedia, addCompanyMedia, removeCompanyMedia, Company } from "@/lib/companies";
 import { trainingTopics, trainingCards } from "@/lib/trainingData";
 import { toast } from "@/hooks/use-toast";
@@ -181,6 +181,16 @@ const AdminPanelContent = () => {
 
                 {/* Manager Emails */}
                 <ManagerEmailsEditor
+                  company={company}
+                  onUpdate={async (updated: Company) => {
+                    await updateCompanyInDb(updated);
+                    const all = await fetchCompanies();
+                    setCompanies(all);
+                  }}
+                />
+
+                {/* GTM Flow Toggle */}
+                <GtmToggle
                   company={company}
                   onUpdate={async (updated: Company) => {
                     await updateCompanyInDb(updated);
@@ -443,6 +453,40 @@ const ManagerEmailsEditor = ({
           Add
         </button>
       </div>
+    </div>
+  );
+};
+
+const GtmToggle = ({
+  company,
+  onUpdate,
+}: {
+  company: Company;
+  onUpdate: (updated: Company) => void;
+}) => {
+  const enabled = company.gtmEnabled ?? false;
+
+  return (
+    <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
+      <div className="flex items-center gap-2">
+        <TrendingUp className="w-4 h-4 text-muted-foreground" />
+        <h3 className="text-sm font-semibold text-foreground">GTM Flow Tab</h3>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Show the <strong>GTM Flow</strong> tab to all employees of this company.
+        Managers always see it regardless of this setting.
+      </p>
+      <label className="flex items-center gap-3 cursor-pointer w-fit">
+        <div
+          onClick={() => onUpdate({ ...company, gtmEnabled: !enabled })}
+          className={`relative w-10 h-5 rounded-full transition-colors ${enabled ? "bg-primary" : "bg-muted-foreground/30"}`}
+        >
+          <div
+            className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${enabled ? "translate-x-5" : "translate-x-0.5"}`}
+          />
+        </div>
+        <span className="text-sm text-foreground">{enabled ? "Enabled" : "Disabled"}</span>
+      </label>
     </div>
   );
 };

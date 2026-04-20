@@ -7,6 +7,7 @@ export interface Company {
   managerEmails?: string[];
   isActive?: boolean;
   customDomain?: string | null;
+  gtmEnabled?: boolean;
 }
 
 export interface CompanyMedia {
@@ -30,6 +31,7 @@ export const fetchCompanies = async (): Promise<Company[]> => {
     managerEmails: c.manager_emails || [],
     isActive: c.is_active ?? true,
     customDomain: c.custom_domain ?? null,
+    gtmEnabled: c.gtm_enabled ?? false,
   }));
 };
 
@@ -50,6 +52,7 @@ export const fetchCompanyBySlug = async (slug: string): Promise<Company | null> 
     managerEmails: d.manager_emails || [],
     isActive: d.is_active ?? true,
     customDomain: d.custom_domain ?? null,
+    gtmEnabled: d.gtm_enabled ?? false,
   };
 };
 
@@ -76,6 +79,7 @@ export const updateCompanyInDb = async (company: Company, originalSlug?: string)
     is_active: company.isActive ?? true,
     custom_domain: company.customDomain ?? null,
     slug: company.slug,
+    gtm_enabled: company.gtmEnabled ?? false,
   };
   const { error } = await supabase
     .from("companies")
