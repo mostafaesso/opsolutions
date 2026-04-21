@@ -344,6 +344,7 @@ const SuperAdminDashboard = () => {
               {section === "gtm" && "Pre-Launch · Launch · Scale phases per company."}
               {section === "trainings" && "Global training modules + per-company assignments."}
               {section === "crm" && "Post company-specific updates with role-based visibility."}
+              {section === "crm_status" && "Live HubSpot diagnostic per company with saved private app token."}
             </p>
           </div>
 
