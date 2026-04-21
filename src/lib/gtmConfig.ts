@@ -41,9 +41,9 @@ export const TOOL_PLANS: Record<string, ToolPlan[]> = {
     { name: "Organization", price: 119, billing: "per_user_month", units_per_month: 4000, unit_label: "contacts/mo" },
   ],
   "LinkedIn Sales Navigator": [
-    { name: "Core (annual)",     price: 79.99, billing: "per_user_month", units_per_month: 1000, unit_label: "saved leads/mo",  note: "Billed $959/yr/user" },
-    { name: "Advanced (annual)", price: 135,   billing: "per_user_month", units_per_month: 2500, unit_label: "saved leads/mo",  popular: true, note: "Billed $1,620/yr/user" },
-    { name: "Advanced Plus",     price: 0,     billing: "monthly",        units_per_month: 0,    unit_label: "custom",          note: "Contact sales for pricing" },
+    { name: "Core (annual)",     price: 79.99,  billing: "per_user_month", units_per_month: 1000, unit_label: "saved leads/mo",  note: "Billed $959.88/yr/user" },
+    { name: "Advanced (annual)", price: 149.99, billing: "per_user_month", units_per_month: 2500, unit_label: "saved leads/mo",  popular: true, note: "Billed $1,799.88/yr/user" },
+    { name: "Advanced Plus",     price: 0,      billing: "monthly",        units_per_month: 0,    unit_label: "custom",          note: "Contact sales for pricing" },
   ],
   "Ocean.io": [
     { name: "Starter",      price: 199, billing: "monthly", units_per_month: 500,  unit_label: "contacts/mo" },
@@ -114,9 +114,9 @@ export const TOOL_PLANS: Record<string, ToolPlan[]> = {
     { name: "Monthly 50k",   price: 97, billing: "monthly",  units_per_month: 50000, unit_label: "verifications/mo", popular: true },
   ],
   "ZeroBounce": [
-    { name: "Pay-as-you-go", price: 16, billing: "one_time", units_per_month: 2000,  unit_label: "verifications",  note: "$16 per 2k credits" },
-    { name: "Monthly 10k",   price: 18, billing: "monthly",  units_per_month: 10000, unit_label: "verifications/mo" },
-    { name: "Monthly 100k",  price: 78, billing: "monthly",  units_per_month: 100000, unit_label: "verifications/mo", popular: true },
+    { name: "Pay-as-you-go", price: 16,  billing: "one_time", units_per_month: 2000,   unit_label: "verifications",   note: "$16 per 2k credits" },
+    { name: "Monthly 10k",   price: 49,  billing: "monthly",  units_per_month: 10000,  unit_label: "verifications/mo" },
+    { name: "Monthly 100k",  price: 149, billing: "monthly",  units_per_month: 100000, unit_label: "verifications/mo", popular: true },
   ],
   "BounceBan": [
     { name: "Starter",     price: 19,  billing: "monthly", units_per_month: 5000,  unit_label: "verifications/mo" },
@@ -136,8 +136,9 @@ export const TOOL_PLANS: Record<string, ToolPlan[]> = {
     { name: "Light Speed", price: 358, billing: "monthly", units_per_month: 500000, unit_label: "emails/mo",  note: "500k active leads" },
   ],
   "Lemlist": [
-    { name: "Email Outreach",    price: 59,  billing: "per_user_month", units_per_month: 0, unit_label: "unlimited emails" },
-    { name: "Sales Engagement",  price: 99,  billing: "per_user_month", units_per_month: 0, unit_label: "email + LinkedIn", popular: true },
+    { name: "Email Starter",     price: 39,  billing: "per_user_month", units_per_month: 0, unit_label: "unlimited emails" },
+    { name: "Email Pro",         price: 69,  billing: "per_user_month", units_per_month: 0, unit_label: "unlimited emails", popular: true },
+    { name: "Multichannel",      price: 99,  billing: "per_user_month", units_per_month: 0, unit_label: "email + LinkedIn + calls" },
     { name: "Agency",            price: 159, billing: "monthly",        units_per_month: 0, unit_label: "multi-client" },
   ],
   "Heyreach": [

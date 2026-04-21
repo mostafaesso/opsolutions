@@ -56,15 +56,25 @@ interface DbLayer {
 // ── Budget helpers ─────────────────────────────────────────────────────────
 
 function getMonthlyPrice(plan: ToolPlan): number {
-  if (plan.billing === "free") return 0;
+  if (plan.billing === "free" || plan.billing === "one_time") return 0;
   if (plan.billing === "annual") return plan.price / 12;
-  return plan.price; // monthly, per_user_month, one_time treated as monthly for estimate
+  return plan.price;
+}
+
+interface BudgetItem {
+  tool: string;
+  planName: string;
+  monthly: number;
+  oneTime: number;
+  units: number;
+  unitLabel: string;
 }
 
 function computeBudget(layers: DbLayer[]) {
-  let totalMonthly = 0;
+  let recurringMonthly = 0;
+  let oneTimeCost = 0;
   let totalContacts = 0;
-  const selected: { tool: string; planName: string; monthly: number; units: number; unitLabel: string }[] = [];
+  const selected: BudgetItem[] = [];
 
   for (const layer of layers) {
     const planMap: Record<string, string> = layer.calculator_data?.tool_plans ?? {};
@@ -75,13 +85,22 @@ function computeBudget(layers: DbLayer[]) {
       const plan = plans.find((p) => p.name === planName) ?? null;
       if (!plan) continue;
       const monthly = getMonthlyPrice(plan);
-      totalMonthly += monthly;
+      const ot = plan.billing === "one_time" ? plan.price : 0;
+      recurringMonthly += monthly;
+      oneTimeCost += ot;
       totalContacts += plan.units_per_month ?? 0;
-      selected.push({ tool, planName: plan.name, monthly, units: plan.units_per_month, unitLabel: plan.unit_label });
+      selected.push({ tool, planName: plan.name, monthly, oneTime: ot, units: plan.units_per_month, unitLabel: plan.unit_label });
     }
   }
 
-  return { totalMonthly, totalAnnual: totalMonthly * 12, totalContacts, selected };
+  return {
+    recurringMonthly,
+    oneTimeCost,
+    totalMonthly: recurringMonthly,
+    totalAnnual: recurringMonthly * 12 + oneTimeCost,
+    totalContacts,
+    selected,
+  };
 }
 
 // ── Plan picker for a single tool ─────────────────────────────────────────
@@ -150,7 +169,7 @@ const ToolPlanPicker = ({
 // ── Budget summary card ────────────────────────────────────────────────────
 
 const BudgetSummary = ({ layers }: { layers: DbLayer[] }) => {
-  const { totalMonthly, totalAnnual, totalContacts, selected } = useMemo(
+  const { recurringMonthly, oneTimeCost, totalAnnual, totalContacts, selected } = useMemo(
     () => computeBudget(layers),
     [layers],
   );
@@ -164,13 +183,17 @@ const BudgetSummary = ({ layers }: { layers: DbLayer[] }) => {
         <span className="text-[10px] text-muted-foreground ml-auto">based on selected plans</span>
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-4 gap-3">
         <div className="rounded-lg bg-background border border-border p-3 text-center">
-          <p className="text-xs text-muted-foreground">Monthly cost</p>
-          <p className="text-lg font-bold text-foreground">${totalMonthly.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+          <p className="text-xs text-muted-foreground">Monthly (recurring)</p>
+          <p className="text-lg font-bold text-foreground">${recurringMonthly.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
         </div>
         <div className="rounded-lg bg-background border border-border p-3 text-center">
-          <p className="text-xs text-muted-foreground">Annual cost</p>
+          <p className="text-xs text-muted-foreground">One-time costs</p>
+          <p className="text-lg font-bold text-foreground">${oneTimeCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+        </div>
+        <div className="rounded-lg bg-background border border-border p-3 text-center">
+          <p className="text-xs text-muted-foreground">Annual total</p>
           <p className="text-lg font-bold text-foreground">${totalAnnual.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
         </div>
         <div className="rounded-lg bg-background border border-border p-3 text-center">
@@ -185,7 +208,11 @@ const BudgetSummary = ({ layers }: { layers: DbLayer[] }) => {
             <span className="font-medium text-foreground w-36 truncate">{s.tool}</span>
             <span className="text-muted-foreground">{s.planName}</span>
             <span className="ml-auto font-semibold text-foreground">
-              {s.monthly === 0 ? "Free" : `$${s.monthly.toLocaleString(undefined, { maximumFractionDigits: 0 })}/mo`}
+              {s.oneTime > 0
+                ? `$${s.oneTime.toLocaleString()} one-time`
+                : s.monthly === 0
+                ? "Free"
+                : `$${s.monthly.toLocaleString(undefined, { maximumFractionDigits: 0 })}/mo`}
             </span>
             {s.units > 0 && (
               <span className="text-emerald-600 w-28 text-right">{s.units.toLocaleString()} {s.unitLabel.split("/")[0]}</span>
@@ -193,6 +220,134 @@ const BudgetSummary = ({ layers }: { layers: DbLayer[] }) => {
           </div>
         ))}
       </div>
+    </div>
+  );
+};
+
+// ── Conversion funnel ──────────────────────────────────────────────────────
+
+const INDUSTRIES = [
+  { label: "SaaS / Tech",                    replyMult: 1.3, closeMult: 1.0 },
+  { label: "E-commerce / Retail",             replyMult: 0.9, closeMult: 0.8 },
+  { label: "Financial Services",              replyMult: 0.8, closeMult: 1.2 },
+  { label: "Healthcare",                      replyMult: 0.6, closeMult: 0.9 },
+  { label: "Manufacturing",                   replyMult: 0.7, closeMult: 1.1 },
+  { label: "Real Estate",                     replyMult: 1.0, closeMult: 1.0 },
+  { label: "Consulting / Professional Svcs",  replyMult: 1.2, closeMult: 1.3 },
+  { label: "Education",                       replyMult: 0.7, closeMult: 0.8 },
+  { label: "Logistics / Supply Chain",        replyMult: 0.85, closeMult: 1.0 },
+];
+
+const REGIONS = [
+  { label: "GCC / MENA",      replyMult: 0.8,  closeMult: 1.3 },
+  { label: "US / Canada",     replyMult: 1.0,  closeMult: 1.0 },
+  { label: "Europe",          replyMult: 0.85, closeMult: 0.9 },
+  { label: "Southeast Asia",  replyMult: 0.9,  closeMult: 0.95 },
+  { label: "LATAM",           replyMult: 1.1,  closeMult: 0.85 },
+  { label: "Australia / NZ",  replyMult: 0.95, closeMult: 1.0 },
+  { label: "India",           replyMult: 1.0,  closeMult: 0.85 },
+];
+
+interface FunnelStage { label: string; value: number; color: string }
+
+const ConversionFunnel = ({ defaultLeads }: { defaultLeads: number }) => {
+  const [leads, setLeads] = useState<string>("");
+  const [industryIdx, setIndustryIdx] = useState(0);
+  const [regionIdx, setRegionIdx] = useState(0);
+
+  const leadsNum = parseInt(leads || String(defaultLeads), 10) || 0;
+  const ind = INDUSTRIES[industryIdx];
+  const reg = REGIONS[regionIdx];
+
+  const stages: FunnelStage[] = useMemo(() => {
+    const emailsSent   = leadsNum;
+    const opened       = Math.round(emailsSent * 0.45);
+    const replied      = Math.round(emailsSent * 0.03 * ind.replyMult * reg.replyMult);
+    const interested   = Math.round(replied * 0.35);
+    const demos        = Math.round(interested * 0.60);
+    const closed       = Math.round(demos * 0.20 * ind.closeMult * reg.closeMult);
+    return [
+      { label: "Leads sourced",    value: leadsNum,    color: "bg-slate-500" },
+      { label: "Emails sent",      value: emailsSent,  color: "bg-blue-500" },
+      { label: "Opened",           value: opened,      color: "bg-violet-500" },
+      { label: "Replied",          value: replied,     color: "bg-amber-500" },
+      { label: "Interested",       value: interested,  color: "bg-orange-500" },
+      { label: "Demos booked",     value: demos,       color: "bg-emerald-500" },
+      { label: "Deals closed",     value: closed,      color: "bg-green-600" },
+    ];
+  }, [leadsNum, industryIdx, regionIdx]);
+
+  const maxVal = stages[0]?.value || 1;
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-4 space-y-4">
+      <div className="flex items-center gap-2">
+        <TrendingUp className="w-4 h-4 text-primary" />
+        <h3 className="text-sm font-bold text-foreground">Conversion Rate Forecast</h3>
+      </div>
+
+      <div className="flex flex-wrap gap-3">
+        <div className="flex flex-col gap-1 min-w-[120px]">
+          <Label className="text-[11px] uppercase tracking-wide text-muted-foreground">Leads / month</Label>
+          <Input
+            type="number"
+            placeholder={defaultLeads > 0 ? String(defaultLeads) : "e.g. 5000"}
+            value={leads}
+            onChange={(e) => setLeads(e.target.value)}
+            className="h-8 text-sm"
+          />
+        </div>
+        <div className="flex flex-col gap-1 flex-1 min-w-[160px]">
+          <Label className="text-[11px] uppercase tracking-wide text-muted-foreground">Industry</Label>
+          <Select value={String(industryIdx)} onValueChange={(v) => setIndustryIdx(Number(v))}>
+            <SelectTrigger className="h-8 text-sm bg-background"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {INDUSTRIES.map((item, i) => (
+                <SelectItem key={item.label} value={String(i)}>{item.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex flex-col gap-1 flex-1 min-w-[140px]">
+          <Label className="text-[11px] uppercase tracking-wide text-muted-foreground">Region</Label>
+          <Select value={String(regionIdx)} onValueChange={(v) => setRegionIdx(Number(v))}>
+            <SelectTrigger className="h-8 text-sm bg-background"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {REGIONS.map((item, i) => (
+                <SelectItem key={item.label} value={String(i)}>{item.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {leadsNum > 0 && (
+        <div className="space-y-1.5 pt-1">
+          {stages.map((stage, i) => {
+            const pct = maxVal > 0 ? (stage.value / maxVal) * 100 : 0;
+            const convRate = i > 0 && stages[i - 1].value > 0
+              ? ((stage.value / stages[i - 1].value) * 100).toFixed(1) + "%"
+              : null;
+            return (
+              <div key={stage.label} className="flex items-center gap-3">
+                <span className="text-[11px] text-muted-foreground w-28 shrink-0 text-right">{stage.label}</span>
+                <div className="flex-1 rounded-full bg-muted h-5 overflow-hidden">
+                  <div
+                    className={`h-full ${stage.color} rounded-full transition-all duration-500 flex items-center justify-end pr-2`}
+                    style={{ width: `${Math.max(pct, 1)}%` }}
+                  />
+                </div>
+                <span className="text-xs font-semibold text-foreground w-16 text-right">
+                  {stage.value.toLocaleString()}
+                </span>
+                {convRate && (
+                  <span className="text-[10px] text-muted-foreground w-12">{convRate}</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
@@ -228,6 +383,8 @@ const GtmStackPanel = ({ companies }: Props) => {
   }, [selected]);
 
   const company = companies.find((c) => c.slug === selected);
+
+  const totalLeadsCapacity = useMemo(() => computeBudget(layers).totalContacts, [layers]);
 
   const layersForPhase = useMemo(() => {
     return GTM_LAYER_CONFIGS.filter((cfg) => {
@@ -313,8 +470,9 @@ const GtmStackPanel = ({ companies }: Props) => {
         </span>
       </div>
 
-      {/* Budget summary (all layers, all phases) */}
+      {/* Budget summary + conversion funnel (all layers, all phases) */}
       <BudgetSummary layers={layers} />
+      <ConversionFunnel defaultLeads={totalLeadsCapacity} />
 
       {/* Phase tabs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
