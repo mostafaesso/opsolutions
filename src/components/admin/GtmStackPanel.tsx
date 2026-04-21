@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Company } from "@/lib/companies";
-import { GTM_LAYER_CONFIGS } from "@/lib/gtmConfig";
+import { GTM_LAYER_CONFIGS, TOOL_PLANS } from "@/lib/gtmConfig";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, Layers, Rocket, TrendingUp, Sparkles, Save, ChevronDown, ChevronRight } from "lucide-react";
+import { Building2, Layers, Rocket, TrendingUp, Sparkles, Save, ChevronDown, ChevronRight, DollarSign, Users, Zap } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface Props {
@@ -23,16 +23,23 @@ const PHASES: { key: Phase; label: string; description: string; icon: any }[] = 
   { key: "scale", label: "Phase 3 · Scale", description: "Optimisation, signals, expansion layers", icon: TrendingUp },
 ];
 
-// Default phase mapping for the 8 GTM layers
 const DEFAULT_PHASE_FOR_LAYER: Record<number, Phase> = {
-  1: "pre_launch", // Data Sources
-  2: "pre_launch", // Data Scraping
-  8: "pre_launch", // Infrastructure
-  3: "launch",     // Enrichment
-  5: "launch",     // Copywriting
-  6: "launch",     // Email Validation
-  7: "launch",     // Outreach Execution
-  4: "scale",      // Buying Signals
+  1: "pre_launch",
+  2: "pre_launch",
+  8: "pre_launch",
+  3: "launch",
+  5: "launch",
+  6: "launch",
+  7: "launch",
+  4: "scale",
+};
+
+const BILLING_LABEL: Record<string, string> = {
+  monthly: "/mo",
+  annual: "/yr",
+  one_time: " one-time",
+  per_user_month: "/user/mo",
+  free: "Free",
 };
 
 interface DbLayer {
@@ -45,6 +52,149 @@ interface DbLayer {
   is_complete: boolean;
   phase: Phase;
 }
+
+// ── Budget helpers ─────────────────────────────────────────────────────────
+
+function getMonthlyPrice(plan: { price: number; billing: string }): number {
+  if (plan.billing === "free") return 0;
+  if (plan.billing === "annual") return plan.price / 12;
+  return plan.price; // monthly, per_user_month, one_time treated as monthly for estimate
+}
+
+function computeBudget(layers: DbLayer[]) {
+  let totalMonthly = 0;
+  let totalContacts = 0;
+  const selected: { tool: string; planName: string; monthly: number; units: number; unitLabel: string }[] = [];
+
+  for (const layer of layers) {
+    const planMap: Record<string, string> = layer.calculator_data?.tool_plans ?? {};
+    for (const tool of layer.tools_selected) {
+      const plans = TOOL_PLANS[tool];
+      if (!plans) continue;
+      const planName = planMap[tool];
+      const plan = plans.find((p) => p.name === planName) ?? null;
+      if (!plan) continue;
+      const monthly = getMonthlyPrice(plan);
+      totalMonthly += monthly;
+      totalContacts += plan.units_per_month ?? 0;
+      selected.push({ tool, planName: plan.name, monthly, units: plan.units_per_month, unitLabel: plan.unit_label });
+    }
+  }
+
+  return { totalMonthly, totalAnnual: totalMonthly * 12, totalContacts, selected };
+}
+
+// ── Plan picker for a single tool ─────────────────────────────────────────
+
+const ToolPlanPicker = ({
+  tool,
+  selectedPlan,
+  onChange,
+}: {
+  tool: string;
+  selectedPlan: string | null;
+  onChange: (plan: string) => void;
+}) => {
+  const plans = TOOL_PLANS[tool];
+  if (!plans) return null;
+
+  const active = plans.find((p) => p.name === selectedPlan) ?? null;
+
+  return (
+    <div className="mt-2 ml-6 p-3 rounded-lg bg-muted/60 border border-border space-y-2">
+      <div className="flex items-center gap-2">
+        <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Plan</Label>
+        <Select value={selectedPlan ?? ""} onValueChange={onChange}>
+          <SelectTrigger className="h-7 text-xs bg-background flex-1">
+            <SelectValue placeholder="Select plan…" />
+          </SelectTrigger>
+          <SelectContent>
+            {plans.map((p) => (
+              <SelectItem key={p.name} value={p.name}>
+                <span className="flex items-center gap-2">
+                  <span>{p.name}</span>
+                  {p.popular && <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded">Popular</span>}
+                  <span className="text-muted-foreground ml-auto">
+                    {p.billing === "free" ? "Free" : `$${p.price}${BILLING_LABEL[p.billing]}`}
+                  </span>
+                </span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {active && (
+        <div className="flex flex-wrap gap-2 pt-1">
+          <span className="inline-flex items-center gap-1 text-[11px] bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full">
+            <DollarSign className="w-2.5 h-2.5" />
+            {active.billing === "free"
+              ? "Free"
+              : `$${active.price}${BILLING_LABEL[active.billing]}`}
+          </span>
+          {active.units_per_month > 0 && (
+            <span className="inline-flex items-center gap-1 text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full">
+              <Users className="w-2.5 h-2.5" />
+              {active.units_per_month.toLocaleString()} {active.unit_label}
+            </span>
+          )}
+          {active.note && (
+            <span className="text-[11px] text-muted-foreground italic">{active.note}</span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ── Budget summary card ────────────────────────────────────────────────────
+
+const BudgetSummary = ({ layers }: { layers: DbLayer[] }) => {
+  const { totalMonthly, totalAnnual, totalContacts, selected } = computeBudget(layers);
+  if (selected.length === 0) return null;
+
+  return (
+    <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-4 space-y-3">
+      <div className="flex items-center gap-2">
+        <Zap className="w-4 h-4 text-primary" />
+        <h3 className="text-sm font-bold text-foreground">Stack Budget Estimate</h3>
+        <span className="text-[10px] text-muted-foreground ml-auto">based on selected plans</span>
+      </div>
+
+      <div className="grid grid-cols-3 gap-3">
+        <div className="rounded-lg bg-background border border-border p-3 text-center">
+          <p className="text-xs text-muted-foreground">Monthly cost</p>
+          <p className="text-lg font-bold text-foreground">${totalMonthly.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+        </div>
+        <div className="rounded-lg bg-background border border-border p-3 text-center">
+          <p className="text-xs text-muted-foreground">Annual cost</p>
+          <p className="text-lg font-bold text-foreground">${totalAnnual.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+        </div>
+        <div className="rounded-lg bg-background border border-border p-3 text-center">
+          <p className="text-xs text-muted-foreground">Leads/mo capacity</p>
+          <p className="text-lg font-bold text-emerald-600">{totalContacts.toLocaleString()}</p>
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        {selected.map((s) => (
+          <div key={`${s.tool}-${s.planName}`} className="flex items-center gap-2 text-xs">
+            <span className="font-medium text-foreground w-36 truncate">{s.tool}</span>
+            <span className="text-muted-foreground">{s.planName}</span>
+            <span className="ml-auto font-semibold text-foreground">
+              {s.monthly === 0 ? "Free" : `$${s.monthly.toLocaleString(undefined, { maximumFractionDigits: 0 })}/mo`}
+            </span>
+            {s.units > 0 && (
+              <span className="text-emerald-600 w-28 text-right">{s.units.toLocaleString()} {s.unitLabel.split("/")[0]}</span>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ── Main panel ─────────────────────────────────────────────────────────────
 
 const GtmStackPanel = ({ companies }: Props) => {
   const [selected, setSelected] = useState<string>(companies[0]?.slug ?? "");
@@ -117,6 +267,15 @@ const GtmStackPanel = ({ companies }: Props) => {
       );
   };
 
+  const setToolPlan = (layerNumber: number, tool: string, planName: string) => {
+    const existing = layers.find((l) => l.layer_number === layerNumber);
+    const currentCalc = existing?.calculator_data ?? {};
+    const currentPlans = currentCalc.tool_plans ?? {};
+    upsertLayer(layerNumber, {
+      calculator_data: { ...currentCalc, tool_plans: { ...currentPlans, [tool]: planName } },
+    });
+  };
+
   const movePhase = async (layerNumber: number, newPhase: Phase) => {
     await upsertLayer(layerNumber, { phase: newPhase });
     toast({ title: `Layer ${layerNumber} moved to ${PHASES.find((p) => p.key === newPhase)?.label}` });
@@ -152,6 +311,9 @@ const GtmStackPanel = ({ companies }: Props) => {
           Editing GTM stack for <strong>{company?.name}</strong> only.
         </span>
       </div>
+
+      {/* Budget summary (all layers, all phases) */}
+      <BudgetSummary layers={layers} />
 
       {/* Phase tabs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -197,6 +359,8 @@ const GtmStackPanel = ({ companies }: Props) => {
             const layer = layers.find((l) => l.layer_number === cfg.number);
             const isOpen = openLayer === cfg.number;
             const layerPhase = layer?.phase ?? DEFAULT_PHASE_FOR_LAYER[cfg.number] ?? "pre_launch";
+            const toolPlans: Record<string, string> = layer?.calculator_data?.tool_plans ?? {};
+
             return (
               <div key={cfg.number} className="rounded-xl border border-border bg-card overflow-hidden">
                 <button
@@ -233,24 +397,37 @@ const GtmStackPanel = ({ companies }: Props) => {
                       </Select>
                     </div>
 
-                    {/* Tools */}
+                    {/* Tools + plan picker */}
                     <div>
                       <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tools used</Label>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
                         {cfg.toolOptions.map((t) => {
                           const checked = (layer?.tools_selected ?? []).includes(t);
+                          const hasPlans = !!TOOL_PLANS[t];
                           return (
-                            <label key={t} className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm cursor-pointer hover:border-primary/40">
-                              <Checkbox
-                                checked={checked}
-                                onCheckedChange={() => {
-                                  const tools = layer?.tools_selected ?? [];
-                                  const next = checked ? tools.filter((x) => x !== t) : [...tools, t];
-                                  upsertLayer(cfg.number, { tools_selected: next });
-                                }}
-                              />
-                              <span className="text-foreground">{t}</span>
-                            </label>
+                            <div key={t}>
+                              <label className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm cursor-pointer hover:border-primary/40">
+                                <Checkbox
+                                  checked={checked}
+                                  onCheckedChange={() => {
+                                    const tools = layer?.tools_selected ?? [];
+                                    const next = checked ? tools.filter((x) => x !== t) : [...tools, t];
+                                    upsertLayer(cfg.number, { tools_selected: next });
+                                  }}
+                                />
+                                <span className="text-foreground flex-1">{t}</span>
+                                {hasPlans && checked && toolPlans[t] && (
+                                  <span className="text-[10px] text-muted-foreground truncate max-w-[80px]">{toolPlans[t]}</span>
+                                )}
+                              </label>
+                              {checked && hasPlans && (
+                                <ToolPlanPicker
+                                  tool={t}
+                                  selectedPlan={toolPlans[t] ?? null}
+                                  onChange={(plan) => setToolPlan(cfg.number, t, plan)}
+                                />
+                              )}
+                            </div>
                           );
                         })}
                       </div>
@@ -282,7 +459,7 @@ const GtmStackPanel = ({ companies }: Props) => {
                       </div>
                     )}
 
-                    {/* Comments */}
+                    {/* Notes */}
                     <div>
                       <Label className="text-xs">Notes</Label>
                       <Textarea
