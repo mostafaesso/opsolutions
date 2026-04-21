@@ -659,7 +659,7 @@ const GtmStackTab = ({
                           return (
                             <div key={t}>
                               <label className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer transition-colors ${
-                                checked ? "border-primary/40 bg-primary/3" : "border-border bg-background hover:border-primary/30"
+                                checked ? "border-primary/40 bg-primary/5" : "border-border bg-background hover:border-primary/30"
                               }`}>
                                 <Checkbox
                                   checked={checked}
@@ -773,7 +773,7 @@ const GtmStackPanel = ({ companies }: Props) => {
     setLoading(false);
   };
 
-  useEffect(() => { refresh(); }, [selectedSlug]);
+  useEffect(() => { refresh(); }, [selectedSlug]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const company = companies.find((c) => c.slug === selectedSlug);
   const totalLeadsCapacity = useMemo(() => computeBudget(layers).totalContacts, [layers]);
@@ -858,7 +858,7 @@ const GtmStackPanel = ({ companies }: Props) => {
                 onClick={() => setMainTab(tab.key)}
                 className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
                   active
-                    ? "border-primary text-primary bg-primary/3"
+                    ? "border-primary text-primary bg-primary/5"
                     : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30"
                 }`}
               >

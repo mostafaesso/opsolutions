@@ -199,7 +199,7 @@ ${!siteFetched && hint ? "Note: Website could not be scraped — rely on the adm
 ${siteContext || "(site could not be fetched)"}
 === END WEBSITE CONTENT ===
 
-Build the ICP via the build_icp tool. If admin context was provided, it overrides anything from the scraped website. Pay special attention to geography — use EXACTLY the regions mentioned in the context.`;`;
+Build the ICP via the build_icp tool. If admin context was provided, it overrides anything from the scraped website. Pay special attention to geography — use EXACTLY the regions mentioned in the context.`;
 
     const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
