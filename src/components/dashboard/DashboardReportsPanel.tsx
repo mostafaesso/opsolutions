@@ -11,16 +11,23 @@ import {
   MapPin,
   Filter,
   ExternalLink,
+  CheckCircle2,
+  XCircle,
+  Eye,
+  EyeOff,
+  KeyRound,
 } from "lucide-react";
 import { Company } from "@/lib/companies";
 import { useDashboardItems, DashboardItem, ReportItem } from "@/hooks/useDashboardItems";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
+import { useHubSpotCredentials } from "@/hooks/useHubSpotCredentials";
 import { LogicEditorDialog, LogicFormData } from "./LogicEditorDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -129,6 +136,115 @@ const ItemCard = ({ item, type, companySlug, onUpdate, onDelete }: ItemCardProps
     </div>
   </div>
 );
+
+const TokenStatusCard = ({ companySlug }: { companySlug: string }) => {
+  const { credential, loading, saveCredential, deleteCredential } = useHubSpotCredentials(companySlug);
+  const { toast } = useToast();
+  const [token, setToken] = useState("");
+  const [showToken, setShowToken] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!token.trim()) return;
+    setSaving(true);
+    try {
+      await saveCredential(token.trim());
+      setToken("");
+      setEditing(false);
+      toast({ title: "Token saved", description: "HubSpot private app token connected." });
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirm("Remove this HubSpot token?")) return;
+    try {
+      await deleteCredential();
+      toast({ title: "Token removed" });
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="flex items-center gap-2">
+          <KeyRound className="w-4 h-4 text-primary" />
+          <CardTitle className="text-base">HubSpot Token</CardTitle>
+          {!loading && (
+            credential
+              ? <Badge className="gap-1 bg-green-100 text-green-700 border-green-200 hover:bg-green-100"><CheckCircle2 className="w-3 h-3" /> Connected</Badge>
+              : <Badge variant="destructive" className="gap-1"><XCircle className="w-3 h-3" /> Not connected</Badge>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <p className="text-xs text-muted-foreground">Checking token…</p>
+        ) : credential && !editing ? (
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs text-muted-foreground">Private app token saved</p>
+              <p className="text-sm font-mono mt-0.5">
+                ••••••••••••••••{credential.private_app_token.slice(-4)}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Updated {new Date(credential.updated_at).toLocaleDateString()}
+              </p>
+            </div>
+            <div className="flex gap-2 shrink-0">
+              <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
+                Update
+              </Button>
+              <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={handleDelete}>
+                <Trash2 className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {!credential && (
+              <p className="text-xs text-muted-foreground">
+                Paste your HubSpot private app token to connect dashboards and reports to this company's CRM data.
+              </p>
+            )}
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Input
+                  type={showToken ? "text" : "password"}
+                  placeholder="pat-na1-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                  value={token}
+                  onChange={(e) => setToken(e.target.value)}
+                  className="pr-9 font-mono text-xs"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowToken((v) => !v)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showToken ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                </button>
+              </div>
+              <Button size="sm" onClick={handleSave} disabled={saving || !token.trim()}>
+                {saving ? "Saving…" : "Save"}
+              </Button>
+              {editing && (
+                <Button size="sm" variant="ghost" onClick={() => { setEditing(false); setToken(""); }}>
+                  Cancel
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
 
 const DashboardReportsPanel = ({ companies }: Props) => {
   const [selectedSlug, setSelectedSlug] = useState<string>(companies[0]?.slug ?? "");
@@ -243,6 +359,9 @@ const DashboardReportsPanel = ({ companies }: Props) => {
 
       {selectedSlug && (
         <>
+          {/* Token status */}
+          <TokenStatusCard companySlug={selectedSlug} />
+
           {/* Settings */}
           <Card>
             <CardHeader>
