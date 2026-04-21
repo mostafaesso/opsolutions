@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { GraduationCap, Bell, Rocket, FileText, Video } from "lucide-react";
+import { GraduationCap, Bell, Rocket, FileText, Video, BarChart2 } from "lucide-react";
 import { fetchCompanyBySlug, Company } from "@/lib/companies";
 import { useTrainingUser, useCompletions, TrainingUser } from "@/hooks/useTrainingUser";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
@@ -14,6 +14,7 @@ import DocTraining from "@/components/training/DocTraining";
 import VideoTraining from "@/components/training/VideoTraining";
 import CrmUpdatesFeed from "@/components/crm/CrmUpdatesFeed";
 import GtmModule from "@/components/gtm/GtmModule";
+import DashboardCompanyView from "@/components/dashboard/DashboardCompanyView";
 
 const IMPERSONATE_USER: TrainingUser = {
   id: "impersonate",
@@ -22,7 +23,7 @@ const IMPERSONATE_USER: TrainingUser = {
   company_slug: "",
 };
 
-type ModuleKey = "training" | "crm" | "gtm";
+type ModuleKey = "training" | "crm" | "gtm" | "dashboard_reports";
 
 const CompanyIndex = () => {
   const { companySlug } = useParams<{ companySlug: string }>();
@@ -116,6 +117,13 @@ const CompanyIndex = () => {
   }
   if (canSeeGtm) {
     sidebarItems.push({ key: "gtm", label: "GTM", icon: <Rocket className="w-4 h-4" /> });
+  }
+  if (isSuperAdmin || settings.dashboards_enabled) {
+    sidebarItems.push({
+      key: "dashboard_reports",
+      label: "Dashboards & Reports",
+      icon: <BarChart2 className="w-4 h-4" />,
+    });
   }
 
   // Training sub-tab default
@@ -212,6 +220,24 @@ const CompanyIndex = () => {
             </p>
           </div>
           <GtmModule companySlug={companySlug!} canEdit={isSuperAdmin} />
+        </div>
+      )}
+
+      {activeModule === "dashboard_reports" && (
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+              Dashboards & Reports
+            </h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Live data dashboards and reports for {company.name}.
+            </p>
+          </div>
+          <DashboardCompanyView
+            companySlug={companySlug!}
+            permission={settings.dashboards_permission}
+            canAdmin={isSuperAdmin}
+          />
         </div>
       )}
     </CompanyShell>

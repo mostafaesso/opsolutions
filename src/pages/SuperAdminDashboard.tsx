@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Trash2, Save, X, Pencil, UserPlus, ChevronDown, ChevronRight, BookOpen, Settings2, Eye, LayoutDashboard, Building2, Users, Target, Layers, GraduationCap, Bell, Activity } from "lucide-react";
+import { LogOut, Trash2, Save, X, Pencil, UserPlus, ChevronDown, ChevronRight, BookOpen, Settings2, Eye, LayoutDashboard, Building2, Users, Target, Layers, GraduationCap, Bell, Activity, BarChart2 } from "lucide-react";
 import IcpTemplatesPanel from "@/components/admin/IcpTemplatesPanel";
 import GtmStackPanel from "@/components/admin/GtmStackPanel";
 import TrainingsPanel from "@/components/admin/TrainingsPanel";
 import CrmUpdatesPanel from "@/components/admin/CrmUpdatesPanel";
 import CrmStatusSection from "@/components/admin/CrmStatusSection";
+import DashboardReportsPanel from "@/components/dashboard/DashboardReportsPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { useSuperAdmin } from "@/hooks/useSuperAdmin";
 import { startImpersonation, ImpersonateRole } from "@/lib/impersonation";
@@ -85,7 +86,7 @@ const SuperAdminDashboard = () => {
   const [addLearnerForm, setAddLearnerForm] = useState({ full_name: "", email: "", company_slug: "" });
   const [addLearnerSubmitting, setAddLearnerSubmitting] = useState(false);
 
-  const [section, setSection] = useState<"overview" | "companies" | "learners" | "icp" | "gtm" | "trainings" | "crm" | "crm_status">("overview");
+  const [section, setSection] = useState<"overview" | "companies" | "learners" | "icp" | "gtm" | "trainings" | "crm" | "crm_status" | "dashboard_reports">("overview");
 
   useEffect(() => {
     if (!authLoading && !isSuperAdmin) navigate("/login", { replace: true });
@@ -281,6 +282,7 @@ const SuperAdminDashboard = () => {
     { key: "trainings", label: "Trainings", icon: <GraduationCap className="w-4 h-4" /> },
     { key: "crm", label: "CRM Updates", icon: <Bell className="w-4 h-4" /> },
     { key: "crm_status", label: "Current CRM Status", icon: <Activity className="w-4 h-4" /> },
+    { key: "dashboard_reports", label: "Dashboards & Reports", icon: <BarChart2 className="w-4 h-4" /> },
   ];
 
   return (
@@ -346,6 +348,7 @@ const SuperAdminDashboard = () => {
               {section === "trainings" && "Global training modules + per-company assignments."}
               {section === "crm" && "Post company-specific updates with role-based visibility."}
               {section === "crm_status" && "Live HubSpot diagnostic per company with saved private app token."}
+              {section === "dashboard_reports" && "Configure dashboards and reports per company — set visibility, permissions, and logic."}
             </p>
           </div>
 
@@ -791,6 +794,9 @@ const SuperAdminDashboard = () => {
 
         {/* ── Current CRM Status ── */}
         {section === "crm_status" && <CrmStatusSection companies={companies} />}
+
+        {/* ── Dashboards & Reports ── */}
+        {section === "dashboard_reports" && <DashboardReportsPanel companies={companies} />}
         </div>
       </main>
 
