@@ -188,13 +188,14 @@ CRITICAL RULES — violating these makes the ICP useless:
 
     const userPrompt = `Company: ${company.name ?? "Unknown"}
 Domain: ${company.customDomain}
-${hint ? `Extra context from admin: ${hint}\n` : ""}
-${!siteFetched ? "⚠️ WARNING: Website could not be scraped. Use only the domain name and any extra context provided. Set validation_notes to explain this limitation.\n" : ""}
-=== SCRAPED WEBSITE CONTENT (primary source of truth) ===
+${hint ? `=== ADMIN-PROVIDED CONTEXT (highest priority — treat as ground truth) ===\n${hint}\n=== END ADMIN CONTEXT ===\n` : ""}
+${!siteFetched && !hint ? "⚠️ WARNING: Website could not be scraped and no manual context was provided. Make a best-effort ICP from the domain name only and flag all fields as needing review in validation_notes.\n" : ""}
+${!siteFetched && hint ? "Note: Website could not be scraped — rely on the admin-provided context above.\n" : ""}
+=== SCRAPED WEBSITE CONTENT (use to supplement admin context above) ===
 ${siteContext || "(site could not be fetched)"}
 === END WEBSITE CONTENT ===
 
-Build the ICP via the build_icp tool. Every field must match what this specific company actually does and sells. Pay special attention to geography — use EXACTLY the regions mentioned on their site.`;
+Build the ICP via the build_icp tool. If admin context was provided, it overrides anything from the scraped website. Pay special attention to geography — use EXACTLY the regions mentioned in the context.`;`;
 
     const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",

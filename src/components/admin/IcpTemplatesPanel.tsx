@@ -737,27 +737,37 @@ const CompanyView = ({
             </p>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-2">
-          <Input
-            value={aiHint}
-            onChange={(e) => setAiHint(e.target.value)}
-            placeholder="Optional: extra context (e.g. 'they sell HR software to SMBs in GCC')"
-            className="bg-background"
-          />
-          <Button onClick={handleAiGenerateNew} disabled={aiBusy || !company} className="gap-2">
-            <Sparkles className="w-4 h-4" />
-            {aiBusy ? "Generating…" : "Generate new ICP"}
-          </Button>
-          <Button
-            onClick={handleAiScoreCurrent}
-            disabled={aiBusy || !draft}
-            variant="outline"
-            className="gap-2"
-            title="Generate a fresh AI ICP and compare it to the currently selected ICP"
-          >
-            <Gauge className="w-4 h-4" />
-            Score current ICP
-          </Button>
+        <div className="space-y-2">
+          <div>
+            <Label className="text-xs font-semibold text-muted-foreground">
+              Company Context <span className="text-destructive">*</span>
+            </Label>
+            <p className="text-[11px] text-muted-foreground mt-0.5 mb-1.5">
+              Paste the company's LinkedIn About, website description, or write what they sell, who they sell to, and which regions. The more you add, the more accurate the ICP.
+            </p>
+            <Textarea
+              value={aiHint}
+              onChange={(e) => setAiHint(e.target.value)}
+              placeholder={`Example:\n"Engagesoft sells B2B CRM and sales engagement software to SMEs and mid-market companies in the GCC region (Saudi Arabia, UAE, Kuwait, Qatar, Bahrain, Oman). Their main buyers are Sales Directors, VP Sales, and CROs. They help companies with pipeline management and outbound automation."`}
+              className="bg-background min-h-[110px] text-sm resize-none"
+            />
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            <Button onClick={handleAiGenerateNew} disabled={aiBusy || !company} className="gap-2">
+              <Sparkles className="w-4 h-4" />
+              {aiBusy ? "Generating…" : "Generate new ICP"}
+            </Button>
+            <Button
+              onClick={handleAiScoreCurrent}
+              disabled={aiBusy || !draft}
+              variant="outline"
+              className="gap-2"
+              title="Generate a fresh AI ICP and compare it to the currently selected ICP"
+            >
+              <Gauge className="w-4 h-4" />
+              Score current ICP
+            </Button>
+          </div>
         </div>
 
         {aiScore && (
