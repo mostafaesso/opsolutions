@@ -68,9 +68,10 @@ const BILLING_LABEL: Record<BillingType, string> = {
 };
 
 const MAIN_TABS: { key: MainTab; label: string; icon: any }[] = [
-  { key: "stack",      label: "GTM Stack",      icon: Layers },
-  { key: "forecast",   label: "Lead Forecast",  icon: BarChart3 },
-  { key: "approaches", label: "GTM Approaches", icon: BookOpen },
+  { key: "stack",      label: "GTM Stack",          icon: Layers },
+  { key: "forecast",   label: "Lead Forecast",      icon: BarChart3 },
+  { key: "crm_status", label: "Current CRM Status", icon: Activity },
+  { key: "approaches", label: "GTM Approaches",     icon: BookOpen },
 ];
 
 // ── Budget helpers ─────────────────────────────────────────────────────────
