@@ -825,30 +825,57 @@ const GtmStackPanel = ({ companies }: Props) => {
     );
   }
 
+  const completed = layers.filter((l) => l.is_complete).length;
+
   return (
-    <div className="space-y-5">
-      {/* Header bar */}
-      <div className="rounded-xl border border-border bg-card overflow-hidden">
-        {/* Company picker row */}
-        <div className="flex flex-wrap items-center gap-3 px-5 py-3 border-b border-border bg-muted/20">
-          <Building2 className="w-4 h-4 text-muted-foreground shrink-0" />
-          <Select value={selectedSlug} onValueChange={setSelectedSlug}>
-            <SelectTrigger className="w-[240px] bg-background h-8 text-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {companies.map((c) => (
-                <SelectItem key={c.slug} value={c.slug}>{c.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <span className="text-xs text-muted-foreground ml-auto hidden sm:block">
-            GTM workspace for <strong className="text-foreground">{company?.name}</strong>
-          </span>
+    <div className="space-y-6">
+      {/* ── Hero header ────────────────────────────────────────── */}
+      <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-primary/8 via-card to-card">
+        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-accent/10 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+
+        <div className="relative px-5 md:px-7 py-5 md:py-6 flex flex-col lg:flex-row lg:items-center gap-5">
+          <div className="flex items-center gap-4 min-w-0 flex-1">
+            <div className="shrink-0 h-14 w-14 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shadow-sm">
+              <Layers className="h-6 w-6" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-1">
+                GTM Workspace
+              </p>
+              <h2 className="text-xl md:text-2xl font-bold text-foreground tracking-tight truncate">
+                {company?.name ?? "Select a company"}
+              </h2>
+              <div className="mt-1.5 flex items-center gap-3 flex-wrap text-[11px] text-muted-foreground">
+                <span className="inline-flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                  <strong className="text-foreground">{completed}</strong>/8 layers complete
+                </span>
+                <span className="h-1 w-1 rounded-full bg-border" />
+                <span className="inline-flex items-center gap-1">
+                  <Users className="w-3 h-3" />
+                  <strong className="text-foreground">{totalLeadsCapacity.toLocaleString()}</strong> leads/mo capacity
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 lg:shrink-0">
+            <Select value={selectedSlug} onValueChange={setSelectedSlug}>
+              <SelectTrigger className="w-full sm:w-[220px] bg-background h-10">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {companies.map((c) => (
+                  <SelectItem key={c.slug} value={c.slug}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Tab nav */}
-        <div className="flex">
+        <div className="relative flex border-t border-border bg-card/40 backdrop-blur-sm overflow-x-auto">
           {MAIN_TABS.map((tab) => {
             const Icon = tab.icon;
             const active = mainTab === tab.key;
@@ -856,14 +883,15 @@ const GtmStackPanel = ({ companies }: Props) => {
               <button
                 key={tab.key}
                 onClick={() => setMainTab(tab.key)}
-                className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
-                  active
-                    ? "border-primary text-primary bg-primary/5"
-                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                className={`relative flex items-center gap-2 px-5 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
+                  active ? "text-primary" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
                 {tab.label}
+                {active && (
+                  <span className="absolute left-3 right-3 bottom-0 h-0.5 rounded-t-full bg-primary" />
+                )}
               </button>
             );
           })}
