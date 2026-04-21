@@ -47,12 +47,16 @@ export const useDashboardItems = (companySlug: string) => {
       return;
     }
     setLoading(true);
-    const [dbRes, rpRes] = await Promise.all([
-      (supabase as any).from("company_dashboards").select("*").eq("company_slug", companySlug).order("sort_order"),
-      (supabase as any).from("company_reports").select("*").eq("company_slug", companySlug).order("sort_order"),
-    ]);
-    setDashboards(dbRes.data ?? []);
-    setReports(rpRes.data ?? []);
+    try {
+      const [dbRes, rpRes] = await Promise.all([
+        (supabase as any).from("company_dashboards").select("*").eq("company_slug", companySlug).order("sort_order"),
+        (supabase as any).from("company_reports").select("*").eq("company_slug", companySlug).order("sort_order"),
+      ]);
+      setDashboards(dbRes.data ?? []);
+      setReports(rpRes.data ?? []);
+    } catch {
+      // Tables may not exist yet — fail silently, show empty state
+    }
     setLoading(false);
   }, [companySlug]);
 
@@ -62,7 +66,7 @@ export const useDashboardItems = (companySlug: string) => {
 
   const addDashboard = async (item: NewDashboard) => {
     const { error } = await (supabase as any).from("company_dashboards").insert(item);
-    if (error) throw error;
+    if (error) throw new Error(error.message ?? "Failed to add dashboard — the database table may still be loading. Try again in a moment.");
     await refresh();
   };
 
@@ -71,19 +75,19 @@ export const useDashboardItems = (companySlug: string) => {
       .from("company_dashboards")
       .update({ ...patch, updated_at: new Date().toISOString() })
       .eq("id", id);
-    if (error) throw error;
+    if (error) throw new Error(error.message ?? "Failed to update dashboard.");
     await refresh();
   };
 
   const deleteDashboard = async (id: string) => {
     const { error } = await (supabase as any).from("company_dashboards").delete().eq("id", id);
-    if (error) throw error;
+    if (error) throw new Error(error.message ?? "Failed to delete dashboard.");
     await refresh();
   };
 
   const addReport = async (item: NewReport) => {
     const { error } = await (supabase as any).from("company_reports").insert(item);
-    if (error) throw error;
+    if (error) throw new Error(error.message ?? "Failed to add report — the database table may still be loading. Try again in a moment.");
     await refresh();
   };
 
@@ -92,13 +96,13 @@ export const useDashboardItems = (companySlug: string) => {
       .from("company_reports")
       .update({ ...patch, updated_at: new Date().toISOString() })
       .eq("id", id);
-    if (error) throw error;
+    if (error) throw new Error(error.message ?? "Failed to update report.");
     await refresh();
   };
 
   const deleteReport = async (id: string) => {
     const { error } = await (supabase as any).from("company_reports").delete().eq("id", id);
-    if (error) throw error;
+    if (error) throw new Error(error.message ?? "Failed to delete report.");
     await refresh();
   };
 
