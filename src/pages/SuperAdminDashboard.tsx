@@ -4,7 +4,7 @@ import { LogOut, Trash2, Save, X, Pencil, UserPlus, ChevronDown, ChevronRight, B
 import IcpTemplatesPanel from "@/components/admin/IcpTemplatesPanel";
 import GtmStackPanel from "@/components/admin/GtmStackPanel";
 import TrainingsPanel from "@/components/admin/TrainingsPanel";
-import CrmUpdatesPanel from "@/components/admin/CrmUpdatesPanel";
+import CrmSection from "@/components/admin/CrmSection";
 import { supabase } from "@/integrations/supabase/client";
 import { useSuperAdmin } from "@/hooks/useSuperAdmin";
 import { startImpersonation, ImpersonateRole } from "@/lib/impersonation";
