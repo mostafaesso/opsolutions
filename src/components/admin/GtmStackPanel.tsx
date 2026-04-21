@@ -794,7 +794,8 @@ const GtmStackPanel = ({ companies }: Props) => {
   useEffect(() => { refresh(); }, [selectedSlug]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const company = companies.find((c) => c.slug === selectedSlug);
-  const totalLeadsCapacity = useMemo(() => computeBudget(layers).totalContacts, [layers]);
+  const stackBudget = useMemo(() => computeBudget(layers), [layers]);
+  const totalLeadsCapacity = stackBudget.totalContacts;
 
   const layersForPhase = useMemo(() => {
     return GTM_LAYER_CONFIGS.filter((cfg) => {
