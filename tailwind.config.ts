@@ -2,7 +2,12 @@ import type { Config } from "tailwindcss";
 
 export default {
   darkMode: ["class"],
-  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
+  content: [
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+  ],
   prefix: "",
   theme: {
     container: {
@@ -58,32 +63,74 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
       },
+      fontFamily: {
+        sans: ["Inter", "system-ui", "sans-serif"],
+        display: ["Plus Jakarta Sans", "Inter", "system-ui", "sans-serif"],
+        mono: ["JetBrains Mono", "Fira Code", "monospace"],
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      boxShadow: {
+        "glow-sm":     "0 0 10px hsl(var(--primary) / 0.12)",
+        "glow-md":     "0 0 20px hsl(var(--primary) / 0.18), 0 0 40px hsl(var(--primary) / 0.08)",
+        "glow-lg":     "0 0 40px hsl(var(--primary) / 0.2),  0 0 80px hsl(var(--primary) / 0.1)",
+        "glow-accent": "0 0 15px hsl(var(--accent) / 0.25)",
+        "card":        "0 1px 3px hsl(var(--foreground) / 0.06), 0 1px 2px hsl(var(--foreground) / 0.04)",
+        "card-hover":  "0 8px 30px hsl(var(--foreground) / 0.08), 0 2px 8px hsl(var(--foreground) / 0.04)",
+        "form-focus":  "0 0 0 3px hsl(var(--ring) / 0.15)",
+      },
+      backgroundImage: {
+        "gradient-radial":   "radial-gradient(var(--tw-gradient-stops))",
+        "gradient-primary":  "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(230 72% 30%) 100%)",
+        "gradient-accent":   "linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(32 100% 66%) 100%)",
+        "shimmer":           "linear-gradient(90deg, transparent 0%, hsl(var(--foreground) / 0.04) 50%, transparent 100%)",
+      },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to:   { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to:   { height: "0" },
+        },
+        "fade-in": {
+          from: { opacity: "0" },
+          to:   { opacity: "1" },
+        },
+        "fade-in-up": {
+          from: { opacity: "0", transform: "translateY(10px)" },
+          to:   { opacity: "1", transform: "translateY(0)" },
+        },
+        "slide-in-right": {
+          from: { opacity: "0", transform: "translateX(-10px)" },
+          to:   { opacity: "1", transform: "translateX(0)" },
+        },
+        "shimmer": {
+          from: { backgroundPosition: "-200% 0" },
+          to:   { backgroundPosition:  "200% 0" },
+        },
+        "float": {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%":      { transform: "translateY(-6px)" },
+        },
+        "pulse-ring": {
+          "0%":   { boxShadow: "0 0 0 0    hsl(var(--accent) / 0.4)" },
+          "100%": { boxShadow: "0 0 0 12px hsl(var(--accent) / 0)" },
         },
       },
       animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
+        "accordion-down":  "accordion-down 0.2s ease-out",
+        "accordion-up":    "accordion-up 0.2s ease-out",
+        "fade-in":         "fade-in 0.3s ease-out",
+        "fade-in-up":      "fade-in-up 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+        "slide-in-right":  "slide-in-right 0.35s cubic-bezier(0.16, 1, 0.3, 1)",
+        "shimmer":         "shimmer 2s linear infinite",
+        "float":           "float 3s ease-in-out infinite",
+        "pulse-ring":      "pulse-ring 1.5s ease-out infinite",
       },
     },
   },
