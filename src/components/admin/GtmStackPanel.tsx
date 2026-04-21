@@ -245,23 +245,52 @@ const REGIONS = [
 
 interface FunnelStage { label: string; value: number; pct: string; barColor: string; labelColor: string }
 
-const LeadForecastTab = ({ defaultLeads }: { defaultLeads: number }) => {
+const LeadForecastTab = ({
+  defaultLeads,
+  monthlyCost,
+  oneTimeCost,
+}: {
+  defaultLeads: number;
+  monthlyCost: number;
+  oneTimeCost: number;
+}) => {
   const [leads, setLeads] = useState("");
   const [industryIdx, setIndustryIdx] = useState(0);
   const [regionIdx, setRegionIdx] = useState(0);
+  const [dealSize, setDealSize] = useState("");
+  const [extraCost, setExtraCost] = useState("");
 
   const leadsNum = parseInt(leads || String(defaultLeads), 10) || 0;
+  const dealSizeNum = parseFloat(dealSize) || 0;
+  const extraCostNum = parseFloat(extraCost) || 0;
   const ind = INDUSTRIES[industryIdx];
   const reg = REGIONS[regionIdx];
 
+  // Total monthly cost = recurring stack + amortized one-time (12mo) + manual extra (people, content, etc.)
+  const totalMonthlyCost = monthlyCost + oneTimeCost / 12 + extraCostNum;
+
+  // Industry-standard cold outbound benchmarks (B2B SaaS averages — Apollo, Smartlead, Belkins 2024):
+  //   Sent → Opened: ~50%
+  //   Sent → Replied: ~3% (1-5% range)
+  //   Replied → Positive/Interested: ~25% (20-30%)
+  //   Interested → Demo booked: ~60%
+  //   Demo → Closed-won: ~22% (B2B avg 20-25%)
+  const BENCH = {
+    openRate: 0.50,
+    replyRate: 0.03,
+    positiveRate: 0.25,
+    demoRate: 0.60,
+    closeRate: 0.22,
+  };
+
   const stages: FunnelStage[] = useMemo(() => {
     if (leadsNum === 0) return [];
-    const sent      = leadsNum;
-    const opened    = Math.round(sent * 0.45);
-    const replied   = Math.round(sent * 0.03 * ind.replyMult * reg.replyMult);
-    const interested = Math.round(replied * 0.35);
-    const demos     = Math.round(interested * 0.60);
-    const closed    = Math.round(demos * 0.20 * ind.closeMult * reg.closeMult);
+    const sent       = leadsNum;
+    const opened     = Math.round(sent * BENCH.openRate);
+    const replied    = Math.round(sent * BENCH.replyRate * ind.replyMult * reg.replyMult);
+    const interested = Math.round(replied * BENCH.positiveRate);
+    const demos      = Math.round(interested * BENCH.demoRate);
+    const closed     = Math.round(demos * BENCH.closeRate * ind.closeMult * reg.closeMult);
     const rows = [
       { label: "Leads sourced",  value: sent,       barColor: "bg-slate-400",   labelColor: "text-slate-600" },
       { label: "Emails sent",    value: sent,       barColor: "bg-blue-400",    labelColor: "text-blue-600" },
@@ -275,9 +304,16 @@ const LeadForecastTab = ({ defaultLeads }: { defaultLeads: number }) => {
       ...r,
       pct: i === 0 ? "100%" : rows[i - 1].value > 0 ? ((r.value / rows[i - 1].value) * 100).toFixed(1) + "%" : "—",
     }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [leadsNum, industryIdx, regionIdx]);
 
   const maxVal = stages[0]?.value || 1;
+  const closedDeals = stages[6]?.value ?? 0;
+  const revenue = closedDeals * dealSizeNum;
+  const profit = revenue - totalMonthlyCost;
+  const roiPct = totalMonthlyCost > 0 ? (profit / totalMonthlyCost) * 100 : 0;
+  const costPerLead = leadsNum > 0 ? totalMonthlyCost / leadsNum : 0;
+  const costPerDeal = closedDeals > 0 ? totalMonthlyCost / closedDeals : 0;
 
   return (
     <div className="space-y-5">
@@ -287,12 +323,12 @@ const LeadForecastTab = ({ defaultLeads }: { defaultLeads: number }) => {
             <BarChart3 className="w-3.5 h-3.5 text-primary" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-foreground">Lead Forecast</h3>
-            <p className="text-[11px] text-muted-foreground">Expected conversions at each outbound stage</p>
+            <h3 className="text-sm font-bold text-foreground">Lead Forecast & ROI</h3>
+            <p className="text-[11px] text-muted-foreground">B2B outbound benchmarks · cost & return on investment</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           <div className="space-y-1">
             <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Leads / month</Label>
             <Input
@@ -303,8 +339,30 @@ const LeadForecastTab = ({ defaultLeads }: { defaultLeads: number }) => {
               className="h-9"
             />
             {defaultLeads > 0 && !leads && (
-              <p className="text-[10px] text-muted-foreground">Using stack capacity: {defaultLeads.toLocaleString()}</p>
+              <p className="text-[10px] text-muted-foreground">Stack capacity: {defaultLeads.toLocaleString()}</p>
             )}
+          </div>
+          <div className="space-y-1">
+            <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Avg deal size ($)</Label>
+            <Input
+              type="number"
+              placeholder="e.g. 5,000"
+              value={dealSize}
+              onChange={(e) => setDealSize(e.target.value)}
+              className="h-9"
+            />
+            <p className="text-[10px] text-muted-foreground">ACV per closed deal</p>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Extra cost / mo ($)</Label>
+            <Input
+              type="number"
+              placeholder="e.g. 2,000"
+              value={extraCost}
+              onChange={(e) => setExtraCost(e.target.value)}
+              className="h-9"
+            />
+            <p className="text-[10px] text-muted-foreground">SDR salary, content, etc.</p>
           </div>
           <div className="space-y-1">
             <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Industry</Label>
@@ -329,6 +387,29 @@ const LeadForecastTab = ({ defaultLeads }: { defaultLeads: number }) => {
             </Select>
           </div>
         </div>
+
+        {/* Cost summary chips */}
+        {(monthlyCost > 0 || oneTimeCost > 0 || extraCostNum > 0) && (
+          <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px]">
+            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-muted text-muted-foreground">
+              <DollarSign className="w-3 h-3" />
+              Stack: <strong className="text-foreground">${monthlyCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}/mo</strong>
+            </span>
+            {oneTimeCost > 0 && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-muted text-muted-foreground">
+                Setup amortized: <strong className="text-foreground">${(oneTimeCost / 12).toLocaleString(undefined, { maximumFractionDigits: 0 })}/mo</strong>
+              </span>
+            )}
+            {extraCostNum > 0 && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-muted text-muted-foreground">
+                Extra: <strong className="text-foreground">${extraCostNum.toLocaleString(undefined, { maximumFractionDigits: 0 })}/mo</strong>
+              </span>
+            )}
+            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-primary/10 text-primary border border-primary/20">
+              Total: <strong>${totalMonthlyCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}/mo</strong>
+            </span>
+          </div>
+        )}
 
         {stages.length > 0 && (
           <div className="space-y-2 pt-1">
@@ -366,28 +447,80 @@ const LeadForecastTab = ({ defaultLeads }: { defaultLeads: number }) => {
         )}
       </div>
 
+      {/* Conversion benchmark cards */}
       {stages.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
           {[
-            { label: "Reply rate",    value: stages[3]?.value ?? 0, total: stages[0]?.value ?? 1, suffix: "replies", color: "text-amber-600" },
-            { label: "Demo rate",     value: stages[5]?.value ?? 0, total: stages[0]?.value ?? 1, suffix: "demos",   color: "text-emerald-600" },
-            { label: "Close rate",    value: stages[6]?.value ?? 0, total: stages[0]?.value ?? 1, suffix: "deals",   color: "text-green-700" },
-            { label: "Cost/deal",     value: null,                   total: null,                  suffix: "",        color: "text-primary" },
-          ].map((card, i) => (
-            <div key={card.label} className="rounded-lg border border-border bg-card p-3">
-              <p className="text-[11px] text-muted-foreground mb-1">{card.label}</p>
-              {i < 3 ? (
-                <>
-                  <p className={`text-xl font-bold ${card.color}`}>{card.value!.toLocaleString()}</p>
-                  <p className="text-[10px] text-muted-foreground">
-                    {card.suffix} · {card.total! > 0 ? ((card.value! / card.total!) * 100).toFixed(2) : 0}% of leads
-                  </p>
-                </>
-              ) : (
-                <p className="text-xs text-muted-foreground mt-1 italic">Add stack budget for cost/deal calc</p>
-              )}
-            </div>
-          ))}
+            { label: "Open rate",     actual: stages[2]?.value ?? 0, total: stages[0]?.value ?? 1, bench: BENCH.openRate * 100,                                  color: "text-violet-600" },
+            { label: "Reply rate",    actual: stages[3]?.value ?? 0, total: stages[0]?.value ?? 1, bench: BENCH.replyRate * 100,                                 color: "text-amber-600" },
+            { label: "Positive rate", actual: stages[4]?.value ?? 0, total: stages[3]?.value ?? 1, bench: BENCH.positiveRate * 100,                              color: "text-orange-600" },
+            { label: "Demo rate",     actual: stages[5]?.value ?? 0, total: stages[4]?.value ?? 1, bench: BENCH.demoRate * 100,                                  color: "text-emerald-600" },
+            { label: "Close rate",    actual: stages[6]?.value ?? 0, total: stages[5]?.value ?? 1, bench: BENCH.closeRate * 100,                                 color: "text-green-700" },
+          ].map((card) => {
+            const pct = card.total > 0 ? (card.actual / card.total) * 100 : 0;
+            const onBench = pct >= card.bench * 0.85;
+            return (
+              <div key={card.label} className="rounded-lg border border-border bg-card p-3">
+                <p className="text-[11px] text-muted-foreground mb-1">{card.label}</p>
+                <p className={`text-xl font-bold ${card.color}`}>{pct.toFixed(1)}%</p>
+                <p className={`text-[10px] mt-0.5 ${onBench ? "text-emerald-600" : "text-amber-600"}`}>
+                  Benchmark: {card.bench.toFixed(1)}% {onBench ? "✓ on track" : "⚠ below"}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ROI / Economics cards */}
+      {stages.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="rounded-lg border border-border bg-card p-3">
+            <p className="text-[11px] text-muted-foreground mb-1">Total cost / mo</p>
+            <p className="text-xl font-bold text-foreground">${totalMonthlyCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">stack + setup + extra</p>
+          </div>
+          <div className="rounded-lg border border-border bg-card p-3">
+            <p className="text-[11px] text-muted-foreground mb-1">Cost / lead</p>
+            <p className="text-xl font-bold text-foreground">
+              ${costPerLead.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">per sourced lead</p>
+          </div>
+          <div className="rounded-lg border border-border bg-card p-3">
+            <p className="text-[11px] text-muted-foreground mb-1">Cost / deal (CAC)</p>
+            <p className="text-xl font-bold text-foreground">
+              {closedDeals > 0 ? `$${costPerDeal.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : "—"}
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">{closedDeals} deals/mo</p>
+          </div>
+          <div className="rounded-lg border border-border bg-card p-3">
+            <p className="text-[11px] text-muted-foreground mb-1">Revenue / mo</p>
+            <p className="text-xl font-bold text-emerald-600">
+              ${revenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">
+              {dealSizeNum > 0 ? `${closedDeals} × $${dealSizeNum.toLocaleString()}` : "Add deal size →"}
+            </p>
+          </div>
+          <div className="rounded-lg border border-border bg-card p-3">
+            <p className="text-[11px] text-muted-foreground mb-1">Profit / mo</p>
+            <p className={`text-xl font-bold ${profit >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+              {dealSizeNum > 0 ? `$${profit.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : "—"}
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">revenue − cost</p>
+          </div>
+          <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
+            <p className="text-[11px] text-primary/80 mb-1 font-semibold">ROI</p>
+            <p className={`text-xl font-bold ${roiPct >= 0 ? "text-primary" : "text-red-600"}`}>
+              {dealSizeNum > 0 && totalMonthlyCost > 0 ? `${roiPct.toFixed(0)}%` : "—"}
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">
+              {dealSizeNum > 0 && totalMonthlyCost > 0
+                ? `${(revenue / totalMonthlyCost).toFixed(1)}x return`
+                : "Add deal size + cost"}
+            </p>
+          </div>
         </div>
       )}
     </div>
@@ -794,7 +927,8 @@ const GtmStackPanel = ({ companies }: Props) => {
   useEffect(() => { refresh(); }, [selectedSlug]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const company = companies.find((c) => c.slug === selectedSlug);
-  const totalLeadsCapacity = useMemo(() => computeBudget(layers).totalContacts, [layers]);
+  const stackBudget = useMemo(() => computeBudget(layers), [layers]);
+  const totalLeadsCapacity = stackBudget.totalContacts;
 
   const layersForPhase = useMemo(() => {
     return GTM_LAYER_CONFIGS.filter((cfg) => {
@@ -931,7 +1065,13 @@ const GtmStackPanel = ({ companies }: Props) => {
           movePhase={movePhase}
         />
       )}
-      {mainTab === "forecast" && <LeadForecastTab defaultLeads={totalLeadsCapacity} />}
+      {mainTab === "forecast" && (
+        <LeadForecastTab
+          defaultLeads={totalLeadsCapacity}
+          monthlyCost={stackBudget.recurringMonthly}
+          oneTimeCost={stackBudget.oneTimeCost}
+        />
+      )}
       {mainTab === "approaches" && <GtmApproachesTab />}
     </div>
   );
