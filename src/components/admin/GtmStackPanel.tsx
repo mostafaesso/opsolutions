@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Layers, Rocket, TrendingUp, Sparkles, Save,
-  ChevronDown, ChevronRight, Users, Zap,
+  ChevronDown, ChevronRight, DollarSign, Users, Zap,
   BarChart3, BookOpen, CheckCircle2, Circle,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
