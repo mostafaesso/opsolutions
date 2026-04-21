@@ -6,12 +6,16 @@ export interface CompanySettings {
   training_doc_enabled: boolean;
   training_video_enabled: boolean;
   crm_updates_employee_visible: boolean;
+  dashboards_enabled: boolean;
+  dashboards_permission: "view_only" | "edit";
 }
 
 const DEFAULTS: Omit<CompanySettings, "company_slug"> = {
   training_doc_enabled: true,
   training_video_enabled: true,
   crm_updates_employee_visible: false,
+  dashboards_enabled: false,
+  dashboards_permission: "view_only",
 };
 
 export const useCompanySettings = (companySlug: string | undefined) => {
@@ -56,6 +60,8 @@ export const useCompanySettings = (companySlug: string | undefined) => {
           training_doc_enabled: next.training_doc_enabled,
           training_video_enabled: next.training_video_enabled,
           crm_updates_employee_visible: next.crm_updates_employee_visible,
+          dashboards_enabled: next.dashboards_enabled,
+          dashboards_permission: next.dashboards_permission,
         },
         { onConflict: "company_slug" }
       );
