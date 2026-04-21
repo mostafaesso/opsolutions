@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useDashboardItems, DashboardItem, ReportItem } from "@/hooks/useDashboardItems";
 import { LogicEditorDialog, LogicFormData } from "./LogicEditorDialog";
+import TotalCallsReport from "./reports/TotalCallsReport";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -189,7 +190,11 @@ const ItemViewer = ({
 
       {/* Content */}
       <CardContent className="p-0">
-        {iframeUrl ? (
+        {item.data_definition?.type === "hubspot_calls" ? (
+          <div className="p-4">
+            <TotalCallsReport companySlug={companySlug} permission={permission} />
+          </div>
+        ) : iframeUrl ? (
           <iframe
             src={iframeUrl}
             className="w-full border-0"
