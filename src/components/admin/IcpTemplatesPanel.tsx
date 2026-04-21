@@ -740,326 +740,404 @@ const CompanyView = ({
     }
   };
 
+  const domainOk = !!(companyDraft.customDomain || company?.customDomain);
+
   return (
-    <div className="space-y-5">
-      {/* Top toolbar */}
-      <div className="flex flex-wrap items-center gap-3 bg-muted/40 border border-border rounded-xl p-4">
-        <div className="flex items-center gap-2">
-          <Building2 className="w-4 h-4 text-muted-foreground" />
-          <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Company</Label>
-        </div>
-        <Select value={selectedCompany} onValueChange={onSelectCompany}>
-          <SelectTrigger className="w-[260px] bg-background"><SelectValue placeholder="Pick a company" /></SelectTrigger>
-          <SelectContent>
-            {companies.map((c) => (
-              <SelectItem key={c.slug} value={c.slug}>{c.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+    <div className="space-y-6">
+      {/* ── Hero header ────────────────────────────────────────── */}
+      <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-primary/8 via-card to-card">
+        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-accent/10 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
 
-        <div className="ml-auto flex items-center gap-2">
-          <Button size="sm" variant="outline" onClick={handleCreateBlank} className="gap-2">
-            <Plus className="w-3.5 h-3.5" /> New blank ICP
-          </Button>
-          <Select onValueChange={handleApplyTemplate}>
-            <SelectTrigger className="w-[240px] bg-background">
-              <SelectValue placeholder="New ICP from template…" />
-            </SelectTrigger>
-            <SelectContent>
-              {templates.length === 0 && (
-                <div className="text-xs text-muted-foreground px-2 py-1.5">No templates yet</div>
+        <div className="relative px-5 md:px-7 py-5 md:py-6 flex flex-col lg:flex-row lg:items-center gap-5">
+          <div className="flex items-center gap-4 min-w-0 flex-1">
+            <div className="shrink-0 h-14 w-14 rounded-2xl bg-card ring-1 ring-border shadow-sm flex items-center justify-center overflow-hidden">
+              {companyDraft.logoUrl ? (
+                <img
+                  src={companyDraft.logoUrl}
+                  alt={companyDraft.name}
+                  className="h-full w-full object-contain p-1.5"
+                  onError={(e) => ((e.currentTarget.style.display = "none"))}
+                />
+              ) : (
+                <Building2 className="h-6 w-6 text-muted-foreground" />
               )}
-              {templates.map((t) => (
-                <SelectItem key={t.id} value={t.id}>
-                  <span className="flex items-center gap-2">
-                    <Wand2 className="w-3.5 h-3.5" />
-                    {t.name}
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Company info — editable, used to ground AI */}
-      {company && (
-        <div className="rounded-2xl border border-border bg-card p-5">
-          <div className="flex items-center gap-3 mb-4">
-            {companyDraft.logoUrl ? (
-              <img
-                src={companyDraft.logoUrl}
-                alt={`${companyDraft.name} logo`}
-                className="w-10 h-10 rounded-lg object-contain bg-muted"
-                onError={(e) => ((e.currentTarget.style.display = "none"))}
-              />
-            ) : (
-              <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                <Building2 className="w-4 h-4 text-muted-foreground" />
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-bold text-foreground">Company info</h3>
-              <p className="text-xs text-muted-foreground">
-                Domain is <strong>required</strong> — the AI scrapes it for accurate ICP grounding.
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-1">
+                ICP Workspace
               </p>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div>
-              <Label className="text-xs">Company name</Label>
-              <Input
-                value={companyDraft.name}
-                onChange={(e) => setCompanyDraft({ ...companyDraft, name: e.target.value })}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label className="text-xs">Logo URL</Label>
-              <Input
-                value={companyDraft.logoUrl}
-                onChange={(e) => setCompanyDraft({ ...companyDraft, logoUrl: e.target.value })}
-                placeholder="https://…/logo.png"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label className="text-xs">
-                Website / Domain <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                value={companyDraft.customDomain}
-                onChange={(e) => setCompanyDraft({ ...companyDraft, customDomain: e.target.value })}
-                placeholder="acme.com"
-                className="mt-1"
-              />
-            </div>
-          </div>
-          <div className="flex justify-end mt-3">
-            <Button size="sm" onClick={handleSaveCompany} disabled={savingCompany} className="gap-2">
-              <Save className="w-3.5 h-3.5" />
-              {savingCompany ? "Saving…" : "Save company info"}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* AI Generator */}
-      <div className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/5 to-transparent p-5">
-        <div className="flex items-start gap-3 mb-3">
-          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-            <Sparkles className="w-4 h-4 text-primary" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-bold text-foreground">AI ICP Generator</h3>
-            <p className="text-xs text-muted-foreground">
-              Drafts a complete ICP for <strong>{company?.name}</strong>. Fully editable after generation. You can also score how closely your saved ICP matches a fresh AI draft.
-            </p>
-          </div>
-        </div>
-        <div className="space-y-2">
-          <div>
-            <Label className="text-xs font-semibold text-muted-foreground">
-              Company Context <span className="text-destructive">*</span>
-            </Label>
-            <p className="text-[11px] text-muted-foreground mt-0.5 mb-1.5">
-              Paste the company's LinkedIn About, website description, or write what they sell, who they sell to, and which regions. The more you add, the more accurate the ICP.
-            </p>
-            <Textarea
-              value={aiHint}
-              onChange={(e) => setAiHint(e.target.value)}
-              placeholder={`Example:\n"Ops Solutions provides B2B sales training and GTM consulting to growth-stage companies in the GCC region (Saudi Arabia, UAE, Kuwait, Qatar). Their buyers are VP Sales, Revenue Operations leads, and Founders at companies with 20–300 employees looking to build outbound sales systems."`}
-              className="bg-background min-h-[110px] text-sm resize-none"
-            />
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <Button onClick={handleAiGenerateNew} disabled={aiBusy || !company} className="gap-2">
-              <Sparkles className="w-4 h-4" />
-              {aiBusy ? "Generating…" : "Generate new ICP"}
-            </Button>
-            <Button
-              onClick={handleAiScoreCurrent}
-              disabled={aiBusy || !draft}
-              variant="outline"
-              className="gap-2"
-              title="Generate a fresh AI ICP and compare it to the currently selected ICP"
-            >
-              <Gauge className="w-4 h-4" />
-              Score current ICP
-            </Button>
-          </div>
-        </div>
-
-        {aiScore && (
-          <div className="mt-4 rounded-xl border border-border bg-background p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div
-                className={`w-12 h-12 rounded-full flex items-center justify-center text-base font-bold ${
-                  aiScore.overall >= 70
-                    ? "bg-emerald-500/15 text-emerald-600"
-                    : aiScore.overall >= 40
-                    ? "bg-amber-500/15 text-amber-600"
-                    : "bg-destructive/15 text-destructive"
-                }`}
-              >
-                {aiScore.overall}%
-              </div>
-              <div>
-                <p className="text-sm font-bold text-foreground">Match score vs AI draft</p>
-                <p className="text-xs text-muted-foreground">
-                  How closely your saved ICP overlaps with what AI would suggest for {company?.name}.
-                </p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-              {Object.entries(aiScore.fields).map(([k, v]) => (
-                <div key={k} className="rounded-md border border-border bg-muted/30 px-2.5 py-1.5">
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground truncate">{k.replace(/_/g, " ")}</p>
-                  <p
-                    className={`text-sm font-semibold ${
-                      v >= 70 ? "text-emerald-600" : v >= 40 ? "text-amber-600" : "text-destructive"
-                    }`}
-                  >
-                    {v}%
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Saved ICPs list */}
-      <div className="rounded-2xl border border-border bg-card p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <Target className="w-4 h-4 text-primary" />
-          <h3 className="text-sm font-bold text-foreground">
-            Saved ICPs for {company?.name} <span className="text-muted-foreground font-normal">({icps.length})</span>
-          </h3>
-        </div>
-        {loading ? (
-          <p className="text-xs text-muted-foreground px-1">Loading…</p>
-        ) : icps.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <p className="text-sm">No ICPs saved yet for this company.</p>
-            <p className="text-xs mt-1">Create one from scratch or apply a template above.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {icps.map((icp) => {
-              const isActive = activeId === icp.id;
-              return (
-                <div
-                  key={icp.id}
-                  className={`rounded-xl border p-3 transition-all ${
-                    isActive ? "border-primary bg-primary/5 shadow-sm" : "border-border bg-background hover:border-primary/30"
+              <h2 className="text-xl md:text-2xl font-bold text-foreground tracking-tight truncate">
+                {company?.name ?? "Select a company"}
+              </h2>
+              <div className="mt-1.5 flex items-center gap-2 flex-wrap">
+                <span
+                  className={`inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-0.5 rounded-full ring-1 ${
+                    domainOk
+                      ? "bg-emerald-500/10 text-emerald-700 ring-emerald-500/20"
+                      : "bg-amber-500/10 text-amber-700 ring-amber-500/20"
                   }`}
                 >
-                  <button onClick={() => setActiveId(icp.id ?? null)} className="text-left w-full">
-                    <div className="flex items-start gap-2">
-                      <Target className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-foreground truncate">
-                          {icp.name || "Untitled ICP"}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {icp.tier ? `${icp.tier} · ` : ""}{icp.industry || "No industry"} · {icp.geography || "Any geo"}
-                        </p>
-                      </div>
-                    </div>
-                  </button>
-                  <div className="flex items-center gap-1 mt-2 pt-2 border-t border-border/50">
-                    <button
-                      onClick={() => handleDownloadPdf(icp)}
-                      disabled={exporting === icp.id}
-                      className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1 px-1.5 py-0.5 rounded"
-                      title="Download PDF"
-                    >
-                      <FileDown className="w-3 h-3" />
-                      {exporting === icp.id ? "…" : "PDF"}
-                    </button>
-                    <button
-                      onClick={() => handleDuplicate(icp)}
-                      className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1 px-1.5 py-0.5 rounded"
-                      title="Duplicate"
-                    >
-                      <Copy className="w-3 h-3" /> Copy
-                    </button>
-                    <button
-                      onClick={() => handleRemove(icp)}
-                      className="text-xs text-muted-foreground hover:text-destructive inline-flex items-center gap-1 px-1.5 py-0.5 rounded ml-auto"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* Editor for active ICP */}
-      {draft ? (
-        <div className="rounded-2xl border border-border bg-card p-6 space-y-5">
-          <div className="flex items-center gap-2">
-            <Target className="w-4 h-4 text-primary" />
-            <h3 className="text-base font-bold text-foreground">Editing: {draft.name || "Untitled ICP"}</h3>
-            {draft.template_id && (
-              <span className="text-[10px] uppercase tracking-wider bg-primary/10 text-primary px-2 py-0.5 rounded-full ml-1">
-                <Copy className="w-2.5 h-2.5 inline mr-1" />
-                From template
-              </span>
-            )}
-          </div>
-          <p className="text-xs text-muted-foreground -mt-3">
-            Each ICP is independent — edits only affect this one. You can keep multiple tiers/versions for <strong>{company?.name}</strong>.
-          </p>
-
-          <div>
-            <Label className="text-xs">ICP Name</Label>
-            <Input
-              value={draft.name ?? ""}
-              onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-              placeholder="e.g. Tier 1 — HRTech CEOs in GCC"
-              className="mt-1"
-            />
+                  <span className={`h-1.5 w-1.5 rounded-full ${domainOk ? "bg-emerald-500" : "bg-amber-500"}`} />
+                  {domainOk ? "Domain set" : "Domain required"}
+                </span>
+                <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                  <Target className="w-3 h-3" />
+                  {icps.length} ICP{icps.length === 1 ? "" : "s"} saved
+                </span>
+              </div>
+            </div>
           </div>
 
-          <div>
-            <Label className="text-xs">Description</Label>
-            <Textarea
-              value={draft.description ?? ""}
-              onChange={(e) => setDraft({ ...draft, description: e.target.value })}
-              placeholder="Short summary of who this ICP is and why."
-              className="mt-1"
-            />
-          </div>
-
-          <TierAndModeRow
-            tier={draft.tier}
-            personalization={draft.personalization_level}
-            onChange={(p) => setDraft({ ...draft, ...p })}
-          />
-
-          <SectionFields draft={draft} setDraft={setDraft} />
-
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={() => handleDownloadPdf(draft)} disabled={exporting === draft.id} className="gap-2">
-              <FileDown className="w-4 h-4" />
-              {exporting === draft.id ? "Generating…" : "Download branded PDF"}
-            </Button>
-            <Button onClick={handleSave}>
-              <Save className="w-4 h-4 mr-2" /> Save ICP
-            </Button>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 lg:shrink-0">
+            <Select value={selectedCompany} onValueChange={onSelectCompany}>
+              <SelectTrigger className="w-full sm:w-[220px] bg-background h-10">
+                <SelectValue placeholder="Switch company" />
+              </SelectTrigger>
+              <SelectContent>
+                {companies.map((c) => (
+                  <SelectItem key={c.slug} value={c.slug}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={handleCreateBlank} className="gap-1.5 h-10 flex-1">
+                <Plus className="w-3.5 h-3.5" /> Blank
+              </Button>
+              <Select onValueChange={handleApplyTemplate}>
+                <SelectTrigger className="w-full sm:w-[180px] bg-background h-10">
+                  <span className="flex items-center gap-1.5 text-sm">
+                    <Wand2 className="w-3.5 h-3.5" />
+                    From template
+                  </span>
+                </SelectTrigger>
+                <SelectContent>
+                  {templates.length === 0 && (
+                    <div className="text-xs text-muted-foreground px-2 py-1.5">No templates yet</div>
+                  )}
+                  {templates.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
-      ) : (
-        !loading && icps.length > 0 && (
-          <p className="text-sm text-muted-foreground text-center py-4">Select an ICP above to edit it.</p>
-        )
-      )}
+      </div>
+
+      {/* ── Two-column body: Sidebar (saved ICPs) + Main ──────── */}
+      <div className="grid grid-cols-1 xl:grid-cols-[300px_1fr] gap-6">
+        {/* Sidebar — Saved ICPs */}
+        <aside className="space-y-3 xl:sticky xl:top-4 xl:self-start xl:max-h-[calc(100vh-2rem)] xl:overflow-y-auto pr-1">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <Target className="w-3.5 h-3.5" /> Saved ICPs
+            </h3>
+            <span className="text-[10px] text-muted-foreground bg-muted/60 px-1.5 py-0.5 rounded">{icps.length}</span>
+          </div>
+
+          {loading ? (
+            <div className="space-y-2">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-16 rounded-xl bg-muted/40 animate-pulse" />
+              ))}
+            </div>
+          ) : icps.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-border bg-card p-5 text-center">
+              <Target className="w-6 h-6 text-muted-foreground/40 mx-auto mb-2" />
+              <p className="text-xs font-medium text-foreground">No ICPs yet</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Create one or generate with AI →</p>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              {icps.map((icp) => {
+                const isActive = activeId === icp.id;
+                return (
+                  <div
+                    key={icp.id}
+                    className={`group rounded-xl border transition-all ${
+                      isActive
+                        ? "border-primary bg-primary/5 shadow-sm ring-1 ring-primary/20"
+                        : "border-border bg-card hover:border-primary/40 hover:bg-muted/30"
+                    }`}
+                  >
+                    <button
+                      onClick={() => setActiveId(icp.id ?? null)}
+                      className="w-full text-left p-3"
+                    >
+                      <div className="flex items-start gap-2">
+                        <div className={`mt-0.5 h-6 w-6 shrink-0 rounded-md flex items-center justify-center ${
+                          isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                        }`}>
+                          <Target className="w-3 h-3" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-foreground truncate">
+                            {icp.name || "Untitled ICP"}
+                          </p>
+                          <p className="text-[11px] text-muted-foreground truncate mt-0.5">
+                            {icp.industry || "Any industry"} · {icp.geography || "Any geo"}
+                          </p>
+                          {icp.tier && (
+                            <span className="inline-block mt-1.5 text-[9px] font-semibold uppercase tracking-wider bg-accent/10 text-accent px-1.5 py-0.5 rounded">
+                              {icp.tier.replace(/Tier \d: /, "")}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                    <div className="flex items-center gap-0.5 px-2 pb-2 -mt-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => handleDownloadPdf(icp)}
+                        disabled={exporting === icp.id}
+                        className="text-[10px] text-muted-foreground hover:text-primary inline-flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-primary/10"
+                        title="Download PDF"
+                      >
+                        <FileDown className="w-3 h-3" />
+                        {exporting === icp.id ? "…" : "PDF"}
+                      </button>
+                      <button
+                        onClick={() => handleDuplicate(icp)}
+                        className="text-[10px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-muted"
+                        title="Duplicate"
+                      >
+                        <Copy className="w-3 h-3" /> Copy
+                      </button>
+                      <button
+                        onClick={() => handleRemove(icp)}
+                        className="text-[10px] text-muted-foreground hover:text-destructive inline-flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-destructive/10 ml-auto"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </aside>
+
+        {/* Main column */}
+        <div className="space-y-5 min-w-0">
+          {/* Company info card */}
+          {company && (
+            <div className="rounded-2xl border border-border bg-card overflow-hidden">
+              <div className="flex items-center gap-2.5 px-5 py-3 bg-muted/30 border-b border-border">
+                <Building2 className="w-3.5 h-3.5 text-muted-foreground" />
+                <h3 className="text-sm font-bold text-foreground">Company info</h3>
+                <span className="text-[10px] text-muted-foreground ml-auto">Used to ground AI</span>
+              </div>
+              <div className="p-5 space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div>
+                    <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Company name</Label>
+                    <Input
+                      value={companyDraft.name}
+                      onChange={(e) => setCompanyDraft({ ...companyDraft, name: e.target.value })}
+                      className="mt-1.5 h-9"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Logo URL</Label>
+                    <Input
+                      value={companyDraft.logoUrl}
+                      onChange={(e) => setCompanyDraft({ ...companyDraft, logoUrl: e.target.value })}
+                      placeholder="https://…/logo.png"
+                      className="mt-1.5 h-9"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1">
+                      Website / Domain <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      value={companyDraft.customDomain}
+                      onChange={(e) => setCompanyDraft({ ...companyDraft, customDomain: e.target.value })}
+                      placeholder="acme.com"
+                      className="mt-1.5 h-9"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <Button size="sm" onClick={handleSaveCompany} disabled={savingCompany} className="gap-1.5">
+                    <Save className="w-3.5 h-3.5" />
+                    {savingCompany ? "Saving…" : "Save company info"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* AI Generator — premium card */}
+          <div className="relative overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/8 via-card to-card">
+            <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-accent/15 blur-2xl pointer-events-none" />
+            <div className="relative p-5 space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="shrink-0 w-10 h-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shadow-sm">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-sm font-bold text-foreground">AI ICP Generator</h3>
+                    <span className="text-[10px] font-semibold bg-accent text-accent-foreground px-1.5 py-0.5 rounded uppercase tracking-wider">
+                      Domain-grounded
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Drafts a complete ICP for <strong className="text-foreground">{company?.name}</strong>, fully editable. Score the current ICP to see how it compares to a fresh AI draft.
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  Company Context <span className="text-destructive">*</span>
+                </Label>
+                <p className="text-[11px] text-muted-foreground mt-0.5 mb-2">
+                  Paste the LinkedIn About, website description, or write what they sell, who they sell to, and which regions.
+                </p>
+                <Textarea
+                  value={aiHint}
+                  onChange={(e) => setAiHint(e.target.value)}
+                  placeholder={`Example:\n"Ops Solutions provides B2B sales training and GTM consulting to growth-stage companies in the GCC region (Saudi Arabia, UAE, Kuwait, Qatar). Buyers are VP Sales, Revenue Operations leads, and Founders at companies with 20–300 employees."`}
+                  className="bg-background min-h-[110px] text-sm resize-none"
+                />
+              </div>
+
+              <div className="flex gap-2 flex-wrap">
+                <Button onClick={handleAiGenerateNew} disabled={aiBusy || !company} className="gap-2 shadow-sm">
+                  <Sparkles className="w-4 h-4" />
+                  {aiBusy ? "Generating…" : "Generate new ICP"}
+                </Button>
+                <Button
+                  onClick={handleAiScoreCurrent}
+                  disabled={aiBusy || !draft}
+                  variant="outline"
+                  className="gap-2"
+                  title="Generate a fresh AI ICP and compare it to the currently selected ICP"
+                >
+                  <Gauge className="w-4 h-4" />
+                  Score current ICP
+                </Button>
+              </div>
+
+              {aiScore && (
+                <div className="rounded-xl border border-border bg-background p-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="relative w-14 h-14 shrink-0">
+                      <svg viewBox="0 0 36 36" className="w-14 h-14 -rotate-90">
+                        <circle cx="18" cy="18" r="16" fill="none" stroke="hsl(var(--muted))" strokeWidth="3" />
+                        <circle
+                          cx="18" cy="18" r="16" fill="none" strokeWidth="3" strokeLinecap="round"
+                          stroke={aiScore.overall >= 70 ? "hsl(142 71% 45%)" : aiScore.overall >= 40 ? "hsl(38 92% 50%)" : "hsl(var(--destructive))"}
+                          strokeDasharray={`${(aiScore.overall / 100) * 100.5} 100.5`}
+                        />
+                      </svg>
+                      <div className={`absolute inset-0 flex items-center justify-center text-sm font-bold ${
+                        aiScore.overall >= 70 ? "text-emerald-600" : aiScore.overall >= 40 ? "text-amber-600" : "text-destructive"
+                      }`}>
+                        {aiScore.overall}%
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-foreground">Match score vs AI draft</p>
+                      <p className="text-xs text-muted-foreground">
+                        How closely your saved ICP overlaps with what AI suggests for {company?.name}.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                    {Object.entries(aiScore.fields).map(([k, v]) => (
+                      <div key={k} className="rounded-md border border-border bg-muted/30 px-2.5 py-1.5">
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground truncate">{k.replace(/_/g, " ")}</p>
+                        <p
+                          className={`text-sm font-semibold ${
+                            v >= 70 ? "text-emerald-600" : v >= 40 ? "text-amber-600" : "text-destructive"
+                          }`}
+                        >
+                          {v}%
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Editor for active ICP */}
+          {draft ? (
+            <div className="rounded-2xl border border-border bg-card overflow-hidden">
+              <div className="flex items-center gap-2.5 px-5 py-3 bg-muted/30 border-b border-border">
+                <Target className="w-3.5 h-3.5 text-primary" />
+                <h3 className="text-sm font-bold text-foreground truncate flex-1">
+                  Editing: <span className="text-primary">{draft.name || "Untitled ICP"}</span>
+                </h3>
+                {draft.template_id && (
+                  <span className="text-[10px] uppercase tracking-wider bg-primary/10 text-primary px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                    <Copy className="w-2.5 h-2.5" />
+                    From template
+                  </span>
+                )}
+              </div>
+
+              <div className="p-5 md:p-6 space-y-5">
+                <p className="text-xs text-muted-foreground -mt-1">
+                  Each ICP is independent — edits only affect this one. You can keep multiple tiers/versions for <strong>{company?.name}</strong>.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="md:col-span-1">
+                    <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">ICP Name</Label>
+                    <Input
+                      value={draft.name ?? ""}
+                      onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                      placeholder="e.g. Tier 1 — HRTech CEOs in GCC"
+                      className="mt-1.5"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Description</Label>
+                    <Input
+                      value={draft.description ?? ""}
+                      onChange={(e) => setDraft({ ...draft, description: e.target.value })}
+                      placeholder="Short summary of who this ICP is and why."
+                      className="mt-1.5"
+                    />
+                  </div>
+                </div>
+
+                <TierAndModeRow
+                  tier={draft.tier}
+                  personalization={draft.personalization_level}
+                  onChange={(p) => setDraft({ ...draft, ...p })}
+                />
+
+                <SectionFields draft={draft} setDraft={setDraft} />
+              </div>
+
+              {/* Sticky save bar */}
+              <div className="sticky bottom-0 flex items-center justify-end gap-2 px-5 py-3 bg-card/95 backdrop-blur-sm border-t border-border">
+                <Button variant="outline" onClick={() => handleDownloadPdf(draft)} disabled={exporting === draft.id} className="gap-2">
+                  <FileDown className="w-4 h-4" />
+                  {exporting === draft.id ? "Generating…" : "Branded PDF"}
+                </Button>
+                <Button onClick={handleSave} className="gap-2 shadow-sm">
+                  <Save className="w-4 h-4" /> Save ICP
+                </Button>
+              </div>
+            </div>
+          ) : (
+            !loading && icps.length > 0 && (
+              <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
+                <Target className="w-8 h-8 text-muted-foreground/40 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">Select an ICP from the left to edit it.</p>
+              </div>
+            )
+          )}
+        </div>
+      </div>
     </div>
   );
 };
