@@ -22,7 +22,7 @@ interface Props {
 // ── Types ──────────────────────────────────────────────────────────────────
 
 type Phase = "pre_launch" | "launch" | "scale";
-type MainTab = "stack" | "forecast" | "approaches";
+type MainTab = "stack" | "forecast" | "approaches" | "crm_status";
 
 interface DbLayer {
   id?: string;
