@@ -116,8 +116,12 @@ const Login = () => {
         }} />
 
         <div className="relative z-10 flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-primary-foreground/10 backdrop-blur-sm flex items-center justify-center ring-1 ring-primary-foreground/20">
-            <Sparkles className="h-5 w-5 text-accent" />
+          <div className="h-11 w-11 rounded-xl bg-primary-foreground flex items-center justify-center ring-1 ring-primary-foreground/20 shadow-lg p-1.5">
+            <img
+              src="https://www.opsolutionss.com/hubfs/Logos/transparent%20black.png"
+              alt="Ops Solutions"
+              className="h-full w-full object-contain"
+            />
           </div>
           <span className="font-bold text-lg tracking-tight">Ops Solutions</span>
         </div>
