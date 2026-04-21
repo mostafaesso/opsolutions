@@ -11,9 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Layers, Rocket, TrendingUp, Sparkles, Save,
   ChevronDown, ChevronRight, DollarSign, Users, Zap,
-  BarChart3, BookOpen, CheckCircle2, Circle,
+  BarChart3, BookOpen, CheckCircle2, Circle, Activity,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import CrmStatusTab from "./CrmStatusTab";
 
 interface Props {
   companies: Company[];
@@ -22,7 +23,7 @@ interface Props {
 // ── Types ──────────────────────────────────────────────────────────────────
 
 type Phase = "pre_launch" | "launch" | "scale";
-type MainTab = "stack" | "forecast" | "approaches";
+type MainTab = "stack" | "forecast" | "approaches" | "crm_status";
 
 interface DbLayer {
   id?: string;
@@ -67,9 +68,10 @@ const BILLING_LABEL: Record<BillingType, string> = {
 };
 
 const MAIN_TABS: { key: MainTab; label: string; icon: any }[] = [
-  { key: "stack",      label: "GTM Stack",      icon: Layers },
-  { key: "forecast",   label: "Lead Forecast",  icon: BarChart3 },
-  { key: "approaches", label: "GTM Approaches", icon: BookOpen },
+  { key: "stack",      label: "GTM Stack",          icon: Layers },
+  { key: "forecast",   label: "Lead Forecast",      icon: BarChart3 },
+  { key: "crm_status", label: "Current CRM Status", icon: Activity },
+  { key: "approaches", label: "GTM Approaches",     icon: BookOpen },
 ];
 
 // ── Budget helpers ─────────────────────────────────────────────────────────
@@ -1072,6 +1074,7 @@ const GtmStackPanel = ({ companies }: Props) => {
           oneTimeCost={stackBudget.oneTimeCost}
         />
       )}
+      {mainTab === "crm_status" && <CrmStatusTab companySlug={selectedSlug} companyName={company?.name} />}
       {mainTab === "approaches" && <GtmApproachesTab />}
     </div>
   );
