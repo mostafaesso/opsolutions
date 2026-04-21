@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Company } from "@/lib/companies";
-import { GTM_LAYER_CONFIGS, TOOL_PLANS } from "@/lib/gtmConfig";
+import { GTM_LAYER_CONFIGS, TOOL_PLANS, BillingType, ToolPlan } from "@/lib/gtmConfig";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -34,7 +34,7 @@ const DEFAULT_PHASE_FOR_LAYER: Record<number, Phase> = {
   4: "scale",
 };
 
-const BILLING_LABEL: Record<string, string> = {
+const BILLING_LABEL: Record<BillingType, string> = {
   monthly: "/mo",
   annual: "/yr",
   one_time: " one-time",
@@ -55,7 +55,7 @@ interface DbLayer {
 
 // ── Budget helpers ─────────────────────────────────────────────────────────
 
-function getMonthlyPrice(plan: { price: number; billing: string }): number {
+function getMonthlyPrice(plan: ToolPlan): number {
   if (plan.billing === "free") return 0;
   if (plan.billing === "annual") return plan.price / 12;
   return plan.price; // monthly, per_user_month, one_time treated as monthly for estimate
@@ -150,7 +150,10 @@ const ToolPlanPicker = ({
 // ── Budget summary card ────────────────────────────────────────────────────
 
 const BudgetSummary = ({ layers }: { layers: DbLayer[] }) => {
-  const { totalMonthly, totalAnnual, totalContacts, selected } = computeBudget(layers);
+  const { totalMonthly, totalAnnual, totalContacts, selected } = useMemo(
+    () => computeBudget(layers),
+    [layers],
+  );
   if (selected.length === 0) return null;
 
   return (
@@ -267,12 +270,10 @@ const GtmStackPanel = ({ companies }: Props) => {
       );
   };
 
-  const setToolPlan = (layerNumber: number, tool: string, planName: string) => {
-    const existing = layers.find((l) => l.layer_number === layerNumber);
-    const currentCalc = existing?.calculator_data ?? {};
-    const currentPlans = currentCalc.tool_plans ?? {};
+  const setToolPlan = (layerNumber: number, layer: DbLayer | undefined, tool: string, planName: string) => {
+    const calc = layer?.calculator_data ?? {};
     upsertLayer(layerNumber, {
-      calculator_data: { ...currentCalc, tool_plans: { ...currentPlans, [tool]: planName } },
+      calculator_data: { ...calc, tool_plans: { ...(calc.tool_plans ?? {}), [tool]: planName } },
     });
   };
 
@@ -424,7 +425,7 @@ const GtmStackPanel = ({ companies }: Props) => {
                                 <ToolPlanPicker
                                   tool={t}
                                   selectedPlan={toolPlans[t] ?? null}
-                                  onChange={(plan) => setToolPlan(cfg.number, t, plan)}
+                                  onChange={(plan) => setToolPlan(cfg.number, layer, t, plan)}
                                 />
                               )}
                             </div>

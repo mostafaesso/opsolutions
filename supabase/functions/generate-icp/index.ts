@@ -119,6 +119,25 @@ function normalizeUrl(input: string): string | null {
   try { return new URL(u).toString(); } catch { return null; }
 }
 
+async function fetchOne(url: string): Promise<string> {
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 6000);
+    const r = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; OpsSolutions-ICP-Bot/1.0)" },
+      signal: ctrl.signal,
+    });
+    clearTimeout(t);
+    if (!r.ok) return "";
+    const html = await r.text();
+    const text = htmlToText(html).slice(0, 4000);
+    return text ? `--- ${url} ---\n${text}` : "";
+  } catch (e) {
+    console.warn("fetchSiteContext failed for", url, String(e));
+    return "";
+  }
+}
+
 async function fetchSiteContext(domain: string): Promise<string> {
   const base = normalizeUrl(domain);
   if (!base) return "";
@@ -130,26 +149,11 @@ async function fetchSiteContext(domain: string): Promise<string> {
     base.replace(/\/?$/, "/customers"),
     base.replace(/\/?$/, "/industries"),
   ];
-  const out: string[] = [];
-  for (const url of candidates) {
-    try {
-      const ctrl = new AbortController();
-      const t = setTimeout(() => ctrl.abort(), 6000);
-      const r = await fetch(url, {
-        headers: { "User-Agent": "Mozilla/5.0 (compatible; OpsSolutions-ICP-Bot/1.0)" },
-        signal: ctrl.signal,
-      });
-      clearTimeout(t);
-      if (!r.ok) continue;
-      const html = await r.text();
-      const text = htmlToText(html).slice(0, 4000);
-      if (text) out.push(`--- ${url} ---\n${text}`);
-    } catch (e) {
-      console.warn("fetchSiteContext failed for", url, String(e));
-    }
-    if (out.join("\n").length > 12000) break;
-  }
-  return out.join("\n\n").slice(0, 14000);
+  const results = await Promise.allSettled(candidates.map(fetchOne));
+  return results
+    .flatMap((r) => (r.status === "fulfilled" && r.value ? [r.value] : []))
+    .join("\n\n")
+    .slice(0, 14000);
 }
 
 Deno.serve(async (req) => {
