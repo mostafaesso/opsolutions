@@ -14,7 +14,7 @@ import {
   BarChart3, BookOpen, CheckCircle2, Circle, Activity,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import CrmStatusTab from "./CrmStatusTab";
+
 
 interface Props {
   companies: Company[];
