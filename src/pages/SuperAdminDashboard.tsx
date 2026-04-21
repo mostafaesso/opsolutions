@@ -279,6 +279,7 @@ const SuperAdminDashboard = () => {
     { key: "gtm", label: "GTM Stack", icon: <Layers className="w-4 h-4" /> },
     { key: "trainings", label: "Trainings", icon: <GraduationCap className="w-4 h-4" /> },
     { key: "crm", label: "CRM Updates", icon: <Bell className="w-4 h-4" /> },
+    { key: "crm_status", label: "Current CRM Status", icon: <Activity className="w-4 h-4" /> },
   ];
 
   return (
