@@ -85,8 +85,8 @@ function scoreMatch(ai: any, real: any) {
     fieldScores[k] = Math.round(s * 100);
     total += s; count++;
   }
-  const aJobs = new Set((ai?.job_titles ?? []).map((j: string) => j.toLowerCase().trim()));
-  const rJobs = new Set((real?.job_titles ?? []).map((j: string) => j.toLowerCase().trim()));
+  const aJobs = new Set<string>((ai?.job_titles ?? []).map((j: string) => j.toLowerCase().trim()));
+  const rJobs = new Set<string>((real?.job_titles ?? []).map((j: string) => j.toLowerCase().trim()));
   if (aJobs.size > 0 || rJobs.size > 0) {
     const s = jaccard(aJobs, rJobs);
     fieldScores["job_titles"] = Math.round(s * 100);
