@@ -550,9 +550,9 @@ const GtmStackTab = ({
     <div className="space-y-5">
       <BudgetSummary layers={layers} />
 
-      {/* Phase tabs */}
+      {/* Phase tabs — pill stepper */}
       <div className="grid grid-cols-3 gap-2">
-        {PHASES.map((p) => {
+        {PHASES.map((p, idx) => {
           const Icon = p.icon;
           const active = phase === p.key;
           const count = layers.filter((l) => (l.phase ?? DEFAULT_PHASE_FOR_LAYER[l.layer_number]) === p.key).length;
@@ -560,16 +560,32 @@ const GtmStackTab = ({
             <button
               key={p.key}
               onClick={() => setPhase(p.key)}
-              className={`text-left rounded-xl border p-3.5 transition-all ${
-                active ? "border-primary bg-primary/5 shadow-sm" : "border-border bg-card hover:border-primary/30"
+              className={`relative text-left rounded-2xl border p-4 transition-all overflow-hidden ${
+                active
+                  ? "border-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-md"
+                  : "border-border bg-card hover:border-primary/30 hover:shadow-sm"
               }`}
             >
-              <div className="flex items-center gap-2 mb-1">
-                <Icon className={`w-3.5 h-3.5 ${active ? "text-primary" : "text-muted-foreground"}`} />
-                <p className={`text-xs font-bold ${active ? "text-primary" : "text-foreground"}`}>{p.label}</p>
-                <span className="ml-auto text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">{count}</span>
+              {active && <span className="absolute top-0 left-0 right-0 h-0.5 bg-accent" />}
+              <div className="flex items-center gap-2 mb-1.5">
+                <div className={`h-7 w-7 rounded-lg flex items-center justify-center ${
+                  active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                }`}>
+                  <Icon className="w-3.5 h-3.5" />
+                </div>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Phase {idx + 1}
+                </span>
+                <span className={`ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                  active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                }`}>
+                  {count}
+                </span>
               </div>
-              <p className="text-[11px] text-muted-foreground">{p.description}</p>
+              <p className={`text-sm font-bold mb-0.5 ${active ? "text-primary" : "text-foreground"}`}>
+                {p.label}
+              </p>
+              <p className="text-[11px] text-muted-foreground leading-snug">{p.description}</p>
             </button>
           );
         })}
@@ -577,14 +593,16 @@ const GtmStackTab = ({
 
       {/* Progress */}
       {totalConfigured > 0 && (
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+        <div className="rounded-xl border border-border bg-card p-3 flex items-center gap-3">
+          <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
             <div
-              className="h-full bg-emerald-500 rounded-full transition-all"
+              className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all"
               style={{ width: `${(completedCount / 8) * 100}%` }}
             />
           </div>
-          <span>{completedCount} of 8 layers complete</span>
+          <span className="text-xs font-semibold text-foreground tabular-nums">
+            {completedCount}<span className="text-muted-foreground font-normal">/8 layers</span>
+          </span>
         </div>
       )}
 
