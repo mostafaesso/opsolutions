@@ -787,7 +787,10 @@ const SuperAdminDashboard = () => {
         {section === "trainings" && <TrainingsPanel companies={companies} />}
 
         {/* ── CRM Updates ── */}
-        {section === "crm" && <CrmSection companies={companies} />}
+        {section === "crm" && <CrmUpdatesPanel companies={companies} />}
+
+        {/* ── Current CRM Status ── */}
+        {section === "crm_status" && <CrmStatusSection companies={companies} />}
         </div>
       </main>
 
