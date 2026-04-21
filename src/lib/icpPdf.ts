@@ -4,6 +4,8 @@ import type { Company } from "@/lib/companies";
 
 type AnyIcp = Partial<CompanyIcp & IcpTemplate> & { name?: string | null };
 
+const OPS_LOGO_URL = "https://www.opsolutionss.com/hubfs/Logos/transparent%20black.png";
+
 const fetchAsDataUrl = async (url: string): Promise<string | null> => {
   try {
     const res = await fetch(url, { mode: "cors" });
@@ -28,197 +30,239 @@ export const generateIcpPdf = async (company: Company, icp: AnyIcp) => {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
-  const M = 48;
+  const ML = 36;
+  const MR = 36;
+  const contentW = W - ML - MR;
 
-  // Brand colors (HSL approximations of the Ops Solution palette)
+  // Colors
   const navy: [number, number, number] = [29, 41, 73];
   const accent: [number, number, number] = [56, 130, 246];
   const ink: [number, number, number] = [24, 28, 36];
   const muted: [number, number, number] = [110, 118, 132];
   const line: [number, number, number] = [225, 228, 234];
   const surface: [number, number, number] = [246, 247, 250];
+  const white: [number, number, number] = [255, 255, 255];
 
-  let y = M;
+  // Pre-fetch both logos in parallel
+  const [companyLogoData, opsLogoData] = await Promise.all([
+    company.logoUrl ? fetchAsDataUrl(company.logoUrl) : Promise.resolve(null),
+    fetchAsDataUrl(OPS_LOGO_URL),
+  ]);
 
-  // ── Header band ─────────────────────────────────
-  doc.setFillColor(...navy);
-  doc.rect(0, 0, W, 110, "F");
-  doc.setFillColor(...accent);
-  doc.rect(0, 110, W, 4, "F");
+  let pageCount = 1;
+  let y = 0;
 
-  // Company logo (top-left)
-  let logoBottom = 32;
-  if (company.logoUrl) {
-    const data = await fetchAsDataUrl(company.logoUrl);
-    if (data) {
+  const addHeader = () => {
+    doc.setFillColor(...navy);
+    doc.rect(0, 0, W, 90, "F");
+    doc.setFillColor(...accent);
+    doc.rect(0, 90, W, 3, "F");
+
+    // Company logo — left
+    let textX = ML;
+    if (companyLogoData) {
       try {
-        doc.addImage(data, detectFormat(data), M, 28, 56, 56, undefined, "FAST");
-        logoBottom = 28 + 56;
-      } catch {
-        /* ignore */
-      }
+        doc.addImage(companyLogoData, detectFormat(companyLogoData), ML, 18, 54, 54, undefined, "FAST");
+        textX = ML + 62;
+      } catch { /* ignore */ }
     }
-  }
 
-  doc.setTextColor(255, 255, 255);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.text("IDEAL CUSTOMER PROFILE", M + 72, 50);
-  doc.setFontSize(20);
-  doc.text(company.name, M + 72, 74);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  doc.setTextColor(200, 215, 240);
-  doc.text(icp.name || "Primary ICP", M + 72, 92);
+    // Title
+    doc.setTextColor(...white);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.text("IDEAL CUSTOMER PROFILE", textX, 33);
+    doc.setFontSize(17);
+    doc.text(company.name, textX, 55);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.setTextColor(180, 205, 240);
+    doc.text(icp.name || "Primary ICP", textX, 71);
 
-  y = 150;
+    // OPS logo — right, white pill background
+    if (opsLogoData) {
+      try {
+        doc.setFillColor(...white);
+        doc.roundedRect(W - MR - 92, 20, 84, 50, 6, 6, "F");
+        doc.addImage(opsLogoData, detectFormat(opsLogoData), W - MR - 86, 28, 72, 34, undefined, "FAST");
+      } catch { /* ignore */ }
+    }
 
-  // ── Section helpers ─────────────────────────────
+    y = 106;
+  };
+
+  const addFooter = () => {
+    doc.setDrawColor(...line);
+    doc.line(ML, H - 36, W - MR, H - 36);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor(...muted);
+    doc.text(`${company.name} · ICP Report`, ML, H - 20);
+    doc.text(
+      new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
+      W / 2,
+      H - 20,
+      { align: "center" },
+    );
+    doc.setTextColor(...accent);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Page ${pageCount}`, W - MR, H - 20, { align: "right" });
+  };
+
   const ensureSpace = (need: number) => {
-    if (y + need > H - 70) {
+    if (y + need > H - 46) {
       addFooter();
       doc.addPage();
-      y = M;
+      pageCount++;
+      doc.setFillColor(...navy);
+      doc.rect(0, 0, W, 26, "F");
+      doc.setFillColor(...accent);
+      doc.rect(0, 26, W, 2, "F");
+      doc.setTextColor(...white);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(7.5);
+      doc.text(`${company.name.toUpperCase()} · ICP (continued)`, ML, 18);
+      y = 38;
     }
   };
 
   const sectionHeader = (title: string) => {
-    ensureSpace(40);
+    ensureSpace(22);
+    doc.setFillColor(...navy);
+    doc.rect(ML, y, contentW, 17, "F");
     doc.setFillColor(...accent);
-    doc.rect(M, y, 4, 16, "F");
-    doc.setTextColor(...navy);
+    doc.rect(ML, y, 3, 17, "F");
+    doc.setTextColor(...white);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(13);
-    doc.text(title.toUpperCase(), M + 12, y + 12);
-    y += 26;
+    doc.setFontSize(7.5);
+    doc.text(title.toUpperCase(), ML + 8, y + 11.5);
+    y += 20;
   };
 
   const fieldRow = (label: string, value?: string | null) => {
     if (!value || !String(value).trim()) return;
     const text = String(value).trim();
-    const labelW = 130;
-    const valueW = W - M * 2 - labelW - 12;
+    const labelW = 108;
+    const valueW = contentW - labelW - 4;
     const lines = doc.splitTextToSize(text, valueW) as string[];
-    const blockH = Math.max(18, lines.length * 13 + 6);
-    ensureSpace(blockH + 6);
+    const rowH = Math.max(15, lines.length * 10.5 + 5);
+    ensureSpace(rowH + 2);
 
     doc.setFillColor(...surface);
-    doc.rect(M, y, W - M * 2, blockH, "F");
+    doc.rect(ML, y, contentW, rowH, "F");
 
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
+    doc.setFontSize(7);
     doc.setTextColor(...muted);
-    doc.text(label.toUpperCase(), M + 10, y + 14);
+    doc.text(label.toUpperCase(), ML + 5, y + 10);
 
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(10.5);
+    doc.setFontSize(8.5);
     doc.setTextColor(...ink);
-    doc.text(lines, M + labelW + 12, y + 14);
-    y += blockH + 6;
+    doc.text(lines, ML + labelW + 4, y + 10);
+    y += rowH + 2;
   };
 
   const tagsRow = (label: string, items: string[]) => {
     const tags = items.filter(Boolean);
     if (tags.length === 0) return;
-    ensureSpace(50);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-    doc.setTextColor(...muted);
-    doc.text(label.toUpperCase(), M, y + 10);
-    y += 18;
+    ensureSpace(38);
 
-    let x = M;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7);
+    doc.setTextColor(...muted);
+    doc.text(label.toUpperCase(), ML, y + 8);
+    y += 13;
+
+    let x = ML;
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
+    doc.setFontSize(8);
     for (const t of tags) {
-      const w = doc.getTextWidth(t) + 16;
-      if (x + w > W - M) {
-        x = M;
-        y += 24;
-        ensureSpace(28);
-      }
+      const w = doc.getTextWidth(t) + 10;
+      if (x + w > W - MR) { x = ML; y += 18; ensureSpace(18); }
       doc.setFillColor(...accent);
-      doc.roundedRect(x, y, w, 18, 9, 9, "F");
-      doc.setTextColor(255, 255, 255);
-      doc.text(t, x + 8, y + 12);
-      x += w + 6;
+      doc.roundedRect(x, y, w, 14, 7, 7, "F");
+      doc.setTextColor(...white);
+      doc.text(t, x + 5, y + 10);
+      x += w + 4;
     }
-    y += 28;
+    y += 19;
   };
 
   const tierBadge = () => {
-    if (!icp.tier) return;
-    ensureSpace(34);
-    doc.setFillColor(...navy);
-    doc.roundedRect(M, y, 200, 24, 6, 6, "F");
-    doc.setTextColor(255, 255, 255);
+    if (!icp.tier && !icp.personalization_level) return;
+    ensureSpace(22);
+    let x = ML;
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.text(`TIER · ${icp.tier.toUpperCase()}`, M + 12, y + 16);
-    if (icp.personalization_level) {
-      doc.setFillColor(...accent);
-      doc.roundedRect(M + 210, y, 220, 24, 6, 6, "F");
-      doc.text(`MODE · ${icp.personalization_level.toUpperCase()}`, M + 222, y + 16);
+    doc.setFontSize(7.5);
+    if (icp.tier) {
+      const lbl = icp.tier;
+      const w = doc.getTextWidth(lbl) + 14;
+      doc.setFillColor(...navy);
+      doc.roundedRect(x, y, w, 16, 4, 4, "F");
+      doc.setTextColor(...white);
+      doc.text(lbl, x + 7, y + 11);
+      x += w + 5;
     }
-    y += 34;
+    if (icp.personalization_level) {
+      const w = doc.getTextWidth(icp.personalization_level) + 14;
+      doc.setFillColor(...accent);
+      doc.roundedRect(x, y, w, 16, 4, 4, "F");
+      doc.setTextColor(...white);
+      doc.text(icp.personalization_level, x + 7, y + 11);
+    }
+    y += 22;
   };
 
-  const addFooter = () => {
-    doc.setDrawColor(...line);
-    doc.line(M, H - 50, W - M, H - 50);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    doc.setTextColor(...muted);
-    doc.text(`ICP · ${company.name}`, M, H - 32);
-    doc.setTextColor(...accent);
-    doc.setFont("helvetica", "bold");
-    doc.text("Powered by Ops Solution", W - M, H - 32, { align: "right" });
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(...muted);
-    doc.text(new Date().toLocaleDateString(), W / 2, H - 32, { align: "center" });
-  };
+  // ── Build document ──
+  addHeader();
 
-  // ── Body ────────────────────────────────────────
   if (icp.description) {
+    ensureSpace(24);
+    const lines = doc.splitTextToSize(String(icp.description), contentW) as string[];
     doc.setFont("helvetica", "italic");
-    doc.setFontSize(11);
+    doc.setFontSize(8.5);
     doc.setTextColor(...muted);
-    const lines = doc.splitTextToSize(icp.description, W - M * 2) as string[];
-    doc.text(lines, M, y);
-    y += lines.length * 14 + 10;
+    doc.text(lines, ML, y);
+    y += lines.length * 10.5 + 6;
   }
 
   tierBadge();
+  y += 3;
 
-  sectionHeader("Layer 1 · Company Level");
+  sectionHeader("Layer 1 · Company");
   fieldRow("Industry", icp.industry);
-  fieldRow("Company size", icp.company_size);
+  fieldRow("Company Size", icp.company_size);
   fieldRow("Geography", icp.geography);
-  fieldRow("Funding stage", icp.funding_stage);
-  fieldRow("Hiring activity", icp.hiring_activity);
-  fieldRow("Tech stack", icp.tech_stack);
-  fieldRow("Growth signals", icp.growth_signals);
+  fieldRow("Funding Stage", icp.funding_stage);
+  fieldRow("Hiring Activity", icp.hiring_activity);
+  fieldRow("Tech Stack", icp.tech_stack);
+  fieldRow("Growth Signals", icp.growth_signals);
 
-  sectionHeader("Layer 2 · Contact Level");
-  tagsRow("Decision-maker titles", icp.job_titles ?? []);
+  y += 3;
+  sectionHeader("Layer 2 · Contact");
+  tagsRow("Decision-Maker Titles", icp.job_titles ?? []);
   fieldRow("Departments", icp.departments);
   fieldRow("Seniority", icp.seniority);
-  fieldRow("Role in buying process", icp.buying_role);
+  fieldRow("Role in Buying Process", icp.buying_role);
 
+  y += 3;
   sectionHeader("Pain · Triggers · Goals");
-  fieldRow("Pain points", icp.pain_points);
-  fieldRow("Buying triggers", icp.buying_triggers);
-  fieldRow("Their goals", icp.goals);
-  fieldRow("Decision process", icp.decision_process);
-  fieldRow("Budget range", icp.budget_range);
+  fieldRow("Pain Points", icp.pain_points);
+  fieldRow("Buying Triggers", icp.buying_triggers);
+  fieldRow("Their Goals", icp.goals);
+  fieldRow("Decision Process", icp.decision_process);
+  fieldRow("Budget Range", icp.budget_range);
 
+  y += 3;
   sectionHeader("Exclusions & Disqualifiers");
   fieldRow("Exclusions", icp.exclusions);
   fieldRow("Disqualifiers", icp.disqualifiers);
 
+  y += 3;
   sectionHeader("Validation");
-  fieldRow("TAM estimate", icp.tam_estimate);
-  fieldRow("Validation notes", icp.validation_notes);
+  fieldRow("TAM Estimate", icp.tam_estimate);
+  fieldRow("Validation Notes", icp.validation_notes);
   fieldRow("Notes", icp.notes);
 
   addFooter();
