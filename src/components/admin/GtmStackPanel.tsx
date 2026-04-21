@@ -1073,7 +1073,6 @@ const GtmStackPanel = ({ companies }: Props) => {
           oneTimeCost={stackBudget.oneTimeCost}
         />
       )}
-      {mainTab === "crm_status" && <CrmStatusTab companySlug={selectedSlug} companyName={company?.name} />}
       {mainTab === "approaches" && <GtmApproachesTab />}
     </div>
   );
