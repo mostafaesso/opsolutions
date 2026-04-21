@@ -14,7 +14,7 @@ import {
   BarChart3, BookOpen, CheckCircle2, Circle, Activity,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import CrmStatusTab from "./CrmStatusTab";
+
 
 interface Props {
   companies: Company[];
@@ -23,7 +23,7 @@ interface Props {
 // ── Types ──────────────────────────────────────────────────────────────────
 
 type Phase = "pre_launch" | "launch" | "scale";
-type MainTab = "stack" | "forecast" | "approaches" | "crm_status";
+type MainTab = "stack" | "forecast" | "approaches";
 
 interface DbLayer {
   id?: string;
@@ -70,7 +70,6 @@ const BILLING_LABEL: Record<BillingType, string> = {
 const MAIN_TABS: { key: MainTab; label: string; icon: any }[] = [
   { key: "stack",      label: "GTM Stack",          icon: Layers },
   { key: "forecast",   label: "Lead Forecast",      icon: BarChart3 },
-  { key: "crm_status", label: "Current CRM Status", icon: Activity },
   { key: "approaches", label: "GTM Approaches",     icon: BookOpen },
 ];
 
@@ -1074,7 +1073,6 @@ const GtmStackPanel = ({ companies }: Props) => {
           oneTimeCost={stackBudget.oneTimeCost}
         />
       )}
-      {mainTab === "crm_status" && <CrmStatusTab companySlug={selectedSlug} companyName={company?.name} />}
       {mainTab === "approaches" && <GtmApproachesTab />}
     </div>
   );
