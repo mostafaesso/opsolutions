@@ -11,9 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Layers, Rocket, TrendingUp, Sparkles, Save,
   ChevronDown, ChevronRight, DollarSign, Users, Zap,
-  BarChart3, BookOpen, CheckCircle2, Circle,
+  BarChart3, BookOpen, CheckCircle2, Circle, Activity,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import CrmStatusTab from "./CrmStatusTab";
 
 interface Props {
   companies: Company[];
