@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Plus, Trash2, Target, Library, Building2, Save, Wand2, Copy,
   Building, Users, Flame, ShieldAlert, CheckCircle2, FileDown, Sparkles, Gauge,
+  BookOpen, ExternalLink, Search, Database, Mail, Globe,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { generateIcpPdf } from "@/lib/icpPdf";
@@ -16,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   companies: Company[];
+  isOps?: boolean;
 }
 
 type FieldDef = {
@@ -97,9 +99,9 @@ const TIER_OPTIONS = [
 
 const PERSONALIZATION_OPTIONS = ["Sniper (highly personalized)", "Balanced", "Shotgun (automated)"];
 
-const IcpTemplatesPanel = ({ companies }: Props) => {
+const IcpTemplatesPanel = ({ companies, isOps = false }: Props) => {
   const { templates, loading, create, update, remove } = useIcpTemplates();
-  const [view, setView] = useState<"library" | "company">("library");
+  const [view, setView] = useState<"library" | "company" | "sources">("library");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedCompany, setSelectedCompany] = useState<string>(companies[0]?.slug ?? "");
 
@@ -126,9 +128,21 @@ const IcpTemplatesPanel = ({ companies }: Props) => {
         >
           <Building2 className="w-4 h-4" /> Per-Company Editor
         </button>
+        {isOps && (
+          <button
+            onClick={() => setView("sources")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              view === "sources" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <BookOpen className="w-4 h-4" /> Recommended Sources
+          </button>
+        )}
       </div>
 
-      {view === "library" ? (
+      {view === "sources" && isOps ? (
+        <RecommendedSourcesView />
+      ) : view === "library" ? (
         <LibraryView
           templates={templates}
           loading={loading}
@@ -160,6 +174,112 @@ const IcpTemplatesPanel = ({ companies }: Props) => {
     </div>
   );
 };
+
+// ─── Recommended Sources (OPS-only) ────────────────────────
+
+const SOURCE_CATEGORIES = [
+  {
+    icon: Search,
+    title: "Where to find target companies",
+    color: "text-blue-600",
+    bg: "bg-blue-50",
+    sources: [
+      { name: "Apollo.io", url: "https://apollo.io", desc: "Filter by industry, size, tech stack, geography. Best for GCC + MENA lists." },
+      { name: "LinkedIn Sales Navigator", url: "https://linkedin.com/sales", desc: "Build company + people lists. Use boolean search for titles and regions." },
+      { name: "Crunchbase", url: "https://crunchbase.com", desc: "Find funded companies, track funding rounds as buying triggers." },
+      { name: "G2 Crowd", url: "https://g2.com", desc: "If client sells software — find companies using competitor tools (tech stack filter)." },
+      { name: "Clutch.co", url: "https://clutch.co", desc: "B2B agencies and service firms. Good for finding IT/software companies in MENA." },
+    ],
+  },
+  {
+    icon: Database,
+    title: "Where to enrich & validate contact data",
+    color: "text-purple-600",
+    bg: "bg-purple-50",
+    sources: [
+      { name: "Apollo Enrichment", url: "https://apollo.io", desc: "Enrich a list of domains to get emails, titles, LinkedIn URLs, phone numbers." },
+      { name: "Hunter.io", url: "https://hunter.io", desc: "Find and verify emails by domain. Great for quick email pattern discovery." },
+      { name: "Clearbit / Breeze", url: "https://clearbit.com", desc: "Enrich leads with firmographic data (revenue, size, tech stack) via API." },
+      { name: "LinkedIn (manual)", url: "https://linkedin.com", desc: "Verify titles, tenure, and seniority. Cross-check job titles before reaching out." },
+      { name: "ZoomInfo", url: "https://zoominfo.com", desc: "Enterprise-grade contact database. Most complete for US — limited for GCC." },
+    ],
+  },
+  {
+    icon: Globe,
+    title: "How to scrape company context for ICP",
+    color: "text-emerald-600",
+    bg: "bg-emerald-50",
+    sources: [
+      { name: "Client's website /about & /services", url: "", desc: "Copy their About page and Services page into the AI context box. This is the most reliable input." },
+      { name: "LinkedIn Company Page", url: "https://linkedin.com", desc: "Copy the 'About' section from their LinkedIn page — usually very concise and accurate." },
+      { name: "G2 Profile page", url: "https://g2.com", desc: "If they sell software, their G2 page shows who reviews them — real buyer titles and industries." },
+      { name: "Crunchbase profile", url: "https://crunchbase.com", desc: "Copy their description + 'Industries' tags. Good for geography and company stage." },
+      { name: "Pitchbook / Tracxn", url: "https://tracxn.com", desc: "For MENA/GCC startups — find their investors, stage, and market description." },
+    ],
+  },
+  {
+    icon: Mail,
+    title: "Industry-specific tips",
+    color: "text-orange-600",
+    bg: "bg-orange-50",
+    sources: [
+      { name: "HubSpot ecosystem clients", url: "https://ecosystem.hubspot.com", desc: "HubSpot Partner Directory → find companies using HubSpot. Filter by region." },
+      { name: "Salesforce AppExchange", url: "https://appexchange.salesforce.com", desc: "Find companies in the Salesforce ecosystem. Good for RevOps / CRM buyers." },
+      { name: "SaaStr / Product Hunt", url: "https://producthunt.com", desc: "For SaaS companies — find buyers who are early adopters of new tools." },
+      { name: "GITEX / Step Conference", url: "https://gitex.com", desc: "MENA tech conference attendee lists — great source for GCC B2B prospects." },
+      { name: "Bayt / LinkedIn Jobs (GCC)", url: "https://bayt.com", desc: "Check hiring activity in GCC. If they're hiring SDRs or RevOps — strong buying signal." },
+    ],
+  },
+];
+
+const RecommendedSourcesView = () => (
+  <div className="space-y-5">
+    <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 flex items-start gap-2.5">
+      <BookOpen className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+      <div>
+        <p className="text-sm font-semibold text-amber-800">OPS-only reference guide</p>
+        <p className="text-xs text-amber-700 mt-0.5">
+          Use this to advise clients on where to find and enrich their ICP targets. When generating an AI ICP, copy relevant context from these sources into the "Company Context" box.
+        </p>
+      </div>
+    </div>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      {SOURCE_CATEGORIES.map((cat) => (
+        <div key={cat.title} className="rounded-xl border border-border bg-card p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <div className={`w-7 h-7 rounded-lg ${cat.bg} flex items-center justify-center shrink-0`}>
+              <cat.icon className={`w-3.5 h-3.5 ${cat.color}`} />
+            </div>
+            <h3 className="text-sm font-semibold text-foreground">{cat.title}</h3>
+          </div>
+          <div className="space-y-2">
+            {cat.sources.map((s) => (
+              <div key={s.name} className="flex items-start gap-2.5 rounded-lg bg-muted/40 px-3 py-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    {s.url ? (
+                      <a
+                        href={s.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
+                      >
+                        {s.name} <ExternalLink className="w-2.5 h-2.5" />
+                      </a>
+                    ) : (
+                      <span className="text-xs font-semibold text-foreground">{s.name}</span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{s.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
 
 // ─── Shared editor body ─────────────────────────────────────
 
@@ -748,7 +868,7 @@ const CompanyView = ({
             <Textarea
               value={aiHint}
               onChange={(e) => setAiHint(e.target.value)}
-              placeholder={`Example:\n"Engagesoft sells B2B CRM and sales engagement software to SMEs and mid-market companies in the GCC region (Saudi Arabia, UAE, Kuwait, Qatar, Bahrain, Oman). Their main buyers are Sales Directors, VP Sales, and CROs. They help companies with pipeline management and outbound automation."`}
+              placeholder={`Example:\n"Ops Solutions provides B2B sales training and GTM consulting to growth-stage companies in the GCC region (Saudi Arabia, UAE, Kuwait, Qatar). Their buyers are VP Sales, Revenue Operations leads, and Founders at companies with 20–300 employees looking to build outbound sales systems."`}
               className="bg-background min-h-[110px] text-sm resize-none"
             />
           </div>

@@ -775,7 +775,7 @@ const SuperAdminDashboard = () => {
         )}
 
         {/* ── ICP Template ── */}
-        {section === "icp" && <IcpTemplatesPanel companies={companies} />}
+        {section === "icp" && <IcpTemplatesPanel companies={companies} isOps={true} />}
 
         {/* ── GTM Stack ── */}
         {section === "gtm" && <GtmStackPanel companies={companies} />}
