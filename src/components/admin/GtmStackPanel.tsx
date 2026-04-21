@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Building2, Layers, Rocket, TrendingUp, Sparkles, Save,
+  Layers, Rocket, TrendingUp, Sparkles, Save,
   ChevronDown, ChevronRight, DollarSign, Users, Zap,
   BarChart3, BookOpen, CheckCircle2, Circle,
 } from "lucide-react";
@@ -550,9 +550,9 @@ const GtmStackTab = ({
     <div className="space-y-5">
       <BudgetSummary layers={layers} />
 
-      {/* Phase tabs */}
+      {/* Phase tabs — pill stepper */}
       <div className="grid grid-cols-3 gap-2">
-        {PHASES.map((p) => {
+        {PHASES.map((p, idx) => {
           const Icon = p.icon;
           const active = phase === p.key;
           const count = layers.filter((l) => (l.phase ?? DEFAULT_PHASE_FOR_LAYER[l.layer_number]) === p.key).length;
@@ -560,16 +560,32 @@ const GtmStackTab = ({
             <button
               key={p.key}
               onClick={() => setPhase(p.key)}
-              className={`text-left rounded-xl border p-3.5 transition-all ${
-                active ? "border-primary bg-primary/5 shadow-sm" : "border-border bg-card hover:border-primary/30"
+              className={`relative text-left rounded-2xl border p-4 transition-all overflow-hidden ${
+                active
+                  ? "border-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-md"
+                  : "border-border bg-card hover:border-primary/30 hover:shadow-sm"
               }`}
             >
-              <div className="flex items-center gap-2 mb-1">
-                <Icon className={`w-3.5 h-3.5 ${active ? "text-primary" : "text-muted-foreground"}`} />
-                <p className={`text-xs font-bold ${active ? "text-primary" : "text-foreground"}`}>{p.label}</p>
-                <span className="ml-auto text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">{count}</span>
+              {active && <span className="absolute top-0 left-0 right-0 h-0.5 bg-accent" />}
+              <div className="flex items-center gap-2 mb-1.5">
+                <div className={`h-7 w-7 rounded-lg flex items-center justify-center ${
+                  active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                }`}>
+                  <Icon className="w-3.5 h-3.5" />
+                </div>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Phase {idx + 1}
+                </span>
+                <span className={`ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                  active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                }`}>
+                  {count}
+                </span>
               </div>
-              <p className="text-[11px] text-muted-foreground">{p.description}</p>
+              <p className={`text-sm font-bold mb-0.5 ${active ? "text-primary" : "text-foreground"}`}>
+                {p.label}
+              </p>
+              <p className="text-[11px] text-muted-foreground leading-snug">{p.description}</p>
             </button>
           );
         })}
@@ -577,14 +593,16 @@ const GtmStackTab = ({
 
       {/* Progress */}
       {totalConfigured > 0 && (
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+        <div className="rounded-xl border border-border bg-card p-3 flex items-center gap-3">
+          <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
             <div
-              className="h-full bg-emerald-500 rounded-full transition-all"
+              className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all"
               style={{ width: `${(completedCount / 8) * 100}%` }}
             />
           </div>
-          <span>{completedCount} of 8 layers complete</span>
+          <span className="text-xs font-semibold text-foreground tabular-nums">
+            {completedCount}<span className="text-muted-foreground font-normal">/8 layers</span>
+          </span>
         </div>
       )}
 
@@ -825,30 +843,57 @@ const GtmStackPanel = ({ companies }: Props) => {
     );
   }
 
+  const completed = layers.filter((l) => l.is_complete).length;
+
   return (
-    <div className="space-y-5">
-      {/* Header bar */}
-      <div className="rounded-xl border border-border bg-card overflow-hidden">
-        {/* Company picker row */}
-        <div className="flex flex-wrap items-center gap-3 px-5 py-3 border-b border-border bg-muted/20">
-          <Building2 className="w-4 h-4 text-muted-foreground shrink-0" />
-          <Select value={selectedSlug} onValueChange={setSelectedSlug}>
-            <SelectTrigger className="w-[240px] bg-background h-8 text-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {companies.map((c) => (
-                <SelectItem key={c.slug} value={c.slug}>{c.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <span className="text-xs text-muted-foreground ml-auto hidden sm:block">
-            GTM workspace for <strong className="text-foreground">{company?.name}</strong>
-          </span>
+    <div className="space-y-6">
+      {/* ── Hero header ────────────────────────────────────────── */}
+      <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-primary/8 via-card to-card">
+        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-accent/10 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+
+        <div className="relative px-5 md:px-7 py-5 md:py-6 flex flex-col lg:flex-row lg:items-center gap-5">
+          <div className="flex items-center gap-4 min-w-0 flex-1">
+            <div className="shrink-0 h-14 w-14 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shadow-sm">
+              <Layers className="h-6 w-6" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-1">
+                GTM Workspace
+              </p>
+              <h2 className="text-xl md:text-2xl font-bold text-foreground tracking-tight truncate">
+                {company?.name ?? "Select a company"}
+              </h2>
+              <div className="mt-1.5 flex items-center gap-3 flex-wrap text-[11px] text-muted-foreground">
+                <span className="inline-flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                  <strong className="text-foreground">{completed}</strong>/8 layers complete
+                </span>
+                <span className="h-1 w-1 rounded-full bg-border" />
+                <span className="inline-flex items-center gap-1">
+                  <Users className="w-3 h-3" />
+                  <strong className="text-foreground">{totalLeadsCapacity.toLocaleString()}</strong> leads/mo capacity
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 lg:shrink-0">
+            <Select value={selectedSlug} onValueChange={setSelectedSlug}>
+              <SelectTrigger className="w-full sm:w-[220px] bg-background h-10">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {companies.map((c) => (
+                  <SelectItem key={c.slug} value={c.slug}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Tab nav */}
-        <div className="flex">
+        <div className="relative flex border-t border-border bg-card/40 backdrop-blur-sm overflow-x-auto">
           {MAIN_TABS.map((tab) => {
             const Icon = tab.icon;
             const active = mainTab === tab.key;
@@ -856,14 +901,15 @@ const GtmStackPanel = ({ companies }: Props) => {
               <button
                 key={tab.key}
                 onClick={() => setMainTab(tab.key)}
-                className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
-                  active
-                    ? "border-primary text-primary bg-primary/5"
-                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                className={`relative flex items-center gap-2 px-5 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
+                  active ? "text-primary" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
                 {tab.label}
+                {active && (
+                  <span className="absolute left-3 right-3 bottom-0 h-0.5 rounded-t-full bg-primary" />
+                )}
               </button>
             );
           })}
