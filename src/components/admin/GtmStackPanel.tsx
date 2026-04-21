@@ -932,7 +932,13 @@ const GtmStackPanel = ({ companies }: Props) => {
           movePhase={movePhase}
         />
       )}
-      {mainTab === "forecast" && <LeadForecastTab defaultLeads={totalLeadsCapacity} />}
+      {mainTab === "forecast" && (
+        <LeadForecastTab
+          defaultLeads={totalLeadsCapacity}
+          monthlyCost={stackBudget.recurringMonthly}
+          oneTimeCost={stackBudget.oneTimeCost}
+        />
+      )}
       {mainTab === "approaches" && <GtmApproachesTab />}
     </div>
   );
